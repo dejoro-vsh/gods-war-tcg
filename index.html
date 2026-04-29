@@ -129,8 +129,147 @@
         <div style="color:#555; font-style: italic;">สนามรบของคุณ</div>
         
         <div id="zeus-card" class="card" style="border-color:var(--red); width: 150px; height: 210px; cursor: default;">
-            <img src="https://res.cloudinary.com/dju440p8w/image/upload/v1714397753/Zeus.jpg" alt="Zeus">
+            <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777467100/Gemini_Generated_Image_y35m84y35m84y35m_phm30l.jpg" alt="Zeus">
             <div class="card-info"><h3>ZEUS</h3></div>
             <div class="atk-badge" style="background: #222;">DEF: 5000</div>
         </div>
     </div>
+
+    <div id="battle-log">--- ยินดีต้อนรับสู่มหากาพย์สงครามเทพเจ้า ---</div>
+
+    <div class="controls">
+        <button onclick="drawCard()">🎴 จั่วการ์ด</button>
+        <button class="btn-reset" onclick="resetGame()">🔄 เริ่มเกมใหม่</button>
+    </div>
+
+    <div class="hand-container" id="player-hand">
+        </div>
+
+    <script>
+        // ข้อมูลการ์ดหลัก
+        const cardTypes = [
+            { name: "Wukong", atk: 6000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
+            { name: "Spartan", atk: 4000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" },
+            { name: "Valkyrie", atk: 5500, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467981/Gemini_Generated_Image_kefxgakefxgakefx_plgdep.jpg" },
+            { name: "Centaur", atk: 4500, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777468077/Gemini_Generated_Image_3bqflw3bqflw3bqf_eq9uny.jpg" }
+        ];
+
+        let deck = [];
+        let hand = [];
+        let zeusLife = 5;
+
+        // เริ่มต้นเกม
+        function initGame() {
+            deck = [];
+            hand = [];
+            zeusLife = 5;
+            
+            // สร้างกองการ์ดแบบสุ่ม Rarity
+            for (let i = 0; i < 50; i++) {
+                let roll = Math.random() * 100;
+                let cardBase;
+                let rarity = 'C';
+
+                if (roll < 12) { // 12% SR
+                    cardBase = cardTypes[0];
+                    rarity = 'SR';
+                } else if (roll < 40) { // 28% R
+                    cardBase = cardTypes[2];
+                    rarity = 'R';
+                } else { // 60% Common
+                    cardBase = Math.random() > 0.5 ? cardTypes[1] : cardTypes[3];
+                    rarity = 'C';
+                }
+                deck.push({ ...cardBase, rarity: rarity, id: i });
+            }
+            
+            const log = document.getElementById('battle-log');
+            log.innerHTML = "--- เริ่มต้นการประลองครั้งใหม่! ---";
+            updateUI();
+        }
+
+        // จั่วการ์ด
+        function drawCard() {
+            if (zeusLife <= 0) return;
+            if (hand.length >= 6) {
+                addLog("⚠️ การ์ดเต็มมือแล้ว!");
+                return;
+            }
+            if (deck.length > 0) {
+                hand.push(deck.pop());
+                updateUI();
+            } else {
+                addLog("⚠️ การ์ดหมดกองแล้ว!");
+            }
+        }
+
+        // เล่นการ์ด
+        function playCard(index) {
+            if (zeusLife <= 0) return;
+
+            const card = hand[index];
+            addLog(`⚔️ ส่ง ${card.name} [${card.rarity}] เข้าจู่โจม!`);
+            
+            if (card.atk >= 5000) {
+                zeusLife--;
+                if (zeusLife < 0) zeusLife = 0;
+                addLog(`✅ สำเร็จ! Zeus ได้รับความเสียหาย (-1 HP)`);
+            } else {
+                addLog(`❌ พลาด! พลังของ ${card.name} ไม่เพียงพอจะทำอันตราย Zeus`);
+            }
+            
+            hand.splice(index, 1);
+            updateUI();
+
+            if (zeusLife === 0) {
+                addLog("<br>🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆");
+                addLog("ชัยชนะเป็นของคุณ! ซุสพ่ายแพ้อย่างราบคาบ!");
+                addLog("🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆");
+                setTimeout(() => alert("🎉 คุณคือผู้ชนะในสงครามครั้งนี้!"), 300);
+            }
+        }
+
+        // รีเซ็ตเกม
+        function resetGame() {
+            if (confirm("ต้องการเริ่มเกมใหม่หรือไม่?")) {
+                initGame();
+            }
+        }
+
+        // อัปเดตหน้าจอ
+        function updateUI() {
+            document.getElementById('zeus-life').innerText = zeusLife;
+            document.getElementById('deck-count').innerText = deck.length;
+            
+            const handDiv = document.getElementById('player-hand');
+            handDiv.innerHTML = '';
+            
+            hand.forEach((card, i) => {
+                handDiv.innerHTML += `
+                    <div class="card ${card.rarity}" onclick="playCard(${i})">
+                        <img src="${card.img}">
+                        <div class="card-info"><b>${card.name}</b><br>[${card.rarity}]</div>
+                        <div class="atk-badge">${card.atk}</div>
+                    </div>
+                `;
+            });
+
+            // ตรวจสอบสถานะซุส
+            const zeusCard = document.getElementById('zeus-card');
+            if (zeusLife <= 0) {
+                zeusCard.classList.add('zeus-dead');
+            } else {
+                zeusCard.classList.remove('zeus-dead');
+            }
+        }
+
+        function addLog(msg) {
+            const log = document.getElementById('battle-log');
+            log.innerHTML += `<br>> ${msg}`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
