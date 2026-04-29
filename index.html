@@ -2,73 +2,70 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Gods War: Hand System</title>
+    <title>Gods War: Visual Edition</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #121212; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
         
-        /* สนามรบ */
-        .battlefield { display: flex; justify-content: space-around; align-items: center; height: 300px; border-bottom: 2px ridge #444; margin-bottom: 20px; background: #252525; }
+        /* สไตล์การ์ดใหม่ */
+        .card { 
+            width: 110px; height: 160px; 
+            border: 2px solid var(--gold); border-radius: 10px; 
+            background: linear-gradient(145deg, #222, #444);
+            display: inline-block; margin: 10px;
+            cursor: pointer; position: relative;
+            overflow: hidden; transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .card:hover { transform: translateY(-15px) scale(1.1); box-shadow: 0 10px 20px var(--gold); }
+        .card img { width: 100%; height: 70%; object-fit: cover; border-bottom: 1px solid var(--gold); }
+        .card-info { padding: 5px; font-size: 11px; }
+        .atk-badge { position: absolute; bottom: 5px; right: 5px; background: var(--red); color: white; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
+
+        .battlefield { display: flex; justify-content: space-around; align-items: center; height: 350px; background: url('https://www.transparenttextures.com/patterns/dark-matter.png'); border-bottom: 3px solid #333; }
+        .hand-container { background: rgba(0,0,0,0.8); padding: 20px; min-height: 180px; overflow-x: auto; white-space: nowrap; }
         
-        /* การ์ดบนสนามและบนมือ */
-        .card { width: 100px; height: 140px; border: 2px solid #ffd700; border-radius: 8px; background: #333; cursor: pointer; position: relative; font-size: 12px; display: inline-block; margin: 5px; vertical-align: top; }
-        .card.enemy { border-color: #ff4d4d; }
-        .card:hover { transform: translateY(-10px); box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
+        #battle-log { background: rgba(0,0,0,0.9); color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-family: monospace; font-size: 12px; border-top: 1px solid #444; }
         
-        /* ส่วนของมือผู้เล่น */
-        .hand-container { background: #111; padding: 20px; min-height: 160px; border: 2px dashed #555; }
-        
-        /* ปุ่มและสถานะ */
-        #battle-log { background: #000; color: #0f0; padding: 10px; height: 100px; overflow-y: auto; font-family: monospace; font-size: 12px; margin-bottom: 10px; border: 1px solid #333; }
-        .controls { margin-bottom: 10px; }
-        button { padding: 10px 20px; font-weight: bold; cursor: pointer; background: #ffd700; border: none; border-radius: 5px; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        .stats { font-size: 18px; margin-bottom: 10px; }
+        .header-stats { background: #000; padding: 15px; display: flex; justify-content: space-around; font-size: 20px; border-bottom: 2px solid var(--gold); }
+        button { padding: 12px 25px; font-size: 16px; background: var(--gold); border: none; border-radius: 20px; font-weight: bold; cursor: pointer; margin: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>Gods War: Arena</h1>
-    
-    <div class="stats">
-        Enemy Zeus HP: <span id="zeus-life" style="color:#ff4d4d">5</span> | 
-        Deck: <span id="deck-count">50</span> cards
-    </div>
-
-    <div id="battle-log">--- ยินดีต้อนรับสู่สนามรบ ---</div>
-
-    <div class="controls">
-        <button id="draw-btn" onclick="drawCard()">🎴 จั่วการ์ด</button>
+    <div class="header-stats">
+        <div>🔱 Enemy Zeus HP: <span id="zeus-life" style="color:var(--red)">5</span></div>
+        <div>🎴 Deck: <span id="deck-count">50</span></div>
     </div>
 
     <div class="battlefield">
-        <div id="player-field">
-            <p style="color:#666">สนามของคุณ (คลิกการ์ดบนมือเพื่อลงสนาม)</p>
-        </div>
-        <div style="font-size: 30px;">VS</div>
-        <div class="card enemy">
-            <h3>Zeus</h3>
-            <p>DEF: 5000</p>
+        <div id="player-field" style="color:#aaa">สนามรบ</div>
+        
+        <div class="card" style="border-color:var(--red); width: 140px; height: 200px;">
+            <img src="https://img5.goodfon.com/wallpaper/nbig/6/24/god-of-war-zeus-king-of-gods-fantaziia-iskusstvo-boevye-isku.jpg" alt="Zeus">
+            <div class="card-info"><h3>ZEUS</h3></div>
+            <div class="atk-badge">DEF: 5000</div>
         </div>
     </div>
 
-    <h3>การ์ดบนมือของคุณ (Hand)</h3>
-    <div id="player-hand" class="hand-container">
-        </div>
+    <button onclick="drawCard()">🎴 จั่วการ์ดใหม่</button>
+
+    <div id="battle-log">--- เตรียมตัวเข้าสู่มหาสงครามเทพเจ้า ---</div>
+
+    <div class="hand-container" id="player-hand"></div>
 
     <script>
-        // 1. ข้อมูลการ์ด
         const cardTypes = [
-            { name: "Wukong", atk: 6000 },
-            { name: "Spartan", atk: 4000 },
-            { name: "Centaur", atk: 4500 },
-            { name: "Valkyrie", atk: 5000 }
+            { name: "Wukong", atk: 6000, img: "https://i.pinimg.com/736x/8d/6d/2c/8d6d2c499f55a15325c7e0c8b91936c5.jpg" },
+            { name: "Spartan", atk: 4000, img: "https://img.freepik.com/premium-photo/spartan-warrior-with-helmet-shield-ai-generated_145713-113.jpg" },
+            { name: "Valkyrie", atk: 5500, img: "https://i.pinimg.com/736x/07/90/1d/07901d89843666b61884489370163351.jpg" },
+            { name: "Centaur", atk: 4500, img: "https://vignette.wikia.nocookie.net/powerlisting/images/e/e0/Archer_Centaur.jpg/revision/latest?cb=20150311221715" }
         ];
 
         let deck = [];
         let hand = [];
         let zeusLife = 5;
 
-        // 2. สร้างกองการ์ด 50 ใบ (สุ่ม)
         function initGame() {
             for (let i = 0; i < 50; i++) {
                 let randomType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
@@ -77,44 +74,25 @@
             updateUI();
         }
 
-        // 3. ฟังก์ชันจั่วการ์ด
         function drawCard() {
-            if (deck.length > 0) {
-                if (hand.length >= 5) {
-                    addLog("มือเต็มแล้ว! (สูงสุด 5 ใบ)");
-                    return;
-                }
-                let card = deck.pop();
-                hand.push(card);
-                addLog(`จั่วได้ ${card.name}`);
+            if (deck.length > 0 && hand.length < 6) {
+                hand.push(deck.pop());
                 updateUI();
-            } else {
-                addLog("การ์ดหมดกอง!");
             }
         }
 
-        // 4. ฟังก์ชันลงการ์ด (Play Card) และโจมตีทันที
-        function playCard(handIndex) {
-            let card = hand[handIndex];
-            
-            // ย้ายจากมือไปสนาม (ในเวอร์ชันนี้เราจะจำลองการตีทันที)
-            addLog(`ลงสนาม: ${card.name} และสั่งโจมตี!`);
+        function playCard(index) {
+            const card = hand[index];
+            addLog(`${card.name} บุกโจมตี!`);
             
             if (card.atk >= 5000) {
                 zeusLife--;
-                addLog(`✅ ${card.name} โจมตีเข้า! Zeus เสีย 1 HP`);
+                addLog(`✅ สำเร็จ! Zeus บาดเจ็บ (-1 HP)`);
             } else {
-                addLog(`❌ ${card.name} พลังไม่พอจะทะลวง Zeus!`);
+                addLog(`❌ พ่ายแพ้! พลังของ ${card.name} ไม่พอ`);
             }
             
-            // ลบการ์ดออกจากมือหลังจากใช้งาน
-            hand.splice(handIndex, 1);
-            
-            if (zeusLife <= 0) {
-                zeusLife = 0;
-                addLog("🎉 คุณชนะสงครามเทพเจ้าแล้ว!");
-            }
-            
+            hand.splice(index, 1);
             updateUI();
         }
 
@@ -122,15 +100,14 @@
             document.getElementById('zeus-life').innerText = zeusLife;
             document.getElementById('deck-count').innerText = deck.length;
             
-            // อัปเดตการ์ดบนมือ
             const handDiv = document.getElementById('player-hand');
             handDiv.innerHTML = '';
-            hand.forEach((card, index) => {
+            hand.forEach((card, i) => {
                 handDiv.innerHTML += `
-                    <div class="card" onclick="playCard(${index})">
-                        <h4>${card.name}</h4>
-                        <p>ATK: ${card.atk}</p>
-                        <small style="color:yellow">คลิกเพื่อตี</small>
+                    <div class="card" onclick="playCard(${i})">
+                        <img src="${card.img}">
+                        <div class="card-info"><b>${card.name}</b></div>
+                        <div class="atk-badge">${card.atk}</div>
                     </div>
                 `;
             });
@@ -142,7 +119,6 @@
             log.scrollTop = log.scrollHeight;
         }
 
-        // เริ่มเกม
         initGame();
     </script>
 </body>
