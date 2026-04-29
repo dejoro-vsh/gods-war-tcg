@@ -17,6 +17,13 @@
             overflow: hidden; transition: 0.3s;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
+        /* เพิ่มในส่วน <style> */
+        .card.SR { border-color: #ff00ff; box-shadow: 0 0 20px #ff00ff; animation: glow 2s infinite; }
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #ff00ff; }
+            50% { box-shadow: 0 0 25px #ff00ff; }
+            100% { box-shadow: 0 0 5px #ff00ff; }
+        }
         .card:hover { transform: translateY(-15px) scale(1.1); box-shadow: 0 10px 20px var(--gold); }
         .card img { width: 100%; height: 70%; object-fit: cover; border-bottom: 1px solid var(--gold); }
         .card-info { padding: 5px; font-size: 11px; }
@@ -67,9 +74,23 @@
         let zeusLife = 5;
 
         function initGame() {
+            deck = [];
             for (let i = 0; i < 50; i++) {
-                let randomType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
-                deck.push({ ...randomType, id: i });
+                let roll = Math.random() * 100; // สุ่มเลข 0-100
+                let card;
+
+                if (roll < 10) { 
+                    // 10% ได้ Super Rare (Wukong)
+                    card = { ...cardTypes[0], rarity: 'SR', color: '#ff00ff' }; 
+                } else if (roll < 40) { 
+                    // 30% ได้ Rare (Valkyrie)
+                    card = { ...cardTypes[2], rarity: 'R', color: '#00ccff' };
+                } else { 
+                    // 60% ได้ Common (Spartan, Centaur)
+                    let commonCards = [cardTypes[1], cardTypes[3]];
+                    card = { ...commonCards[Math.floor(Math.random() * 2)], rarity: 'C', color: '#ffffff' };
+                }
+                deck.push({ ...card, id: i });
             }
             updateUI();
         }
@@ -82,24 +103,49 @@
         }
 
         function playCard(index) {
+            // 1. เช็คก่อนว่าถ้า Zeus ตายแล้ว ไม่ต้องทำอะไรต่อ
+            if (zeusLife <= 0) {
+                addLog("⚔️ สงครามจบลงแล้ว! Zeus พ่ายแพ้ไปแล้ว");
+                return; 
+            }
+
             const card = hand[index];
             addLog(`${card.name} บุกโจมตี!`);
             
             if (card.atk >= 5000) {
                 zeusLife--;
+                if (zeusLife < 0) { zeusLife = 0; }
                 addLog(`✅ สำเร็จ! Zeus บาดเจ็บ (-1 HP)`);
             } else {
                 addLog(`❌ พ่ายแพ้! พลังของ ${card.name} ไม่พอ`);
             }
             
+            // ลบการ์ดที่ใช้ออก
             hand.splice(index, 1);
             updateUI();
+
+            // 2. เช็คผลลัพธ์หลังการโจมตี
+            if (zeusLife === 0) {
+                addLog("<br>🌟========================🌟");
+                addLog("🏆 ชัยชนะเป็นของคุณ! ZEUS HAS BEEN DEFEATED!");
+                addLog("🌟========================🌟");
+                
+                // (Optional) เพิ่มเอฟเฟกต์เด้งเตือน
+                setTimeout(() => {
+                    alert("ยินดีด้วย! คุณโค่นเทพเจ้าซุสได้สำเร็จ!");
+                }, 500);
+            }
         }
 
         function updateUI() {
             document.getElementById('zeus-life').innerText = zeusLife;
             document.getElementById('deck-count').innerText = deck.length;
-            
+            const zeusCard = document.querySelector('.card.enemy'); // เลือกการ์ดซุส
+            if (zeusLife <= 0) {
+                zeusCard.style.opacity = "0.3"; // ทำให้จางลง
+                zeusCard.style.filter = "grayscale(100%)"; // ทำให้เป็นสีขาวดำ
+                zeusCard.style.transform = "rotate(90deg)"; // นอนลง (ตาย)
+            }
             const handDiv = document.getElementById('player-hand');
             handDiv.innerHTML = '';
             hand.forEach((card, i) => {
