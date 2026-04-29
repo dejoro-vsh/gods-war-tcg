@@ -3,264 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Celestial War: Defense & Counter</title>
+    <title>Gods War: Organized Battlefield</title>
     <style>
-        :root { --gold: #ffd700; --red: #ff4d4d; --blue: #00ccff; --bg: #0a0a0a; --green: #2ecc71; --orange: #e67e22; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        :root { --gold: #ffd700; --red: #ff4d4d; --blue: #00ccff; --bg: #0d0d0d; --green: #2ecc71; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
         
-        /* UI Elements */
-        .header-stats { background: #000; padding: 15px; display: flex; justify-content: space-around; border-bottom: 2px solid var(--gold); }
-        .hp-container { width: 140px; background: #222; height: 12px; border-radius: 6px; border: 1px solid #444; overflow: hidden; }
-        .hp-bar { height: 100%; background: var(--green); transition: 0.4s; }
-        .info-bar { display: flex; justify-content: space-between; padding: 8px 40px; background: #1a0505; border-bottom: 1px solid #333; font-size: 14px; }
+        /* 1. ปรับขนาดพื้นที่สนามรบให้สูงขึ้นและจัดระเบียบใหม่ */
+        .battlefield { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 30px; 
+            padding: 30px; 
+            background: radial-gradient(circle, #200 0%, #0d0d0d 100%);
+            min-height: 550px; /* เพิ่มความสูง */
+        }
 
-        /* Battlefield */
-        .battlefield { display: grid; grid-template-rows: 1fr 1fr; gap: 20px; height: 440px; padding: 20px; background: radial-gradient(circle, #200 0%, #0a0a0a 100%); }
-        .field-zone { display: flex; gap: 15px; justify-content: center; align-items: center; min-height: 170px; }
+        /* 2. จัดการโซนวางการ์ดให้กระจายตัวสวยงาม ไม่ทับกัน */
+        .field-zone { 
+            display: flex; 
+            flex-wrap: wrap; /* ถ้าการ์ดเยอะให้ขึ้นบรรทัดใหม่ */
+            gap: 20px; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 160px; 
+            padding: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            border-radius: 20px;
+        }
 
-        /* Card System */
-        .card { width: 90px; height: 130px; border: 2px solid var(--gold); border-radius: 10px; background: #111; position: relative; cursor: pointer; transition: 0.3s; }
+        /* 3. การ์ดแนวตั้ง (Portrait) */
+        .card { 
+            width: 90px; 
+            height: 130px; 
+            border: 2px solid var(--gold); 
+            border-radius: 10px; 
+            background: #111; 
+            position: relative; 
+            cursor: pointer; 
+            transition: 0.3s;
+            flex-shrink: 0; /* ป้องกันการ์ดถูกบีบตัว */
+        }
+        
         .card img { width: 100%; height: 60%; object-fit: cover; border-radius: 8px 8px 0 0; pointer-events: none; }
-        .rest { transform: rotate(90deg) !important; filter: brightness(0.4); }
         
-        /* Interactive Tags */
-        .selected-atk { border: 4px solid var(--blue) !important; box-shadow: 0 0 20px var(--blue); transform: scale(1.05); }
-        .targetable { border: 4px solid var(--red) !important; animation: pulse-red 0.8s infinite; }
-        @keyframes pulse-red { 50% { box-shadow: 0 0 15px var(--red); } }
+        /* สถานะการ์ดนอน (Rest) */
+        .rest { transform: rotate(90deg) scale(0.9) !important; filter: brightness(0.4); }
 
-        /* Badges & Tags */
-        .badge { position: absolute; padding: 2px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-        .atk-cost { bottom: 5px; left: 5px; background: var(--gold); color: black; }
-        .atk-val { bottom: 5px; right: 5px; background: var(--red); }
-        .tag-blocker { position: absolute; top: 5px; right: 5px; background: var(--green); color: black; font-size: 8px; padding: 2px; border-radius: 3px; font-weight: bold; }
-        .tag-counter { position: absolute; top: 5px; right: 5px; background: var(--orange); font-size: 8px; padding: 2px; border-radius: 3px; }
+        /* ระบบไฮไลท์ */
+        .is-attacking { border: 4px solid var(--blue) !important; box-shadow: 0 0 20px var(--blue); transform: translateY(-10px); }
+        .is-targetable { border: 4px solid var(--red) !important; animation: blink-red 0.8s infinite; }
+        @keyframes blink-red { 50% { box-shadow: 0 0 20px var(--red); opacity: 0.8; } }
 
-        /* Defense Modal */
-        #defense-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px; border: 2px solid var(--gold); border-radius: 20px; z-index: 200; display: none; min-width: 400px; }
-        
-        #battle-log { background: #000; color: #0f0; padding: 12px; height: 70px; overflow-y: auto; font-family: monospace; border-top: 1px solid var(--gold); text-align: left; font-size: 12px; }
-        .controls { padding: 10px; background: #111; display: flex; justify-content: center; gap: 10px; }
-        button { padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 20px; border: none; }
+        /* Badge & Stats */
+        .badge { position: absolute; padding: 2px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #000; z-index: 5; }
+        .atk-cost { bottom: 5px; left: 5px; background: var(--gold); color: #000; }
+        .atk-val { bottom: 5px; right: 5px; background: var(--red); color: #fff; }
+        .cost-val { top: -8px; left: -8px; background: var(--blue); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid white; }
+
+        /* UI อื่นๆ */
+        .header-stats { background: #000; padding: 15px; display: flex; justify-content: space-around; border-bottom: 2px solid var(--gold); }
+        .ess-box { background: #222; padding: 5px 15px; border: 1px solid var(--gold); border-radius: 10px; font-weight: bold; min-width: 120px; }
+        #battle-log { background: #000; color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-family: monospace; border-top: 1px solid var(--gold); text-align: left; }
+        .hand-container { background: rgba(0,0,0,0.5); padding: 20px; display: flex; justify-content: center; gap: 15px; min-height: 160px; border-top: 2px solid #333; }
+        button { padding: 10px 25px; font-weight: bold; cursor: pointer; border-radius: 20px; border: none; margin: 10px; background: var(--gold); }
     </style>
 </head>
 <body>
 
-    <div id="defense-overlay">
-        <h2 style="color:var(--red)">🚨 ถูกโจมตี! ท่านจะป้องกันอย่างไร?</h2>
-        <div id="defense-options" style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
-            </div>
-    </div>
-
     <div class="header-stats">
-        <div>🔱 ZEUS HP: <span id="e-hp-num">5</span>/5 <div class="hp-container"><div id="e-hp-bar" class="hp-bar"></div></div></div>
-        <div>⛩️ YOU HP: <span id="p-hp-num">5</span>/5 <div class="hp-container"><div id="p-hp-bar" class="hp-bar"></div></div></div>
-    </div>
-
-    <div class="info-bar">
-        <div>🎴 GREEK DECK: <span id="e-deck">50</span></div>
-        <div style="color:var(--gold); font-weight:bold;">ESSENCE: <span id="p-ess-act">0</span> / <span id="p-ess-max">0</span></div>
-        <div>🎴 CHINA DECK: <span id="p-deck">50</span></div>
+        <div class="ess-box" style="color:var(--red)">🔱 ZEUS: <span id="e-hp">5</span> HP</div>
+        <div style="font-size: 20px; font-weight: bold;">⛩️ CELESTIAL WAR 🔱</div>
+        <div class="ess-box" style="color:var(--blue)">⛩️ YOU: <span id="p-hp">5</span> HP</div>
     </div>
 
     <div class="battlefield">
-        <div class="field-zone">
-            <div id="e-leader-card" class="card" onclick="handleTargetClick('leader', 0)">
+        <div id="enemy-full-zone" class="field-zone" style="border-color: var(--red);">
+            <div id="e-leader" class="card" onclick="onTarget('leader', 0)" style="width: 110px; height: 150px; border-width: 4px;">
                 <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777467100/Gemini_Generated_Image_y35m84y35m84y35m_phm30l.jpg">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
-            <div id="e-field-ui"></div>
+            <div id="e-field-ui" style="display:flex; gap:15px; flex-wrap: wrap;"></div>
         </div>
-        <div class="field-zone">
-            <div id="p-field-ui"></div>
-            <div id="p-leader-card" class="card" onclick="handleAttackerClick('leader', 0)">
+
+        <div style="color: var(--gold); font-weight: bold; font-size: 14px;">--- สมรภูมิรบ ---</div>
+
+        <div id="player-full-zone" class="field-zone" style="border-color: var(--blue);">
+            <div id="p-field-ui" style="display:flex; gap:15px; flex-wrap: wrap;"></div>
+            <div id="p-leader" class="card" onclick="onAttack('leader', 0)" style="width: 110px; height: 150px; border-width: 4px;">
                 <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777472385/Gemini_Generated_Image_lkkjkalkkjkalkkj_y9swsw.jpg">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
         </div>
     </div>
 
-    <div id="battle-log">> คลิก "เลือกฝ่าย" เพื่อเริ่มเกม</div>
+    <div id="battle-log">> คลิก "เริ่มเกม" เพื่อวางหมาก</div>
     <div class="controls">
-        <button style="background:var(--blue); color:white" onclick="showToss()">🔄 เลือกฝ่าย</button>
+        <button id="start-btn" style="background:var(--green)" onclick="initGame()">🔥 เริ่มเกม</button>
         <button style="background:var(--red); color:white" onclick="endTurn()">⏭️ จบเทิร์น</button>
+        <div style="display:inline-block; margin-left:20px;">
+            💎 ESSENCE: <span id="p-ess-ui" style="color:var(--blue); font-weight:bold;">0 / 0</span>
+        </div>
     </div>
 
-    <div id="p-hand-ui" class="field-zone" style="background:rgba(0,0,0,0.4); border-top: 1px solid #444; min-height:150px;"></div>
+    <div id="p-hand-ui" class="hand-container"></div>
 
     <script>
-        const chinaCards = [
-            { name: "Wukong", atk: 6000, cost: 5, atkCost: 2, type: "warrior", img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
-            { name: "Erlang", atk: 4000, cost: 2, atkCost: 1, type: "blocker", img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472457/Gemini_Generated_Image_s7osias7osias7os_fabxbv.jpg" },
-            { name: "Nezha", atk: 5000, cost: 3, atkCost: 1, type: "warrior", counterVal: 2000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472501/Gemini_Generated_Image_m8c3vam8c3vam8c3_pqnpqt.jpg" }
+        // ข้อมูลตัวละคร
+        const cardsData = [
+            { name: "Wukong", atk: 6000, cost: 5, atkCost: 2, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
+            { name: "Erlang", atk: 4500, cost: 2, atkCost: 1, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472457/Gemini_Generated_Image_s7osias7osias7os_fabxbv.jpg" },
+            { name: "Nezha", atk: 5500, cost: 3, atkCost: 1, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472501/Gemini_Generated_Image_m8c3vam8c3vam8c3_pqnpqt.jpg" }
         ];
 
-        const greekCards = [
-            { name: "Hercules", atk: 5500, cost: 4, atkCost: 2, type: "warrior", img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472328/Gemini_Generated_Image_3r1qj3r1qj3r1qj3_huokog.jpg" },
-            { name: "Spartan", atk: 4000, cost: 2, atkCost: 1, type: "blocker", img: "https://res.cloudinary.com/dju446p8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" }
-        ];
+        let pHP = 5, eHP = 5, pEssActive = 1, pEssTotal = 1, isTurn = true;
+        let pHand = [], pField = [], eField = [], selected = null;
 
-        let pLife = 5, eLife = 5, pEss = 0, pMax = 0, pDeck = [], eDeck = [], pHand = [], pField = [], eField = [];
-        let isPlayerTurn = true, selectedAttacker = null, pendingAttack = null;
-
-        function showToss() { let p = confirm("ต้องการเริ่มก่อนใช่ไหม? (OK=ใช่, Cancel=ให้ Zeus เริ่มก่อน)"); initGame(p); }
-
-        function initGame(starts) {
-            isPlayerTurn = starts;
-            pDeck = Array.from({length: 50}, () => ({...chinaCards[Math.floor(Math.random()*3)], id: Math.random(), isRest: false}));
-            eDeck = Array.from({length: 50}, () => ({...greekCards[Math.floor(Math.random()*2)], id: Math.random(), isRest: false}));
-            pHand = pDeck.splice(0, 5);
-            pMax = starts ? 1 : -1; pEss = starts ? 1 : 0;
-            if(!starts) setTimeout(enemyAI, 1000);
+        function initGame() {
+            pHand = Array.from({length: 5}, () => ({...cardsData[Math.floor(Math.random()*3)], isRest: false}));
+            document.getElementById('start-btn').style.display = 'none';
+            addLog("⛩️ การรบเริ่มต้น! จั่วการ์ด 5 ใบ");
             updateUI();
         }
 
-        // --- ระบบคลิก 2 จังหวะ ---
-        function handleAttackerClick(type, idx) {
-            if (!isPlayerTurn || selectedAttacker) { selectedAttacker = null; updateUI(); return; }
-            let c = (type === 'leader') ? { name: "Leader", atkCost: 1, isRest: document.getElementById('p-leader-card').classList.contains('rest') } : pField[idx];
-            if (c.isRest || pEss < c.atkCost) { addLog("❌ ไม่สามารถสั่งโจมตีได้"); return; }
-            selectedAttacker = { type, idx, atkCost: c.atkCost, atk: (type==='leader'?5000:c.atk) };
-            addLog(`🎯 เลือก [${c.name}] คลิกที่เป้าหมาย (Leader หรือตัวนอน)`);
-            updateUI();
-        }
+        // --- ระบบ 2 คลิก: เลือกตัวโจมตี ---
+        function onAttack(type, idx) {
+            if (!isTurn || selected) { selected = null; updateUI(); return; }
+            let card = (type === 'leader') ? { name: "เง็กเซียน", atkCost: 1, isRest: document.getElementById('p-leader').classList.contains('rest') } : pField[idx];
 
-        function handleTargetClick(tType, tIdx) {
-            if (!selectedAttacker) return;
-            if (tType === 'warrior' && !eField[tIdx].isRest) { addLog("❌ ตีได้เฉพาะตัวที่นอนเท่านั้น!"); selectedAttacker = null; updateUI(); return; }
+            if (card.isRest || pEssActive < card.atkCost) { addLog("❌ ไม่สามารถสั่งโจมตีได้"); return; }
             
-            // เข้าสู่ Defense Phase
-            pEss -= selectedAttacker.atkCost;
-            if(selectedAttacker.type === 'leader') document.getElementById('p-leader-card').classList.add('rest');
-            else pField[selectedAttacker.idx].isRest = true;
-
-            addLog(`⚔️ กำลังโจมตีเป้าหมาย... รอ Zeus ป้องกัน`);
-            pendingAttack = { attacker: selectedAttacker, target: {type: tType, idx: tIdx} };
-            selectedAttacker = null;
+            selected = { type, idx, atkCost: card.atkCost };
+            addLog(`🎯 [${card.name}] เตรียมโจมตี! คลิกเลือกเป้าหมายสีแดง`);
             updateUI();
+        }
+
+        // --- ระบบ 2 คลิก: เลือกเป้าหมาย ---
+        function onTarget(type, idx) {
+            if (!selected) return;
+            let target = (type === 'leader') ? { name: "Zeus", isRest: true } : eField[idx];
             
-            // จำลอง Zeus ป้องกัน (ถ้ามี Blocker)
-            setTimeout(() => {
-                let blocker = eField.findIndex(c => c.type === 'blocker' && !c.isRest);
-                if(blocker !== -1) {
-                    addLog(`🛡️ Zeus ใช้ [${eField[blocker].name}] บล็อกการโจมตี!`);
-                    eField.splice(blocker, 1);
-                } else {
-                    if(pendingAttack.target.type === 'leader') { eLife--; addLog("💥 Zeus บาดเจ็บ HP-1"); }
-                    else { addLog(`💥 ทำลาย [${eField[pendingAttack.target.idx].name}] สำเร็จ!`); eField.splice(pendingAttack.target.idx, 1); }
-                }
-                pendingAttack = null; updateUI(); checkWin();
-            }, 1000);
-        }
+            if (type !== 'leader' && !target.isRest) { addLog("❌ ตีได้เฉพาะตัวที่นอนอยู่!"); selected = null; updateUI(); return; }
 
-        // --- ระบบโต้กลับของ Player (เมื่อโดนตี) ---
-        function showDefenseOptions(enemyAtk) {
-            const overlay = document.getElementById('defense-overlay');
-            const options = document.getElementById('defense-options');
-            overlay.style.display = 'block';
-            options.innerHTML = '';
+            pEssActive -= selected.atkCost;
+            if (selected.type === 'leader') document.getElementById('p-leader').classList.add('rest');
+            else pField[selected.idx].isRest = true;
 
-            // 1. ปุ่ม Blocker
-            pField.forEach((c, i) => {
-                if(c.type === 'blocker' && !c.isRest) {
-                    let btn = document.createElement('button');
-                    btn.style.background = 'var(--green)';
-                    btn.innerText = `🛡️ บล็อกด้วย ${c.name}`;
-                    btn.onclick = () => { pField.splice(i, 1); resolveDefense(true); };
-                    options.appendChild(btn);
-                }
-            });
+            if (type === 'leader') { eHP--; addLog("💥 โจมตี Zeus สำเร็จ!"); }
+            else { addLog(`⚔️ ทำลาย ${eField[idx].name} สำเร็จ!`); eField.splice(idx, 1); }
 
-            // 2. ปุ่ม Counter (จากมือ)
-            pHand.forEach((c, i) => {
-                if(c.counterVal) {
-                    let btn = document.createElement('button');
-                    btn.style.background = 'var(--orange)';
-                    btn.innerText = `✨ Counter (+${c.counterVal})`;
-                    btn.onclick = () => { pHand.splice(i, 1); resolveDefense(true, c.counterVal); };
-                    options.appendChild(btn);
-                }
-            });
-
-            // 3. ปุ่มรับดาเมจ
-            let btnHit = document.createElement('button');
-            btnHit.style.background = '#444'; btnHit.innerText = '⚠️ ยอมรับดาเมจ';
-            btnHit.onclick = () => resolveDefense(false);
-            options.appendChild(btnHit);
-        }
-
-        function resolveDefense(success, bonus = 0) {
-            document.getElementById('defense-overlay').style.display = 'none';
-            if(!success) { pLife--; addLog("💥 คุณโดนโจมตี! HP-1"); }
-            else { addLog(`✨ ป้องกันสำเร็จ! ${bonus > 0 ? '(ใช้ Counter)' : '(ใช้ Blocker)'}`); }
-            
-            setTimeout(startPlayerTurn, 500);
-        }
-
-        function enemyAI() {
-            addLog("⚡ [เทิร์นของ Zeus]");
-            if(eField.length < 3) eField.push({...greekCards[Math.floor(Math.random()*2)], isRest: false});
+            selected = null;
             updateUI();
-            setTimeout(() => showDefenseOptions(5000), 1000);
+            if(eHP <= 0) alert("คุณชนะ!");
         }
-
-        function startPlayerTurn() {
-            isPlayerTurn = true;
-            if (pMax === -1) pMax = 1; else pMax = Math.min(10, pMax + 2);
-            pEss = pMax;
-            pField.forEach(c => c.isRest = false);
-            document.getElementById('p-leader-card').classList.remove('rest');
-            if(pDeck.length > 0) pHand.push(pDeck.pop());
-            addLog(`--- เริ่มเทิร์นของคุณ (Essence: ${pMax}) ---`);
-            updateUI();
-        }
-
-        function endTurn() { if(!isPlayerTurn) return; isPlayerTurn = false; updateUI(); setTimeout(enemyAI, 500); }
 
         function playCard(idx) {
-            if(pEss < pHand[idx].cost) return;
-            pEss -= pHand[idx].cost;
+            if (pEssActive < pHand[idx].cost) return;
+            pEssActive -= pHand[idx].cost;
             pField.push(pHand.splice(idx, 1)[0]);
             updateUI();
         }
 
+        function endTurn() {
+            isTurn = false;
+            addLog("💤 จบเทิร์น... Zeus กำลังเดินหมาก");
+            setTimeout(() => {
+                eField.push({...cardsData[Math.floor(Math.random()*3)], isRest: true});
+                isTurn = true;
+                pEssTotal = Math.min(10, pEssTotal + 2);
+                pEssActive = pEssTotal;
+                pField.forEach(c => c.isRest = false);
+                document.getElementById('p-leader').classList.remove('rest');
+                addLog(`✨ เทิร์นใหม่! ได้รับ ${pEssTotal} Essence`);
+                updateUI();
+            }, 1000);
+        }
+
         function updateUI() {
-            document.getElementById('e-hp-bar').style.width = (eLife/5*100)+'%';
-            document.getElementById('p-hp-bar').style.width = (pLife/5*100)+'%';
-            document.getElementById('e-hp-num').innerText = eLife;
-            document.getElementById('p-hp-num').innerText = pLife;
-            document.getElementById('p-ess-act').innerText = pEss;
-            document.getElementById('p-ess-max').innerText = Math.max(0, pMax);
-            document.getElementById('p-deck').innerText = pDeck.length;
-            document.getElementById('e-deck').innerText = eDeck.length;
+            document.getElementById('e-hp').innerText = eHP;
+            document.getElementById('p-hp').innerText = pHP;
+            document.getElementById('p-ess-ui').innerText = `${pEssActive} / ${pEssTotal}`;
+            
+            // ไฮไลท์
+            document.getElementById('e-leader').className = `card ${selected ? 'is-targetable' : ''}`;
+            document.getElementById('p-leader').classList.toggle('is-attacking', selected?.type === 'leader');
 
-            const pF = document.getElementById('p-field-ui'); pF.innerHTML = '';
+            const pf = document.getElementById('p-field-ui'); pf.innerHTML = '';
             pField.forEach((c, i) => {
-                pF.innerHTML += `<div class="card ${c.isRest?'rest':''} ${selectedAttacker?.idx===i?'selected-atk':''}" onclick="handleAttackerClick('warrior', ${i})">
-                    <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
-                    ${c.type==='blocker'?'<div class="tag-blocker">BLOCKER</div>':''}</div>`;
+                pf.innerHTML += `<div class="card ${c.isRest ? 'rest' : ''} ${selected?.idx===i?'is-attacking':''}" onclick="onAttack('warrior', ${i})">
+                    <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div></div>`;
             });
 
-            const eF = document.getElementById('e-field-ui'); eF.innerHTML = '';
+            const ef = document.getElementById('e-field-ui'); ef.innerHTML = '';
             eField.forEach((c, i) => {
-                eF.innerHTML += `<div class="card ${c.isRest?'rest':''} ${selectedAttacker && c.isRest?'targetable':''}" onclick="handleTargetClick('warrior', ${i})">
-                    <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
-                    ${c.type==='blocker'?'<div class="tag-blocker">BLOCKER</div>':''}</div>`;
+                ef.innerHTML += `<div class="card ${c.isRest ? 'rest' : ''} ${selected && c.isRest ? 'is-targetable' : ''}" onclick="onTarget('warrior', ${i})">
+                    <img src="${c.img}"><div class="badge atk-val">${c.atk}</div></div>`;
             });
 
-            const pH = document.getElementById('p-hand-ui'); pH.innerHTML = '';
+            const ph = document.getElementById('p-hand-ui'); ph.innerHTML = '';
             pHand.forEach((c, i) => {
-                pH.innerHTML += `<div class="card" onclick="playCard(${i})">
-                    <div class="badge" style="top:-5px; left:-5px; background:var(--blue); border-radius:50%">${c.cost}</div>
-                    <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
-                    ${c.counterVal?`<div class="tag-counter">C+${c.counterVal}</div>`:''}</div>`;
+                ph.innerHTML += `<div class="card" onclick="playCard(${i})"><div class="badge cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk}</div></div>`;
             });
-
-            document.getElementById('e-leader-card').className = `card ${selectedAttacker?'targetable':''}`;
-            document.getElementById('p-leader-card').classList.toggle('selected-atk', selectedAttacker?.type === 'leader');
         }
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
-        function checkWin() { if(eLife<=0 || pLife<=0) { alert("สงครามจบลงแล้ว!"); location.reload(); } }
     </script>
 </body>
 </html>
