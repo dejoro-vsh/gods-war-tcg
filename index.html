@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gods War: Celestial Clash</title>
+    <title>Gods War: China vs Zeus</title>
     <style>
         :root { --gold: #ffd700; --red: #cc0000; --blue: #00ccff; --bg: #1a0505; --green: #2ecc71; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
         
-        /* Layout Zones */
         .header-stats { background: #000; padding: 10px; display: flex; justify-content: space-around; border-bottom: 2px solid var(--gold); }
-        .essence-bar { background: #200; padding: 5px; color: var(--gold); font-weight: bold; border-bottom: 1px solid #444; }
+        .essence-bar { background: #200; padding: 5px; color: var(--gold); font-weight: bold; }
         
-        /* 1. สนามรบ (Field Zone) */
         .battlefield { display: flex; justify-content: center; align-items: center; gap: 20px; height: 320px; background: radial-gradient(circle, #300 0%, #1a0505 100%); }
-        .field-zone { display: flex; gap: 10px; min-width: 450px; justify-content: center; border: 2px dashed rgba(255,215,0,0.2); padding: 10px; border-radius: 15px; }
+        .field-zone { display: flex; gap: 10px; min-width: 450px; justify-content: center; border: 2px dashed rgba(255,215,0,0.2); padding: 10px; border-radius: 15px; min-height: 160px;}
 
-        /* 2. การ์ด (Card Styles) */
         .card { width: 105px; height: 150px; border: 2px solid var(--gold); border-radius: 10px; background: #222; position: relative; cursor: pointer; transition: 0.2s; overflow: hidden; }
-        .card:hover { transform: translateY(-5px); }
         .card img { width: 100%; height: 60%; object-fit: cover; }
         
         .cost-badge { position: absolute; top: -5px; left: -5px; background: var(--blue); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 1px solid white; z-index: 10; }
         .atk-badge { position: absolute; bottom: 5px; right: 5px; background: var(--red); padding: 1px 5px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         
-        /* Ability Labels */
         .tag { position: absolute; top: 5px; right: 5px; font-size: 8px; padding: 2px 4px; border-radius: 3px; font-weight: bold; color: white; }
         .tag-blocker { background: var(--green); }
         .tag-counter { background: #e67e22; }
 
-        /* 3. การ์ดบนมือ (Hand Zone) */
         .hand-container { background: rgba(0,0,0,0.5); padding: 15px; min-height: 170px; display: flex; justify-content: center; gap: 10px; border-top: 2px solid #333; }
-        
         #battle-log { background: #000; color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-family: monospace; text-align: left; font-size: 12px; }
         .controls { padding: 10px; background: #111; }
-        button { padding: 8px 20px; font-weight: bold; cursor: pointer; border-radius: 20px; border: none; margin: 5px; }
+        button { padding: 10px 25px; font-weight: bold; cursor: pointer; border-radius: 20px; border: none; margin: 5px; }
 
-        /* States */
         .blocking-mode { border: 3px solid var(--green) !important; box-shadow: 0 0 15px var(--green); }
         .counter-mode { border: 3px solid #e67e22 !important; box-shadow: 0 0 15px #e67e22; }
     </style>
@@ -44,8 +36,8 @@
 <body>
 
     <div class="header-stats">
-        <div>🔱 Enemy: Hercules <span id="zeus-life" style="color:var(--red)">5</span> HP</div>
-        <div>⛩️ Leader: Jade Emperor <span id="player-life" style="color:var(--green)">5</span> HP</div>
+        <div>🔱 BOSS: ZEUS <span id="zeus-life" style="color:var(--red)">5</span> HP</div>
+        <div>⛩️ PLAYER: Jade Emperor <span id="player-life" style="color:var(--green)">5</span> HP</div>
         <div>⌛ Turn: <span id="turn-count">1</span></div>
     </div>
 
@@ -55,37 +47,34 @@
 
     <div class="battlefield">
         <div id="zeus-card" class="card" style="border-color:var(--red); width: 130px; height: 180px; cursor: default;">
-            <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777472328/Gemini_Generated_Image_3r1qj3r1qj3r1qj3_huokog.jpg">
-            <div style="font-size: 12px; padding: 5px;">HERCULES</div>
+            <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777467100/Gemini_Generated_Image_y35m84y35m84y35m_phm30l.jpg">
+            <div style="font-size: 12px; padding: 5px;">ZEUS</div>
             <div class="atk-badge">ATK: 5000</div>
         </div>
 
         <div style="font-size: 20px; font-weight: bold; color: var(--gold);">VS</div>
 
-        <div id="player-field" class="field-zone">
-            </div>
+        <div id="player-field" class="field-zone"></div>
 
-        <div id="leader-card" class="card" onclick="leaderAbility()" style="width: 120px; height: 170px;">
+        <div class="card" onclick="leaderAbility()" style="width: 120px; height: 170px;">
             <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777472385/Gemini_Generated_Image_lkkjkalkkjkalkkj_y9swsw.jpg">
-            <div style="font-size: 10px; padding: 5px; background: gold; color: black; font-weight: bold;">SKILL: จ่าย 1 จั่วการ์ด</div>
+            <div style="font-size: 10px; padding: 5px; background: gold; color: black; font-weight: bold;">SKILL: จ่าย 1 จั่ว</div>
         </div>
     </div>
 
-    <div id="battle-log">> ยินดีต้อนรับท่านเง็กเซียน... เริ่มต้นเทิร์นที่ 1</div>
+    <div id="battle-log">> ⚔️ ศึกสวรรค์เริ่มขึ้นแล้ว! จั่วการ์ดเริ่มแรก 5 ใบ...</div>
 
     <div class="controls">
         <button style="background:var(--gold)" onclick="drawCard()">🎴 จั่วการ์ด</button>
         <button style="background:var(--red); color:white;" onclick="endTurn()">⏭️ จบเทิร์น</button>
-        <button onclick="resetGame()" style="background:#444; color:white;">🔄 Reset</button>
     </div>
 
     <div class="hand-container" id="player-hand"></div>
 
     <script>
-        // ข้อมูลการ์ดฝั่งจีน
         const cardTypes = [
             { name: "Wukong", atk: 6000, cost: 5, rarity: "SR", ability: "Rush", counter: 0, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
-            { name: "Erlang Shen", atk: 4500, cost: 1, rarity: "C", ability: "Blocker", counter: 0, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472457/Gemini_Generated_Image_s7osias7osias7os_fabxbv.jpg" },
+            { name: "Erlang Shen", atk: 4500, cost: 1, rarity: "C", ability: "Blocker", counter: 0, img: "https://res.cloudinary.com/dju446p8w/image/upload/v1777472457/Gemini_Generated_Image_s7osias7osias7os_fabxbv.jpg" },
             { name: "Nezha", atk: 5500, cost: 3, rarity: "R", ability: "Counter", counter: 2000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472501/Gemini_Generated_Image_m8c3vam8c3vam8c3_pqnpqt.jpg" },
             { name: "Guan Yu", atk: 4800, cost: 2, rarity: "C", ability: "None", counter: 1000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472572/Gemini_Generated_Image_ahyd9oahyd9oahyd_lu5d7z.jpg" }
         ];
@@ -94,92 +83,78 @@
         let maxEssence = 1, currentEssence = 1, turn = 1, gameState = "PLAYER_TURN";
 
         function initGame() {
-            deck = []; hand = []; field = []; zeusLife = 5; playerLife = 5;
-            maxEssence = 1; currentEssence = 1; turn = 1; gameState = "PLAYER_TURN";
-            for (let i = 0; i < 50; i++) {
-                let roll = Math.random() * 100;
-                let c = roll < 12 ? cardTypes[0] : roll < 40 ? cardTypes[2] : (Math.random() > 0.5 ? cardTypes[1] : cardTypes[3]);
+            // สร้าง Deck
+            deck = []; hand = []; field = [];
+            for (let i = 0; i < 40; i++) {
+                let c = cardTypes[Math.floor(Math.random() * cardTypes.length)];
                 deck.push({ ...c, id: Math.random() });
             }
+            
+            // จั่ว 5 ใบแรก
+            for (let i = 0; i < 5; i++) {
+                hand.push(deck.pop());
+            }
+            
             updateUI();
         }
 
-        // --- ระบบคลิกการ์ด (แยกตาม State) ---
-        function handleCardClick(zone, index) {
-            if (gameState === "PLAYER_TURN") {
-                if (zone === 'hand') playCard(index);
-            } else if (gameState === "ENEMY_TURN") {
-                if (zone === 'field') blockWith(index);
-                if (zone === 'hand') counterWith(index);
-            }
-        }
-
-        // 1. ลงการ์ดจากมือไปสนาม
         function playCard(index) {
+            if (gameState !== "PLAYER_TURN") return;
             const card = hand[index];
             if (currentEssence < card.cost) { addLog("❌ Essence ไม่พอ!"); return; }
-            if (field.length >= 4) { addLog("❌ สนามเต็ม!"); return; }
-
+            
             currentEssence -= card.cost;
             field.push(hand.splice(index, 1)[0]);
-            addLog(`⚔️ ส่ง ${card.name} บุกสนาม!`);
+            addLog(`⚔️ ส่ง ${card.name} ลงสนาม!`);
             
+            // ตรวจสอบดาเมจต่อ Zeus
             if (card.atk >= 5000) {
                 zeusLife--;
-                addLog(`🔥 โจมตีเข้า! Hercules HP -1`);
+                addLog(`🔥 ${card.name} โจมตี Zeus! (-1 HP)`);
             }
             updateUI();
-            if (zeusLife <= 0) { alert("สวรรค์จีนชนะ!"); initGame(); }
+            if (zeusLife <= 0) { alert("คุณชนะ!"); initGame(); }
         }
 
-        // 2. ใช้ Leader Skill
+        function drawCard() {
+            if (hand.length < 7 && deck.length > 0) {
+                hand.push(deck.pop());
+                updateUI();
+            } else { addLog("⚠️ การ์ดเต็มมือหรือกองการ์ดหมด!"); }
+        }
+
         function leaderAbility() {
-            if (gameState !== "PLAYER_TURN" || currentEssence < 1) return;
-            currentEssence -= 1;
-            addLog("👑 บัญชาสวรรค์! จ่าย 1 จั่วการ์ด 1 ใบ");
-            drawCard();
-            updateUI();
+            if (currentEssence >= 1) {
+                currentEssence--;
+                addLog("👑 สกิล Leader: จั่วการ์ด!");
+                drawCard();
+                updateUI();
+            }
         }
 
-        // 3. จบเทิร์น & Hercules โจมตี
         function endTurn() {
             gameState = "ENEMY_TURN";
-            addLog("<br>⚡ [เทิร์นของ Hercules]");
+            addLog("<br>⚡ [เทิร์นของ Zeus]");
             updateUI();
             
             setTimeout(() => {
                 const hasBlocker = field.some(c => c.ability === "Blocker");
-                const hasCounter = hand.some(c => c.counter > 0);
-
-                if (hasBlocker || hasCounter) {
-                    addLog("🚨 Hercules บุก! คลิก Blocker บนสนาม หรือ Counter บนมือเพื่อป้องกัน!");
+                if (hasBlocker) {
+                    addLog("🚨 Zeus โจมตี! เลือก Blocker ของคุณ!");
                 } else {
-                    takeDamageDirectly();
+                    playerLife--;
+                    addLog("💥 Zeus ปล่อยสายฟ้า! (-1 HP)");
+                    if (playerLife <= 0) { alert("Game Over!"); initGame(); return; }
+                    startNewTurn();
                 }
             }, 800);
         }
 
-        // 4. บล็อก (ในสนาม)
         function blockWith(index) {
             if (gameState !== "ENEMY_TURN" || field[index].ability !== "Blocker") return;
-            addLog(`🛡️ ${field[index].name} บล็อกแทนพระองค์!`);
+            addLog(`🛡️ ${field[index].name} บล็อกสายฟ้าแทน!`);
             field.splice(index, 1);
             startNewTurn();
-        }
-
-        // 5. เคาน์เตอร์ (บนมือ)
-        function counterWith(index) {
-            if (gameState !== "ENEMY_TURN" || hand[index].counter === 0) return;
-            addLog(`✨ ${hand[index].name} ใช้ Counter +${hand[index].counter} ป้องกันสำเร็จ!`);
-            hand.splice(index, 1);
-            startNewTurn();
-        }
-
-        function takeDamageDirectly() {
-            playerLife--;
-            addLog("💥 โอลิมปัสพิโรธ! เง็กเซียนฮ่องเต้เสียเลือด -1 HP");
-            if (playerLife <= 0) { alert("Game Over!"); initGame(); }
-            else startNewTurn();
         }
 
         function startNewTurn() {
@@ -192,7 +167,6 @@
             addLog(`--- เริ่มเทิร์นที่ ${turn} ---`);
         }
 
-        // --- UI Rendering ---
         function updateUI() {
             document.getElementById('zeus-life').innerText = zeusLife;
             document.getElementById('player-life').innerText = playerLife;
@@ -200,41 +174,39 @@
             document.getElementById('max-essence').innerText = maxEssence;
             document.getElementById('turn-count').innerText = turn;
 
-            // Render สนาม
+            // สนาม
             const fieldDiv = document.getElementById('player-field');
             fieldDiv.innerHTML = '';
             field.forEach((card, i) => {
                 const isB = (gameState === "ENEMY_TURN" && card.ability === "Blocker");
                 fieldDiv.innerHTML += `
-                    <div class="card ${card.rarity} ${isB ? 'blocking-mode' : ''}" onclick="handleCardClick('field', ${i})">
+                    <div class="card ${isB ? 'blocking-mode' : ''}" onclick="blockWith(${i})">
                         ${card.ability === 'Blocker' ? '<div class="tag tag-blocker">BLOCKER</div>' : ''}
                         <img src="${card.img}">
                         <div class="atk-badge">${card.atk}</div>
                     </div>`;
             });
 
-            // Render มือ
+            // บนมือ
             const handDiv = document.getElementById('player-hand');
             handDiv.innerHTML = '';
             hand.forEach((card, i) => {
-                const isC = (gameState === "ENEMY_TURN" && card.counter > 0);
                 handDiv.innerHTML += `
-                    <div class="card ${card.rarity} ${isC ? 'counter-mode' : ''}" onclick="handleCardClick('hand', ${i})" style="${(gameState === 'PLAYER_TURN' && currentEssence < card.cost) ? 'opacity:0.4' : ''}">
+                    <div class="card" onclick="playCard(${i})" style="${(gameState === 'PLAYER_TURN' && currentEssence < card.cost) ? 'opacity:0.4' : ''}">
                         <div class="cost-badge">${card.cost}</div>
                         ${card.counter > 0 ? `<div class="tag tag-counter">C +${card.counter}</div>` : ''}
                         <img src="${card.img}">
                         <div class="atk-badge">${card.atk}</div>
                     </div>`;
             });
-            
-            if (gameState === "ENEMY_TURN") {
-                document.getElementById('battle-log').innerHTML += `<br><button onclick="takeDamageDirectly()" style="background:orange">ไม่ป้องกัน (ยอมเสียเลือด)</button>`;
-            }
         }
 
-        function drawCard() { if (hand.length < 7 && deck.length > 0) hand.push(deck.pop()); }
-        function addLog(msg) { const log = document.getElementById('battle-log'); log.innerHTML += `<br>> ${msg}`; log.scrollTop = log.scrollHeight; }
-        function resetGame() { if(confirm("เริ่มใหม่หรือไม่?")) initGame(); }
+        function addLog(msg) {
+            const log = document.getElementById('battle-log');
+            log.innerHTML += `<br>> ${msg}`;
+            log.scrollTop = log.scrollHeight;
+        }
+
         initGame();
     </script>
 </body>
