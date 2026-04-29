@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Celestial War: Zeus vs Jade Emperor</title>
+    <title>Celestial War: Pro TCG v.Final</title>
     <style>
         :root { --gold: #ffd700; --red: #ff4d4d; --blue: #00ccff; --bg: #0d0d0d; --green: #2ecc71; --orange: #e67e22; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; overflow-x: hidden; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; overflow: hidden; }
         
         /* Header & HP */
         .header-stats { background: #000; padding: 15px; display: flex; justify-content: space-around; border-bottom: 2px solid var(--gold); }
@@ -14,41 +14,41 @@
         .hp-bar-bg { width: 120px; height: 8px; background: #333; border-radius: 4px; margin-top: 5px; border: 1px solid #555; }
         .hp-bar-fill { height: 100%; background: var(--green); transition: 0.3s; }
 
-        /* Essence & Deck */
-        .info-bar { display: flex; justify-content: space-between; padding: 10px 40px; background: #1a0505; border-bottom: 1px solid #333; font-size: 14px; }
-        .ess-ui { font-size: 18px; font-weight: bold; color: var(--gold); border: 1px solid var(--gold); padding: 5px 15px; border-radius: 10px; }
+        /* Essence Dual Display */
+        .info-bar { display: flex; justify-content: space-between; padding: 10px 40px; background: #1a0505; border-bottom: 1px solid #333; align-items: center; }
+        .ess-monitor { font-size: 16px; font-weight: bold; padding: 5px 15px; border-radius: 10px; border: 1px solid; min-width: 140px; }
+        .ess-p { border-color: var(--blue); color: var(--blue); background: rgba(0, 204, 255, 0.1); }
+        .ess-e { border-color: var(--red); color: var(--red); background: rgba(255, 77, 77, 0.1); }
 
         /* Battlefield */
-        .battlefield { display: flex; flex-direction: column; gap: 20px; padding: 20px; min-height: 500px; background: radial-gradient(circle, #200 0%, #0d0d0d 100%); }
-        .field-zone { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: center; min-height: 160px; padding: 15px; border: 2px dashed rgba(255, 215, 0, 0.1); border-radius: 20px; }
+        .battlefield { display: flex; flex-direction: column; gap: 20px; padding: 20px; min-height: 480px; background: radial-gradient(circle, #200 0%, #0d0d0d 100%); }
+        .field-zone { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: center; min-height: 160px; padding: 15px; border: 2px dashed rgba(255, 215, 0, 0.05); border-radius: 20px; }
 
         /* Card System */
         .card { width: 90px; height: 130px; border: 2px solid var(--gold); border-radius: 10px; background: #111; position: relative; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .card img { width: 100%; height: 60%; object-fit: cover; border-radius: 8px 8px 0 0; }
+        .card img { width: 100%; height: 60%; object-fit: cover; border-radius: 8px 8px 0 0; pointer-events: none; }
         .rest { transform: rotate(90deg) scale(0.9) !important; filter: brightness(0.4); }
         
-        /* Visual Cues */
-        .is-attacking { border: 4px solid var(--blue) !important; box-shadow: 0 0 20px var(--blue); transform: translateY(-10px); z-index: 10; }
-        .is-targetable { border: 4px solid var(--red) !important; animation: pulse-red 0.8s infinite; }
-        @keyframes pulse-red { 50% { box-shadow: 0 0 20px var(--red); } }
-
-        /* Badges */
+        /* Badges & Tags */
         .badge { position: absolute; padding: 2px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #000; }
-        .cost-val { top: -8px; left: -8px; background: var(--blue); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid white; }
+        .cost-val { top: -8px; left: -8px; background: var(--blue); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid white; color: white; }
         .atk-cost { bottom: 5px; left: 5px; background: var(--gold); color: #000; }
-        .atk-val { bottom: 5px; right: 5px; background: var(--red); }
-
-        /* Ability Tags */
+        .atk-val { bottom: 5px; right: 5px; background: var(--red); color: white; }
         .tag { position: absolute; top: 5px; right: 5px; font-size: 8px; padding: 2px 4px; border-radius: 3px; font-weight: bold; }
         .tag-blocker { background: var(--green); color: black; }
         .tag-counter { background: var(--orange); color: white; }
 
-        /* Defense Overlay */
-        #defense-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px; border: 2px solid var(--gold); border-radius: 20px; z-index: 200; display: none; }
+        /* Visual States */
+        .is-attacking { border: 4px solid var(--blue) !important; box-shadow: 0 0 20px var(--blue); transform: translateY(-10px); z-index: 10; }
+        .is-targetable { border: 4px solid var(--red) !important; animation: pulse-red 0.8s infinite; }
+        @keyframes pulse-red { 50% { box-shadow: 0 0 20px var(--red); } }
 
-        #battle-log { background: #000; color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-family: monospace; border-top: 1px solid var(--gold); text-align: left; }
+        #defense-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px; border: 2px solid var(--gold); border-radius: 20px; z-index: 200; display: none; }
+        #battle-log { background: #000; color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-family: monospace; border-top: 1px solid var(--gold); text-align: left; font-size: 12px; }
         .controls { padding: 10px; background: #111; display: flex; justify-content: center; gap: 15px; }
-        button { padding: 10px 25px; font-weight: bold; cursor: pointer; border-radius: 20px; border: none; }
+        button { padding: 10px 25px; font-weight: bold; cursor: pointer; border-radius: 20px; border: none; transition: 0.2s; }
+        .btn-sel { background: var(--gold); color: black; }
+        .btn-end { background: var(--red); color: white; }
     </style>
 </head>
 <body>
@@ -64,9 +64,9 @@
     </div>
 
     <div class="info-bar">
-        <div>🎴 GREEK: <span id="e-deck">50</span></div>
-        <div id="p-ess-ui" class="ess-ui">ESSENCE: 0 / 0</div>
-        <div>🎴 CHINA: <span id="p-deck">50</span></div>
+        <div class="ess-monitor ess-e">ZEUS: <span id="e-ess-ui">0 / 0</span></div>
+        <div style="font-size: 14px; opacity: 0.6;">🎴 GREEK: <span id="e-deck">50</span> | CHINA: <span id="p-deck">50</span></div>
+        <div class="ess-monitor ess-p">PLAYER: <span id="p-ess-ui">0 / 0</span></div>
     </div>
 
     <div class="battlefield">
@@ -88,10 +88,13 @@
     </div>
 
     <div id="battle-log">> ยินดีต้อนรับ! กรุณาเลือกฝ่ายเพื่อเริ่มศึก</div>
+    
     <div class="controls">
-        <button style="background:var(--blue); color:white" onclick="startGame(true)">⛩️ จีน (เริ่มแรก +1)</button>
-        <button style="background:var(--orange); color:white" onclick="startGame(false)">🔱 กรีก (เริ่มแรก +1)</button>
-        <button style="background:var(--red); color:white" onclick="endTurn()">⏭️ จบเทิร์น</button>
+        <div id="start-buttons" style="display: flex; gap: 10px;">
+            <button class="btn-sel" onclick="startGame(true)">⛩️ จีน (เริ่มก่อน +1)</button>
+            <button class="btn-sel" onclick="startGame(false)">🔱 กรีก (เริ่มก่อน +1)</button>
+        </div>
+        <button id="end-btn" class="btn-end" style="display:none;" onclick="endTurn()">⏭️ จบเทิร์น</button>
     </div>
 
     <div id="p-hand-ui" class="field-zone" style="background:rgba(0,0,0,0.4); border-top: 1px solid #444; min-height:150px;"></div>
@@ -113,18 +116,20 @@
         let pDeck = [], eDeck = [], pHand = [], pField = [], eField = [], selected = null;
 
         function startGame(first) {
+            // ซ่อนปุ่มเลือกฝ่าย และแสดงปุ่มจบเทิร์น
+            document.getElementById('start-buttons').style.display = 'none';
+            document.getElementById('end-btn').style.display = 'block';
+
             pOrder = first ? 1 : 2; isPlayerTurn = first;
             pDeck = Array.from({length: 50}, () => ({...chinaCards[Math.floor(Math.random()*3)], id: Math.random(), isRest: false}));
             eDeck = Array.from({length: 50}, () => ({...greekCards[Math.floor(Math.random()*3)], id: Math.random(), isRest: false}));
-            pHand = pDeck.splice(0, 5);
-            pMax = first ? 1 : 0; pEss = pMax;
-            eMax = first ? 0 : 1; eEss = eMax;
-            addLog(first ? "⛩️ จีนเริ่มก่อน! ได้รับ 1 Essence" : "🔱 กรีกเริ่มก่อน! ได้รับ 1 Essence");
-            if(!first) setTimeout(enemyTurn, 1000);
+            pHand = pDeck.splice(0, 5); eHand = eDeck.splice(0, 5);
+
+            if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; addLog("⛩️ จีนเริ่มก่อน! ได้รับ 1 Essence"); } 
+            else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; addLog("🔱 กรีกเริ่มก่อน! ได้รับ 1 Essence"); setTimeout(enemyTurn, 1000); }
             updateUI();
         }
 
-        // --- Attack Logic ---
         function onAttack(type, idx) {
             if (!isPlayerTurn || selected) { selected = null; updateUI(); return; }
             let card = (type === 'leader') ? { name: "เง็กเซียน", atkCost: 1, isRest: document.getElementById('p-leader').classList.contains('rest') } : pField[idx];
@@ -142,7 +147,6 @@
             if (selected.type === 'leader') document.getElementById('p-leader').classList.add('rest');
             else pField[selected.idx].isRest = true;
             
-            // Zeus Defense Simulation
             setTimeout(() => {
                 let blockerIdx = eField.findIndex(c => c.type === 'blocker' && !c.isRest);
                 if(blockerIdx !== -1) {
@@ -156,22 +160,19 @@
             }, 500);
         }
 
-        // --- Enemy AI (Fixed) ---
         function enemyTurn() {
             addLog("⚡ [เทิร์นของ Zeus]");
             if (eMax === 0) eMax = 2; else eMax = Math.min(10, eMax + 2);
             eEss = eMax;
             eField.forEach(c => c.isRest = false);
-            
-            // Zeus Deploy (ทหารกรีกเท่านั้น)
-            if(eField.length < 5 && eEss >= 2) {
+            if(eDeck.length > 0) eHand.push(eDeck.pop());
+
+            if(eField.length < 5 && eEss >= 3) {
                 let card = greekCards[Math.floor(Math.random()*3)];
                 eField.push({...card, isRest: false});
-                eEss -= card.cost || 2;
-                addLog(`🔱 Zeus ส่ง [${card.name}] ลงสนาม!`);
+                eEss -= 3; addLog(`🔱 Zeus ส่ง [${card.name}] ลงสนาม!`);
             }
             
-            // Zeus Attack
             setTimeout(() => {
                 if(eEss >= 1) {
                     eEss--; addLog("💥 Zeus บุกโจมตี! เลือกการป้องกัน...");
@@ -185,7 +186,6 @@
             const options = document.getElementById('defense-options');
             overlay.style.display = 'block'; options.innerHTML = '';
 
-            // Blocker จากสนาม
             pField.forEach((c, i) => {
                 if(c.type === 'blocker' && !c.isRest) {
                     let btn = document.createElement('button'); btn.style.background = 'var(--green)';
@@ -195,7 +195,6 @@
                 }
             });
 
-            // Counter จากมือ
             pHand.forEach((c, i) => {
                 if(c.counter) {
                     let btn = document.createElement('button'); btn.style.background = 'var(--orange)';
@@ -223,7 +222,7 @@
             pField.forEach(c => c.isRest = false);
             document.getElementById('p-leader').classList.remove('rest');
             if(pDeck.length > 0) pHand.push(pDeck.pop());
-            addLog(`✨ เทิร์นของคุณ (Essence: ${pMax})`);
+            addLog(`✨ เทิร์นของคุณ (ได้รับ ${pMax} Essence)`);
             updateUI();
         }
 
@@ -240,7 +239,11 @@
             document.getElementById('p-hp-num').innerText = pHP;
             document.getElementById('e-hp-bar').style.width = (eHP/5*100)+'%';
             document.getElementById('p-hp-bar').style.width = (pHP/5*100)+'%';
-            document.getElementById('p-ess-ui').innerText = `ESSENCE: ${pEss} / ${pMax}`;
+            
+            // อัปเดต Essence ทั้งสองฝ่าย
+            document.getElementById('p-ess-ui').innerText = `${pEss} / ${pMax}`;
+            document.getElementById('e-ess-ui').innerText = `${eEss} / ${eMax}`;
+            
             document.getElementById('p-deck').innerText = pDeck.length;
             document.getElementById('e-deck').innerText = eDeck.length;
 
@@ -261,7 +264,7 @@
             const ph = document.getElementById('p-hand-ui'); ph.innerHTML = '';
             pHand.forEach((c, i) => {
                 ph.innerHTML += `<div class="card" onclick="playCard(${i})">
-                    <div class="cost-val">${c.cost}</div><img src="${c.img}">
+                    <div class="badge cost-val">${c.cost}</div><img src="${c.img}">
                     ${c.counter?'<div class="tag tag-counter">C+'+c.counter+'</div>':''}</div>`;
             });
 
@@ -270,7 +273,7 @@
         }
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
-        function checkWin() { if(eHP<=0 || pHP<=0) { alert(eHP<=0?"ชนะ!":"แพ้!"); location.reload(); } }
+        function checkWin() { if(eHP<=0 || pHP<=0) { alert(eHP<=0?"คุณชนะ! สงครามจบลงแล้ว":"คุณพ่ายแพ้! โอลิมปัสครอบครองสวรรค์"); location.reload(); } }
     </script>
 </body>
 </html>
