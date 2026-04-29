@@ -3,49 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gods War: Eternal Arena</title>
+    <title>Gods War: Essence Era</title>
     <style>
         :root {
             --gold: #ffd700;
             --red: #ff4d4d;
             --purple: #bf00ff;
+            --blue: #00ccff;
             --bg: #0a0a0a;
         }
 
         body { 
             background: var(--bg); 
             color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
             text-align: center; 
             margin: 0;
-            overflow-x: hidden;
         }
 
-        /* --- Header & Stats --- */
         .header-stats { 
             background: #000; 
             padding: 15px; 
             display: flex; 
             justify-content: space-around; 
-            font-size: 22px; 
-            font-weight: bold;
+            font-size: 18px;
             border-bottom: 3px solid var(--gold);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
         }
 
-        /* --- Battlefield --- */
+        /* ระบบ Essence UI */
+        .essence-bar {
+            background: #111;
+            padding: 10px;
+            font-size: 20px;
+            color: var(--blue);
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+        }
+
         .battlefield { 
             display: flex; 
             justify-content: space-around; 
             align-items: center; 
-            height: 380px; 
+            height: 350px; 
             background: radial-gradient(circle, #222 0%, #0a0a0a 100%);
-            border-bottom: 2px solid #333;
         }
 
-        /* --- Card Styling --- */
         .card { 
-            width: 120px; height: 170px; 
+            width: 120px; height: 175px; 
             border: 2px solid var(--gold); 
             border-radius: 12px; 
             background: #222;
@@ -53,214 +57,161 @@
             margin: 10px;
             cursor: pointer; 
             position: relative;
-            overflow: hidden; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: 0.3s;
         }
         
-        .card:hover { transform: translateY(-15px) scale(1.05); }
-        .card img { width: 100%; height: 75%; object-fit: cover; }
-        .card-info { padding: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .card:hover { transform: translateY(-10px); }
+        .card img { width: 100%; height: 70%; object-fit: cover; }
+        
+        /* สัญลักษณ์ค่าร่าย (Cost) */
+        .cost-badge {
+            position: absolute; top: -5px; left: -5px;
+            background: var(--blue); color: white;
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; border: 2px solid white; box-shadow: 0 0 10px var(--blue);
+        }
+
         .atk-badge { 
             position: absolute; bottom: 5px; right: 5px; 
             background: var(--red); color: white; 
-            padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 14px;
+            padding: 2px 6px; border-radius: 4px; font-weight: bold;
         }
 
-        /* --- Rarity Effects --- */
-        .card.SR { 
-            border-color: var(--purple); 
-            box-shadow: 0 0 15px var(--purple);
-            animation: sr-glow 2s infinite ease-in-out; 
-        }
-        .card.R { border-color: #00ccff; box-shadow: 0 0 10px #00ccff; }
-        
-        @keyframes sr-glow {
-            0%, 100% { box-shadow: 0 0 10px var(--purple); filter: brightness(1); }
-            50% { box-shadow: 0 0 30px var(--purple); filter: brightness(1.3); }
-        }
+        .card.SR { border-color: var(--purple); box-shadow: 0 0 15px var(--purple); animation: sr-glow 2s infinite; }
+        @keyframes sr-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
 
-        /* --- UI Elements --- */
-        .hand-container { 
-            background: rgba(0,0,0,0.5); 
-            padding: 20px; 
-            min-height: 200px; 
-            border-top: 1px solid #333;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+        .hand-container { background: rgba(0,0,0,0.5); padding: 20px; min-height: 180px; display: flex; justify-content: center; }
         
-        #battle-log { 
-            background: #000; color: #0f0; 
-            padding: 10px; height: 100px; 
-            overflow-y: auto; font-family: 'Courier New', monospace; 
-            font-size: 13px; text-align: left;
-        }
+        #battle-log { background: #000; color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-family: monospace; text-align: left; }
         
-        .controls { padding: 20px; background: #111; }
-        button { 
-            padding: 12px 28px; font-size: 16px; 
-            background: var(--gold); color: black;
-            border: none; border-radius: 30px; 
-            font-weight: bold; cursor: pointer; 
-            margin: 5px; transition: 0.2s;
-        }
-        button:hover { transform: scale(1.1); background: #ffea00; }
-        .btn-reset { background: #444; color: white; }
-        .btn-reset:hover { background: #ff4d4d; }
+        .controls { padding: 15px; background: #111; }
+        button { padding: 10px 25px; font-size: 16px; background: var(--gold); border: none; border-radius: 20px; font-weight: bold; cursor: pointer; margin: 5px; }
+        button:disabled { background: #444; cursor: not-allowed; }
 
-        /* Zeus State */
-        .zeus-dead {
-            filter: grayscale(100%) brightness(0.4) !important;
-            transform: rotate(15deg) translateY(30px) !important;
-            opacity: 0.5;
-        }
+        .zeus-dead { filter: grayscale(100%) brightness(0.3); transform: rotate(10deg); }
     </style>
 </head>
 <body>
 
     <div class="header-stats">
-        <div>🔱 Enemy Zeus HP: <span id="zeus-life" style="color:var(--red)">5</span></div>
+        <div>🔱 Zeus HP: <span id="zeus-life" style="color:var(--red)">5</span></div>
         <div>🎴 Deck: <span id="deck-count">50</span></div>
+        <div>⌛ Turn: <span id="turn-count">1</span></div>
+    </div>
+
+    <div class="essence-bar">
+        💎 Essence: <span id="current-essence">1</span> / <span id="max-essence">1</span>
     </div>
 
     <div class="battlefield">
-        <div style="color:#555; font-style: italic;">สนามรบของคุณ</div>
-        
-        <div id="zeus-card" class="card" style="border-color:var(--red); width: 150px; height: 210px; cursor: default;">
-            <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777467100/Gemini_Generated_Image_y35m84y35m84y35m_phm30l.jpg" alt="Zeus">
-            <div class="card-info"><h3>ZEUS</h3></div>
-            <div class="atk-badge" style="background: #222;">DEF: 5000</div>
+        <div id="zeus-card" class="card" style="border-color:var(--red); width: 140px; height: 200px;">
+            <img src="https://res.cloudinary.com/dju440p8w/image/upload/v1777467100/Gemini_Generated_Image_y35m84y35m84y35m_phm30l.jpg">
+            <div style="font-size: 12px; padding: 5px;">ZEUS [BOSS]</div>
+            <div class="atk-badge">DEF: 5000</div>
         </div>
     </div>
 
-    <div id="battle-log">--- ยินดีต้อนรับสู่มหากาพย์สงครามเทพเจ้า ---</div>
+    <div id="battle-log">--- เริ่มต้นสงคราม ---</div>
 
     <div class="controls">
-        <button onclick="drawCard()">🎴 จั่วการ์ด</button>
-        <button class="btn-reset" onclick="resetGame()">🔄 เริ่มเกมใหม่</button>
+        <button id="draw-btn" onclick="drawCard()">🎴 จั่วการ์ด</button>
+        <button id="end-turn-btn" onclick="endTurn()" style="background: #444; color: white;">⏭️ จบเทิร์น</button>
+        <button onclick="resetGame()">🔄 Reset</button>
     </div>
 
-    <div class="hand-container" id="player-hand">
-        </div>
+    <div class="hand-container" id="player-hand"></div>
 
     <script>
-        // ข้อมูลการ์ดหลัก
         const cardTypes = [
-            { name: "Wukong", atk: 6000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
-            { name: "Spartan", atk: 4000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" },
-            { name: "Valkyrie", atk: 5500, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467981/Gemini_Generated_Image_kefxgakefxgakefx_plgdep.jpg" },
-            { name: "Centaur", atk: 4500, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777468077/Gemini_Generated_Image_3bqflw3bqflw3bqf_eq9uny.jpg" }
+            { name: "Wukong", atk: 6000, cost: 5, rarity: "SR", img: "https://res.cloudinary.com/dju440p8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
+            { name: "Spartan", atk: 4000, cost: 1, rarity: "C", img: "https://res.cloudinary.com/dju440p8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" },
+            { name: "Valkyrie", atk: 5500, cost: 3, rarity: "R", img: "https://res.cloudinary.com/dju440p8w/image/upload/v1777467981/Gemini_Generated_Image_kefxgakefxgakefx_plgdep.jpg" },
+            { name: "Centaur", atk: 4500, cost: 2, rarity: "C", img: "https://res.cloudinary.com/dju440p8w/image/upload/v1777468077/Gemini_Generated_Image_3bqflw3bqflw3bqf_eq9uny.jpg" }
         ];
 
-        let deck = [];
-        let hand = [];
-        let zeusLife = 5;
+        let deck = [], hand = [], zeusLife = 5;
+        let maxEssence = 1, currentEssence = 1, turn = 1;
 
-        // เริ่มต้นเกม
         function initGame() {
-            deck = [];
-            hand = [];
-            zeusLife = 5;
-            
-            // สร้างกองการ์ดแบบสุ่ม Rarity
+            deck = []; hand = []; zeusLife = 5;
+            maxEssence = 1; currentEssence = 1; turn = 1;
             for (let i = 0; i < 50; i++) {
                 let roll = Math.random() * 100;
-                let cardBase;
-                let rarity = 'C';
-
-                if (roll < 12) { // 12% SR
-                    cardBase = cardTypes[0];
-                    rarity = 'SR';
-                } else if (roll < 40) { // 28% R
-                    cardBase = cardTypes[2];
-                    rarity = 'R';
-                } else { // 60% Common
-                    cardBase = Math.random() > 0.5 ? cardTypes[1] : cardTypes[3];
-                    rarity = 'C';
-                }
-                deck.push({ ...cardBase, rarity: rarity, id: i });
+                let c = roll < 12 ? cardTypes[0] : roll < 40 ? cardTypes[2] : (Math.random() > 0.5 ? cardTypes[1] : cardTypes[3]);
+                deck.push({ ...c, id: i });
             }
-            
-            const log = document.getElementById('battle-log');
-            log.innerHTML = "--- เริ่มต้นการประลองครั้งใหม่! ---";
+            addLog("🎮 เริ่มเทิร์นที่ 1");
             updateUI();
         }
 
-        // จั่วการ์ด
-        function drawCard() {
+        function endTurn() {
             if (zeusLife <= 0) return;
-            if (hand.length >= 6) {
-                addLog("⚠️ การ์ดเต็มมือแล้ว!");
-                return;
-            }
-            if (deck.length > 0) {
+            turn++;
+            if (maxEssence < 10) maxEssence++; // เพิ่ม Mana สูงสุดทีละ 1 (ตันที่ 10)
+            currentEssence = maxEssence; // รีฟิล Mana เต็ม
+            addLog(`--- เทิร์นที่ ${turn} (Essence +1) ---`);
+            drawCard(); // จั่วอัตโนมัติเมื่อเริ่มเทิร์น
+            updateUI();
+        }
+
+        function drawCard() {
+            if (hand.length < 6 && deck.length > 0) {
                 hand.push(deck.pop());
                 updateUI();
-            } else {
-                addLog("⚠️ การ์ดหมดกองแล้ว!");
             }
         }
 
-        // เล่นการ์ด
         function playCard(index) {
-            if (zeusLife <= 0) return;
-
             const card = hand[index];
-            addLog(`⚔️ ส่ง ${card.name} [${card.rarity}] เข้าจู่โจม!`);
+            if (currentEssence < card.cost) {
+                addLog(`❌ พลังงานไม่พอ! ต้องการ ${card.cost} 💎`);
+                return;
+            }
+
+            currentEssence -= card.cost;
+            addLog(`⚡ ใช้ ${card.name} (จ่าย ${card.cost} 💎)`);
             
             if (card.atk >= 5000) {
                 zeusLife--;
-                if (zeusLife < 0) zeusLife = 0;
-                addLog(`✅ สำเร็จ! Zeus ได้รับความเสียหาย (-1 HP)`);
+                addLog(`✅ Zeus บาดเจ็บ!`);
             } else {
-                addLog(`❌ พลาด! พลังของ ${card.name} ไม่เพียงพอจะทำอันตราย Zeus`);
+                addLog(`❌ พลังไม่พอตี Zeus`);
             }
-            
+
             hand.splice(index, 1);
             updateUI();
 
-            if (zeusLife === 0) {
-                addLog("<br>🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆");
-                addLog("ชัยชนะเป็นของคุณ! ซุสพ่ายแพ้อย่างราบคาบ!");
-                addLog("🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆");
-                setTimeout(() => alert("🎉 คุณคือผู้ชนะในสงครามครั้งนี้!"), 300);
+            if (zeusLife <= 0) {
+                zeusLife = 0;
+                addLog("🏆 คุณชนะ!");
+                updateUI();
             }
         }
 
-        // รีเซ็ตเกม
-        function resetGame() {
-            if (confirm("ต้องการเริ่มเกมใหม่หรือไม่?")) {
-                initGame();
-            }
-        }
-
-        // อัปเดตหน้าจอ
         function updateUI() {
             document.getElementById('zeus-life').innerText = zeusLife;
             document.getElementById('deck-count').innerText = deck.length;
+            document.getElementById('turn-count').innerText = turn;
+            document.getElementById('max-essence').innerText = maxEssence;
+            document.getElementById('current-essence').innerText = currentEssence;
             
             const handDiv = document.getElementById('player-hand');
             handDiv.innerHTML = '';
-            
             hand.forEach((card, i) => {
+                const canPlay = currentEssence >= card.cost ? '' : 'opacity: 0.5; filter: grayscale(1);';
                 handDiv.innerHTML += `
-                    <div class="card ${card.rarity}" onclick="playCard(${i})">
+                    <div class="card ${card.rarity}" onclick="playCard(${i})" style="${canPlay}">
+                        <div class="cost-badge">${card.cost}</div>
                         <img src="${card.img}">
-                        <div class="card-info"><b>${card.name}</b><br>[${card.rarity}]</div>
+                        <div style="font-size:10px; padding:2px;"><b>${card.name}</b></div>
                         <div class="atk-badge">${card.atk}</div>
                     </div>
                 `;
             });
 
-            // ตรวจสอบสถานะซุส
-            const zeusCard = document.getElementById('zeus-card');
-            if (zeusLife <= 0) {
-                zeusCard.classList.add('zeus-dead');
-            } else {
-                zeusCard.classList.remove('zeus-dead');
-            }
+            if (zeusLife <= 0) document.getElementById('zeus-card').classList.add('zeus-dead');
+            else document.getElementById('zeus-card').classList.remove('zeus-dead');
         }
 
         function addLog(msg) {
@@ -269,6 +220,7 @@
             log.scrollTop = log.scrollHeight;
         }
 
+        function resetGame() { if(confirm("เริ่มใหม่?")) initGame(); }
         initGame();
     </script>
 </body>
