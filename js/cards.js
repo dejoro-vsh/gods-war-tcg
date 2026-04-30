@@ -58,7 +58,21 @@ const CardDatabase = {
             cost: 2, 
             atkCost: 1, 
             type: "blocker", 
-            img: "https://res.cloudinary.com/dju446p8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" 
+            img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" 
+        },
+        { 
+            name: "Oracle's Vision", 
+            type: "event", 
+            effect: "ai_summon", 
+            cost: 2, 
+            img: "./assets/images/event_oracle.png" 
+        },
+        { 
+            name: "Ambrosia", 
+            type: "event", 
+            effect: "heal_1", 
+            cost: 1, 
+            img: "./assets/images/event_ambrosia.png" 
         }
     ]
 };

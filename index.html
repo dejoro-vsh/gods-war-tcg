@@ -119,8 +119,9 @@
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
             pHand = []; drawCards(5);
-            if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; } 
-            else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; setTimeout(enemyTurn, 1000); }
+            addLog(`🎮 เริ่มเกม! ${first ? "คุณ (จีน) เริ่มก่อน" : "ซุส (กรีก) เริ่มก่อน"}`);
+            if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; addLog("⛩️ เทิร์นแรกของคุณ ได้รับ 1 Essence"); } 
+            else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; addLog("⚡ เทิร์นแรกของซุส ได้รับ 1 Essence"); setTimeout(enemyTurn, 1000); }
             updateUI();
         }
 
@@ -137,6 +138,9 @@
             let target = (type === 'leader') ? { name: "Zeus" } : eField[idx];
             if (type !== 'leader' && !target.isRest) { selected = null; updateUI(); return; }
             pEss -= selected.atkCost;
+            let attacker = (selected.type === 'leader') ? "เง็กเซียน" : pField[selected.idx].name;
+            addLog(`💥 ${attacker} โจมตีใส่ ${target.name}!`);
+
             if (selected.type === 'leader') document.getElementById('p-leader').classList.add('rest');
             else pField[selected.idx].isRest = true;
             
@@ -152,8 +156,43 @@
             if (eMax === 0) eMax = 2; else eMax = Math.min(10, eMax + 2);
             eEss = eMax;
             eField.forEach(c => c.isRest = false);
-            if(eField.length < 3) eField.push({...greekCards[Math.floor(Math.random()*greekCards.length)], isRest: true});
-            setTimeout(() => { if(eEss >= 1) showDefenseOptions(); else startPlayerTurn(); }, 1000);
+            
+            addLog(`⚡ ซุสเข้าสู่เทิร์น! ได้รับ +2 Essence (รวม ${eEss}/${eMax})`);
+
+            if(eField.length < 3) {
+                let rCard = greekCards[Math.floor(Math.random() * greekCards.length)];
+                if (rCard.type === 'event') {
+                    if (eEss >= rCard.cost) {
+                        eEss -= rCard.cost;
+                        addLog(`📜 ซุสใช้เวทมนตร์: ${rCard.name}`);
+                        if (rCard.effect === 'heal_1') {
+                            eHP = Math.min(5, eHP + 1);
+                            addLog(`💖 ซุสฟื้นฟู 1 HP!`);
+                        } else if (rCard.effect === 'ai_summon') {
+                            addLog(`✨ พลังนิมิต! ซุสเรียกทหารเพิ่ม 1 ตัว!`);
+                            let unit = greekCards.find(c => c.type !== 'event');
+                            eField.push({...unit, isRest: true});
+                        }
+                    }
+                } else {
+                    if (eEss >= rCard.cost) {
+                        eEss -= rCard.cost;
+                        eField.push({...rCard, isRest: true});
+                        addLog(`🛡️ ซุสอัญเชิญ: ${rCard.name}`);
+                    }
+                }
+            }
+            updateUI();
+
+            setTimeout(() => { 
+                if(eEss >= 1) {
+                    addLog(`⚔️ ซุสสั่งโจมตีคุณ! (ใช้ 1 Essence)`);
+                    showDefenseOptions(); 
+                } else {
+                    addLog(`⏭️ ซุสจบเทิร์น`);
+                    startPlayerTurn(); 
+                }
+            }, 1500);
         }
 
         function showDefenseOptions() {
@@ -177,7 +216,12 @@
 
         function resolveDefense(success) {
             document.getElementById('defense-overlay').style.display = 'none';
-            if(!success) pHP--;
+            if(!success) {
+                pHP--;
+                addLog(`💔 คุณรับความเสียหาย! (เหลือ HP: ${pHP})`);
+            } else {
+                addLog(`🛡️ คุณป้องกันการโจมตีสำเร็จ!`);
+            }
             updateUI(); checkWin(); setTimeout(startPlayerTurn, 500);
         }
 
@@ -186,11 +230,20 @@
             if (pOrder === 2 && pMax === 0) pMax = 2; else pMax = Math.min(10, pMax + 2);
             pEss = pMax; pField.forEach(c => c.isRest = false);
             document.getElementById('p-leader').classList.remove('rest');
+            
+            addLog(`⛩️ เทิร์นของคุณเริ่มต้น! ได้รับ +2 Essence (รวม ${pEss}/${pMax})`);
             drawCards(1);
+            addLog(`🃏 คุณจั่วการ์ด 1 ใบ`);
             updateUI();
         }
 
-        function endTurn() { if(!isPlayerTurn) return; isPlayerTurn = false; updateUI(); setTimeout(enemyTurn, 500); }
+        function endTurn() { 
+            if(!isPlayerTurn) return; 
+            isPlayerTurn = false; 
+            addLog(`⏭️ คุณจบเทิร์น`);
+            updateUI(); 
+            setTimeout(enemyTurn, 1000); 
+        }
 
         function playCard(idx) {
             let card = pHand[idx];
@@ -205,6 +258,7 @@
             } else {
                 card.isRest = !(card.skills && card.skills.includes('rush'));
                 pField.push(card);
+                addLog(`⛩️ คุณอัญเชิญ: ${card.name}`);
                 
                 if (card.skills && card.skills.includes('on_play:draw_1')) {
                     drawCards(1);
