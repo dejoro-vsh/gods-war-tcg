@@ -142,7 +142,7 @@
 
     <div class="battlefield game-ui" style="display:none;">
         <div id="e-field-zone" class="field-zone">
-            <div id="e-leader" class="card leader-card" onclick="onTarget('leader', 0)" style="border-color:var(--red)">
+            <div id="e-leader" class="card leader-card" onclick="onTarget('leader', 0)" style="border-color:var(--blue)">
                 <img id="e-leader-img" src="./assets/images/leader_zeus.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
@@ -151,7 +151,7 @@
 
         <div id="p-field-zone" class="field-zone">
             <div id="p-units" style="display:flex; gap:8px;"></div>
-            <div id="p-leader" class="card leader-card" onclick="onAttack('leader', 0)" style="border-color:var(--blue)">
+            <div id="p-leader" class="card leader-card" onclick="onAttack('leader', 0)" style="border-color:var(--red)">
                 <img id="p-leader-img" src="./assets/images/leader_jade_emperor.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
@@ -400,16 +400,25 @@
                 document.getElementById('e-leader-name-ui').innerText = "JADE EMPEROR";
                 document.getElementById('p-leader-icon').innerText = "🔱";
                 document.getElementById('e-leader-icon').innerText = "⛩️";
-                document.getElementById('p-leader').style.borderColor = "var(--red)";
-                document.getElementById('e-leader').style.borderColor = "var(--blue)";
+                document.getElementById('p-leader').style.borderColor = "var(--blue)";
+                document.getElementById('e-leader').style.borderColor = "var(--red)";
                 
-                document.getElementById('btn-start-p').innerText = "คุณ (กรีก) เริ่มก่อน";
-                document.getElementById('btn-start-e').innerText = "AI (จีน) เริ่มก่อน";
+                document.getElementById('btn-start-p').innerText = "สู้กับบอท (คุณเริ่มก่อน)";
+                document.getElementById('btn-start-e').innerText = "สู้กับบอท (บอทเริ่มก่อน)";
             } else {
                 pFaction = 'china'; eFaction = 'greek';
                 pLeaderName = "เง็กเซียน"; eLeaderName = "ซุส";
-                document.getElementById('btn-start-p').innerText = "คุณ (จีน) เริ่มก่อน";
-                document.getElementById('btn-start-e').innerText = "AI (กรีก) เริ่มก่อน";
+                document.getElementById('p-leader-img').src = "./assets/images/leader_jade_emperor.png";
+                document.getElementById('e-leader-img').src = "./assets/images/leader_zeus.png";
+                document.getElementById('p-leader-name-ui').innerText = "JADE EMPEROR";
+                document.getElementById('e-leader-name-ui').innerText = "ZEUS";
+                document.getElementById('p-leader-icon').innerText = "⛩️";
+                document.getElementById('e-leader-icon').innerText = "🔱";
+                document.getElementById('p-leader').style.borderColor = "var(--red)";
+                document.getElementById('e-leader').style.borderColor = "var(--blue)";
+
+                document.getElementById('btn-start-p').innerText = "สู้กับบอท (คุณเริ่มก่อน)";
+                document.getElementById('btn-start-e').innerText = "สู้กับบอท (บอทเริ่มก่อน)";
             }
         }
 
