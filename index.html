@@ -171,10 +171,13 @@
     <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
 
     <!-- Load Supabase Asynchronously so it doesn't block UI -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
     <script src="./js/cards.js?v=4"></script>
     <script>
         window.onerror = function(msg, url, lineNo, columnNo, error) {
+            // Ignore generic cross-origin CDN script errors silently
+            if (msg === 'Script error.' && lineNo === 0) return true; 
+            
             alert('CRITICAL ERROR:\n' + msg + '\nLine: ' + lineNo);
             return false;
         };
