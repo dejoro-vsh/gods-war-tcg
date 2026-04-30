@@ -98,14 +98,20 @@
             <img src="./assets/images/leader_jade_emperor.png">
             <div>⛩️ ฝ่ายจีน (China)<br><span style="font-size:12px;color:#aaa">ควบคุมเง็กเซียนฮ่องเต้ สู้กับ ซุส</span></div>
         </button>
-        <button class="faction-btn" onclick="selectFaction('greek')">
+        <button class="faction-btn" onclick="selectFaction('greek')" style="border-color: var(--blue);">
             <img src="./assets/images/leader_zeus.png">
             <div>🔱 ฝ่ายกรีก (Greek)<br><span style="font-size:12px;color:#aaa">ควบคุมซุส สู้กับ เง็กเซียนฮ่องเต้</span></div>
         </button>
-        <button class="faction-btn" onclick="openDeckBuilder()" style="border-color: var(--blue);">
-            <div style="font-size:30px;">🛠️</div>
-            <div>จัดเด็คของคุณ (Deck Builder)<br><span style="font-size:12px;color:#aaa">ปรับแต่งไพ่ 50 ใบก่อนลุย!</span></div>
-        </button>
+        <div style="display:flex; gap:10px; width: 90%; max-width: 400px;">
+            <button class="faction-btn" onclick="openDeckBuilder('china')" style="border-color: var(--red); padding: 10px; flex:1;">
+                <div style="font-size:24px;">⛩️</div>
+                <div style="font-size:14px;">จัดเด็คจีน</div>
+            </button>
+            <button class="faction-btn" onclick="openDeckBuilder('greek')" style="border-color: var(--blue); padding: 10px; flex:1;">
+                <div style="font-size:24px;">🔱</div>
+                <div style="font-size:14px;">จัดเด็คกรีก</div>
+            </button>
+        </div>
     </div>
 
     <div id="deck-builder-screen">
@@ -177,27 +183,27 @@
         
         let pFaction = 'china', eFaction = 'greek';
         let pLeaderName = "เง็กเซียน", eLeaderName = "ซุส";
-        let customDeck = [];
+        let customDeckChina = [];
+        let customDeckGreek = [];
 
         // Mock Database Initialization
         function initMockDB() {
-            let savedDeck = localStorage.getItem('godswar_deck');
-            if (savedDeck) {
-                customDeck = JSON.parse(savedDeck);
-                // Fix old data missing faction
-                let modified = false;
-                customDeck.forEach(c => {
-                    if (!c.faction) {
-                        if (chinaCards.find(ch => ch.name === c.name)) c.faction = 'china';
-                        else c.faction = 'greek';
-                        modified = true;
-                    }
-                });
-                if (modified) localStorage.setItem('godswar_deck', JSON.stringify(customDeck));
+            let sChina = localStorage.getItem('godswar_deck_china');
+            if (sChina) {
+                customDeckChina = JSON.parse(sChina);
             } else {
-                // If no custom deck, auto-generate a starter deck (Mixed China & Greek)
-                customDeck = [...chinaCards, ...greekCards].sort(() => 0.5 - Math.random()).slice(0, 50);
-                localStorage.setItem('godswar_deck', JSON.stringify(customDeck));
+                customDeckChina = [];
+                for(let i=0; i<50; i++) customDeckChina.push({...chinaCards[i%chinaCards.length], id: Math.random()});
+                localStorage.setItem('godswar_deck_china', JSON.stringify(customDeckChina));
+            }
+
+            let sGreek = localStorage.getItem('godswar_deck_greek');
+            if (sGreek) {
+                customDeckGreek = JSON.parse(sGreek);
+            } else {
+                customDeckGreek = [];
+                for(let i=0; i<50; i++) customDeckGreek.push({...greekCards[i%greekCards.length], id: Math.random()});
+                localStorage.setItem('godswar_deck_greek', JSON.stringify(customDeckGreek));
             }
         }
         initMockDB();
@@ -205,20 +211,22 @@
         // Deck Builder Logic
         let builderInventory = [];
         let builderDeck = [];
+        let currentBuilderFaction = 'china';
 
-        function openDeckBuilder() {
+        function openDeckBuilder(faction) {
+            currentBuilderFaction = faction;
             document.getElementById('faction-selection').style.display = 'none';
             document.getElementById('deck-builder-screen').style.display = 'flex';
             
-            // Give player 4 copies of EVERY card in the game as their "Inventory" for testing
-            const allCards = [...chinaCards, ...greekCards];
+            // Give player 4 copies of their faction cards as "Inventory"
+            const allCards = faction === 'china' ? chinaCards : greekCards;
             builderInventory = [];
             allCards.forEach(c => {
                 for(let i=0; i<4; i++) builderInventory.push({...c, builderId: Math.random()});
             });
 
             // Load saved deck
-            builderDeck = JSON.parse(localStorage.getItem('godswar_deck')) || [];
+            builderDeck = JSON.parse(localStorage.getItem(`godswar_deck_${faction}`)) || [];
             
             // Remove deck cards from inventory so they don't duplicate
             builderDeck.forEach(dc => {
@@ -264,8 +272,10 @@
             if (builderDeck.length !== 50) {
                 return alert("ต้องมีการ์ดครบ 50 ใบพอดีถึงจะบันทึกได้ครับ!");
             }
-            localStorage.setItem('godswar_deck', JSON.stringify(builderDeck));
-            customDeck = builderDeck;
+            localStorage.setItem(`godswar_deck_${currentBuilderFaction}`, JSON.stringify(builderDeck));
+            if (currentBuilderFaction === 'china') customDeckChina = builderDeck;
+            else customDeckGreek = builderDeck;
+            
             document.getElementById('deck-builder-screen').style.display = 'none';
             document.getElementById('faction-selection').style.display = 'flex';
             playSound('sfx-magic');
@@ -331,8 +341,9 @@
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
             
-            // Load user's custom deck!
-            let userDeckClone = JSON.parse(JSON.stringify(customDeck)).map(c => ({...c, id: Math.random()}));
+            // Load user's custom deck based on faction
+            let activeDeck = pFaction === 'china' ? customDeckChina : customDeckGreek;
+            let userDeckClone = JSON.parse(JSON.stringify(activeDeck)).map(c => ({...c, id: Math.random()}));
             for (let i = userDeckClone.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [userDeckClone[i], userDeckClone[j]] = [userDeckClone[j], userDeckClone[i]];
