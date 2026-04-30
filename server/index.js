@@ -74,6 +74,17 @@ io.on('connection', (socket) => {
         console.log(`[Q] Player left queue: ${socket.id}`);
     });
 
+    socket.on('playerAction', (actionData) => {
+        for (const roomId in rooms) {
+            const room = rooms[roomId];
+            if (room.p1.id === socket.id || room.p2.id === socket.id) {
+                const opponentId = room.p1.id === socket.id ? room.p2.id : room.p1.id;
+                io.to(opponentId).emit('opponentAction', actionData);
+                break;
+            }
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log(`[-] Player disconnected: ${socket.id}`);
         // Remove from queue

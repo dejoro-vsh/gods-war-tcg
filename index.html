@@ -459,6 +459,61 @@
                     setTimeout(() => startMultiplayerGame(data), 1500);
                 });
 
+                socket.on('opponentAction', (data) => {
+                    if (data.type === 'playCard') {
+                        let card = data.card;
+                        eEss -= card.cost;
+                        if (eHand.length > 0) eHand.pop();
+                        
+                        if (card.type === 'event') {
+                            addLog(`📜 คู่ต่อสู้ใช้เวทมนตร์: ${card.name}`);
+                            playSound('sfx-magic');
+                            if (card.effect === 'draw_2') {
+                                if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
+                                if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
+                            } else if (card.effect === 'heal_1') {
+                                eHP = Math.min(5, eHP + 1);
+                                showFloatingText('e-leader', "+1", "heal");
+                                playSound('sfx-heal');
+                            } else if (card.effect === 'board_wipe') {
+                                showFloatingText('p-leader', "🌊 ล้างบาง!", "dmg");
+                                pField = [];
+                            }
+                        } else {
+                            card.isRest = !(card.skills && card.skills.includes('rush'));
+                            eField.push(card);
+                            addLog(`🛡️ คู่ต่อสู้อัญเชิญ: ${card.name}`);
+                            if (card.skills && card.skills.includes('on_play:draw_1')) {
+                                if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
+                            }
+                        }
+                        updateUI();
+                    } else if (data.type === 'attack') {
+                        let attacker = (data.attackerType === 'leader') ? {name: eLeaderName} : eField[data.attackerIdx];
+                        let targetName = (data.targetType === 'leader') ? pLeaderName : pField[data.targetIdx].name;
+                        
+                        addLog(`💥 คู่แข่งใช้ ${attacker.name} โจมตีใส่ ${targetName}!`);
+                        playSound('sfx-attack');
+                        
+                        if (data.attackerType === 'leader') document.getElementById('e-leader').classList.add('rest');
+                        else eField[data.attackerIdx].isRest = true;
+                        
+                        setTimeout(() => {
+                            if (data.targetType === 'leader') {
+                                pHP--;
+                                showFloatingText('p-leader', "-1", "dmg");
+                            } else {
+                                showFloatingText(`p-unit-${data.targetIdx}`, "DEAD", "dmg");
+                                pField.splice(data.targetIdx, 1);
+                            }
+                            updateUI(); checkWin();
+                        }, 500);
+                    } else if (data.type === 'endTurn') {
+                        addLog(`⏭️ คู่ต่อสู้จบเทิร์น`);
+                        startPlayerTurn();
+                    }
+                });
+
                 socket.on('opponentDisconnected', () => {
                     alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!");
                     location.reload();
@@ -573,6 +628,10 @@
             pEss -= selected.atkCost;
             addLog(`💥 ${attacker.name} โจมตีใส่ ${target.name}!`);
             playSound('sfx-attack');
+
+            if (isMultiplayer && socket) {
+                socket.emit('playerAction', { type: 'attack', attackerType: selected.type, attackerIdx: selected.idx, targetType: type, targetIdx: idx });
+            }
 
             if (selected.type === 'leader') document.getElementById('p-leader').classList.add('rest');
             else pField[selected.idx].isRest = true;
@@ -755,13 +814,22 @@
             isPlayerTurn = false; 
             addLog(`⏭️ คุณจบเทิร์น`);
             updateUI(); 
-            setTimeout(enemyTurn, 1000); 
+            
+            if (isMultiplayer && socket) {
+                socket.emit('playerAction', { type: 'endTurn' });
+            } else {
+                setTimeout(enemyTurn, 1000); 
+            }
         }
 
         function playCard(idx) {
             let card = pHand[idx];
             if (card.type !== 'event' && pField.length >= 5) return;
             if (pEss < card.cost) return;
+            
+            if (isMultiplayer && socket) {
+                socket.emit('playerAction', { type: 'playCard', card: card });
+            }
             
             pEss -= card.cost;
             pHand.splice(idx, 1);
