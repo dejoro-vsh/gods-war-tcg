@@ -41,6 +41,10 @@
         .tag-event { background: #8e44ad; color: white; left: 3px; bottom: 3px; top: auto; right: auto; }
         .tag-rush { background: var(--red); color: white; left: 3px; top: 3px; right: auto; }
 
+        /* Animations */
+        .float-text { position: absolute; font-weight: bold; font-size: 24px; z-index: 1000; animation: floatUp 1s ease-out forwards; pointer-events: none; text-shadow: 2px 2px 4px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(1.5); } }
+
         /* Highlights */
         .is-attacking { border: 3px solid var(--blue) !important; box-shadow: 0 0 15px var(--blue); transform: scale(1.05); z-index: 5; }
         .is-targetable { border: 3px solid var(--red) !important; animation: pulse-red 0.8s infinite; }
@@ -72,14 +76,14 @@
 
     <div class="info-bar">
         <div class="ess-monitor ess-e">Z: <span id="e-ess-ui">0/0</span></div>
-        <div style="font-size: 10px; opacity: 0.6;">D: <span id="e-deck">50</span> | <span id="p-deck">50</span></div>
+        <div style="font-size: 10px; opacity: 0.6;">D: <span id="e-deck-ui">50</span> | <span id="p-deck-ui">50</span></div>
         <div class="ess-monitor ess-p">P: <span id="p-ess-ui">0/0</span></div>
     </div>
 
     <div class="battlefield">
         <div id="e-field-zone" class="field-zone">
             <div id="e-leader" class="card leader-card" onclick="onTarget('leader', 0)" style="border-color:var(--red)">
-                <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777467100/Gemini_Generated_Image_y35m84y35m84y35m_phm30l.jpg">
+                <img src="./assets/images/leader_zeus.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
             <div id="e-units" style="display:flex; gap:8px;"></div>
@@ -88,7 +92,7 @@
         <div id="p-field-zone" class="field-zone">
             <div id="p-units" style="display:flex; gap:8px;"></div>
             <div id="p-leader" class="card leader-card" onclick="onAttack('leader', 0)" style="border-color:var(--blue)">
-                <img src="https://res.cloudinary.com/dju44op8w/image/upload/v1777472385/Gemini_Generated_Image_lkkjkalkkjkalkkj_y9swsw.jpg">
+                <img src="./assets/images/leader_jade_emperor.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
         </div>
@@ -112,6 +116,7 @@
         const greekCards = window.CardDatabase.greekCards;
 
         let pHP = 5, eHP = 5, pEss = 0, pMax = 0, eEss = 0, eMax = 0, isPlayerTurn = true, pOrder = 1;
+        let pDeck = 50, eDeck = 50;
         let pHand = [], pField = [], eField = [], selected = null;
 
         function startGame(first) {
@@ -146,8 +151,19 @@
             
             setTimeout(() => {
                 let blockerIdx = eField.findIndex(c => c.type === 'blocker' && !c.isRest);
-                if(blockerIdx !== -1) { eField.splice(blockerIdx, 1); addLog("🛡️ บล็อก!"); }
-                else { if (type === 'leader') eHP--; else eField.splice(idx, 1); }
+                if(blockerIdx !== -1) { 
+                    showFloatingText(`e-unit-${blockerIdx}`, "บล็อก!", "dmg");
+                    eField.splice(blockerIdx, 1); 
+                    addLog("🛡️ บล็อก!"); 
+                } else { 
+                    if (type === 'leader') { 
+                        eHP--; 
+                        showFloatingText('e-leader', "-1", "dmg");
+                    } else { 
+                        showFloatingText(`e-unit-${idx}`, "DEAD", "dmg");
+                        eField.splice(idx, 1); 
+                    } 
+                }
                 selected = null; updateUI(); checkWin();
             }, 500);
         }
@@ -167,22 +183,23 @@
                         addLog(`📜 ซุสใช้เวทมนตร์: ${rCard.name}`);
                         if (rCard.effect === 'heal_1') {
                             eHP = Math.min(5, eHP + 1);
+                            showFloatingText('e-leader', "+1", "heal");
                             addLog(`💖 ซุสฟื้นฟู 1 HP!`);
                         } else if (rCard.effect === 'ai_summon') {
                             addLog(`✨ พลังนิมิต! ซุสเรียกทหารเพิ่ม 1 ตัว!`);
                             let unit = greekCards.find(c => c.type !== 'event');
-                            eField.push({...unit, isRest: true});
+                            if (eDeck > 0) { eField.push({...unit, isRest: true}); eDeck--; }
                         }
                     }
                 } else {
                     if (eEss >= rCard.cost) {
                         eEss -= rCard.cost;
-                        eField.push({...rCard, isRest: true});
+                        if (eDeck > 0) { eField.push({...rCard, isRest: true}); eDeck--; }
                         addLog(`🛡️ ซุสอัญเชิญ: ${rCard.name}`);
                     }
                 }
             }
-            updateUI();
+            updateUI(); checkWin();
 
             setTimeout(() => { 
                 if(eEss >= 1) {
@@ -218,6 +235,7 @@
             document.getElementById('defense-overlay').style.display = 'none';
             if(!success) {
                 pHP--;
+                showFloatingText('p-leader', "-1", "dmg");
                 addLog(`💔 คุณรับความเสียหาย! (เหลือ HP: ${pHP})`);
             } else {
                 addLog(`🛡️ คุณป้องกันการโจมตีสำเร็จ!`);
@@ -274,14 +292,32 @@
                 drawCards(2);
             } else if (card.effect === 'heal_1') {
                 pHP = Math.min(5, pHP + 1);
+                showFloatingText('p-leader', "+1", "heal");
                 addLog(`💖 ฟื้นฟู 1 HP!`);
             }
         }
 
+        function showFloatingText(targetId, text, type) {
+            let el = document.getElementById(targetId);
+            if (!el) return;
+            let rect = el.getBoundingClientRect();
+            let span = document.createElement('div');
+            span.className = 'float-text';
+            span.style.color = type === 'heal' ? 'var(--green)' : 'var(--red)';
+            span.innerText = text;
+            span.style.left = (rect.left + rect.width / 2 - 10) + 'px';
+            span.style.top = (rect.top + rect.height / 2 - 10) + 'px';
+            document.body.appendChild(span);
+            setTimeout(() => span.remove(), 1000);
+        }
+
         function drawCards(amount) {
             for(let i = 0; i < amount; i++) {
+                if(pDeck <= 0) break;
                 if(pHand.length < 8) pHand.push({...chinaCards[Math.floor(Math.random() * chinaCards.length)], id: Math.random()});
+                pDeck--;
             }
+            checkWin();
         }
 
         function updateUI() {
@@ -289,19 +325,19 @@
             document.getElementById('p-hp-num').innerText = pHP;
             document.getElementById('e-hp-bar').style.width = (eHP/5*100)+'%';
             document.getElementById('p-hp-bar').style.width = (pHP/5*100)+'%';
-            document.getElementById('p-ess-ui').innerText = `${pEss}/${pMax}`;
-            document.getElementById('e-ess-ui').innerText = `${eEss}/${eMax}`;
+            document.getElementById('p-deck-ui').innerText = pDeck;
+            document.getElementById('e-deck-ui').innerText = eDeck;
 
             const pf = document.getElementById('p-units'); pf.innerHTML = '';
             pField.forEach((c, i) => {
-                pf.innerHTML += `<div class="card ${c.isRest?'rest':''} ${selected?.idx===i?'is-attacking':''}" onclick="onAttack('warrior', ${i})">
+                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${selected?.idx===i?'is-attacking':''}" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
             });
 
             const ef = document.getElementById('e-units'); ef.innerHTML = '';
             eField.forEach((c, i) => {
-                ef.innerHTML += `<div class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" onclick="onTarget('warrior', ${i})">
+                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" onclick="onTarget('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
             });
@@ -323,7 +359,11 @@
         }
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
-        function checkWin() { if(eHP<=0 || pHP<=0) { alert(eHP<=0?"คุณชนะ!":"คุณแพ้!"); location.reload(); } }
+        function checkWin() { 
+            if(pDeck <= 0) { alert("คุณการ์ดหมดกอง! คุณแพ้!"); location.reload(); }
+            if(eDeck <= 0) { alert("ซุสการ์ดหมดกอง! คุณชนะ!"); location.reload(); }
+            if(eHP<=0 || pHP<=0) { alert(eHP<=0?"คุณชนะ!":"คุณแพ้!"); location.reload(); } 
+        }
     </script>
 </body>
 </html>

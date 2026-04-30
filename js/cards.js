@@ -50,7 +50,7 @@ const CardDatabase = {
             cost: 4, 
             atkCost: 2, 
             type: "warrior",
-            img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472328/Gemini_Generated_Image_3r1qj3r1qj3r1qj3_huokog.jpg" 
+            img: "./assets/images/greek_hercules.png" 
         },
         { 
             name: "Spartan", 
@@ -58,7 +58,15 @@ const CardDatabase = {
             cost: 2, 
             atkCost: 1, 
             type: "blocker", 
-            img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" 
+            img: "./assets/images/greek_spartan.png" 
+        },
+        { 
+            name: "Valkyrie", 
+            atk: 4500, 
+            cost: 3, 
+            atkCost: 1, 
+            type: "warrior", 
+            img: "./assets/images/greek_valkyrie.png" 
         },
         { 
             name: "Oracle's Vision", 
