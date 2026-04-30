@@ -436,9 +436,13 @@
             if (!socket) {
                 socket = io(SOCKET_SERVER_URL);
                 
-                socket.on('connect_error', () => {
-                    alert("เซิร์ฟเวอร์ Multiplayer ปิดอยู่ครับ (รอเซ็ตอัพบน Render)");
-                    location.reload();
+                socket.on('connect_error', (err) => {
+                    console.warn("Connection error, server might be sleeping...", err);
+                    document.getElementById('queue-status').innerText = "กำลังปลุกเซิร์ฟเวอร์คลาวด์... (อาจใช้เวลาประมาณ 30-50 วินาที) ⏳";
+                });
+
+                socket.on('connect', () => {
+                    document.getElementById('queue-status').innerText = "กำลังรอผู้เล่นคนอื่น... ⏳";
                 });
 
                 socket.on('matchFound', (data) => {
