@@ -38,6 +38,8 @@
         .tag { position: absolute; top: 3px; right: 3px; font-size: 7px; padding: 1px 3px; border-radius: 2px; font-weight: bold; }
         .tag-blocker { background: var(--green); color: black; }
         .tag-counter { background: var(--orange); color: white; }
+        .tag-event { background: #8e44ad; color: white; left: 3px; bottom: 3px; top: auto; right: auto; }
+        .tag-rush { background: var(--red); color: white; left: 3px; top: 3px; right: auto; }
 
         /* Highlights */
         .is-attacking { border: 3px solid var(--blue) !important; box-shadow: 0 0 15px var(--blue); transform: scale(1.05); z-index: 5; }
@@ -104,16 +106,10 @@
 
     <div id="p-hand-ui" class="hand-container"></div>
 
+    <script src="./js/cards.js"></script>
     <script>
-        const chinaCards = [
-            { name: "Wukong", atk: 6000, cost: 5, atkCost: 2, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" },
-            { name: "Erlang", atk: 4500, cost: 2, atkCost: 1, type: "blocker", img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472457/Gemini_Generated_Image_s7osias7osias7os_fabxbv.jpg" },
-            { name: "Nezha", atk: 5500, cost: 3, atkCost: 1, counter: 2000, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472501/Gemini_Generated_Image_m8c3vam8c3vam8c3_pqnpqt.jpg" }
-        ];
-        const greekCards = [
-            { name: "Hercules", atk: 5500, cost: 4, atkCost: 2, img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472328/Gemini_Generated_Image_3r1qj3r1qj3r1qj3_huokog.jpg" },
-            { name: "Spartan", atk: 4000, cost: 2, atkCost: 1, type: "blocker", img: "https://res.cloudinary.com/dju446p8w/image/upload/v1777467845/Gemini_Generated_Image_b5bzkyb5bzkyb5bz_dufa4t.jpg" }
-        ];
+        const chinaCards = window.CardDatabase.chinaCards;
+        const greekCards = window.CardDatabase.greekCards;
 
         let pHP = 5, eHP = 5, pEss = 0, pMax = 0, eEss = 0, eMax = 0, isPlayerTurn = true, pOrder = 1;
         let pHand = [], pField = [], eField = [], selected = null;
@@ -122,7 +118,7 @@
             document.getElementById('start-buttons').style.display = 'none';
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
-            pHand = Array.from({length: 5}, () => ({...chinaCards[Math.floor(Math.random()*3)], id: Math.random(), isRest: false}));
+            pHand = []; drawCards(5);
             if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; } 
             else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; setTimeout(enemyTurn, 1000); }
             updateUI();
@@ -156,7 +152,7 @@
             if (eMax === 0) eMax = 2; else eMax = Math.min(10, eMax + 2);
             eEss = eMax;
             eField.forEach(c => c.isRest = false);
-            if(eField.length < 3) eField.push({...greekCards[Math.floor(Math.random()*2)], isRest: false});
+            if(eField.length < 3) eField.push({...greekCards[Math.floor(Math.random()*greekCards.length)], isRest: true});
             setTimeout(() => { if(eEss >= 1) showDefenseOptions(); else startPlayerTurn(); }, 1000);
         }
 
@@ -190,16 +186,48 @@
             if (pOrder === 2 && pMax === 0) pMax = 2; else pMax = Math.min(10, pMax + 2);
             pEss = pMax; pField.forEach(c => c.isRest = false);
             document.getElementById('p-leader').classList.remove('rest');
-            if(pHand.length < 8) pHand.push({...chinaCards[Math.floor(Math.random()*3)], id: Math.random(), isRest: false});
+            drawCards(1);
             updateUI();
         }
 
         function endTurn() { if(!isPlayerTurn) return; isPlayerTurn = false; updateUI(); setTimeout(enemyTurn, 500); }
 
         function playCard(idx) {
-            if (pField.length >= 5 || pEss < pHand[idx].cost) return;
-            pEss -= pHand[idx].cost; pField.push(pHand.splice(idx, 1)[0]);
+            let card = pHand[idx];
+            if (card.type !== 'event' && pField.length >= 5) return;
+            if (pEss < card.cost) return;
+            
+            pEss -= card.cost;
+            pHand.splice(idx, 1);
+            
+            if (card.type === 'event') {
+                resolveEvent(card);
+            } else {
+                card.isRest = !(card.skills && card.skills.includes('rush'));
+                pField.push(card);
+                
+                if (card.skills && card.skills.includes('on_play:draw_1')) {
+                    drawCards(1);
+                    addLog(`✨ ${card.name} ทำงาน: จั่วการ์ด 1 ใบ!`);
+                }
+            }
             updateUI();
+        }
+
+        function resolveEvent(card) {
+            addLog(`📜 ใช้เวทมนตร์: ${card.name}`);
+            if (card.effect === 'draw_2') {
+                drawCards(2);
+            } else if (card.effect === 'heal_1') {
+                pHP = Math.min(5, pHP + 1);
+                addLog(`💖 ฟื้นฟู 1 HP!`);
+            }
+        }
+
+        function drawCards(amount) {
+            for(let i = 0; i < amount; i++) {
+                if(pHand.length < 8) pHand.push({...chinaCards[Math.floor(Math.random() * chinaCards.length)], id: Math.random()});
+            }
         }
 
         function updateUI() {
@@ -226,9 +254,14 @@
 
             const ph = document.getElementById('p-hand-ui'); ph.innerHTML = '';
             pHand.forEach((c, i) => {
+                let badges = '';
+                if (c.counter) badges += `<div class="tag tag-counter">C+${c.counter}</div>`;
+                if (c.type === 'event') badges += `<div class="tag tag-event">EVENT</div>`;
+                if (c.skills && c.skills.includes('rush')) badges += `<div class="tag tag-rush">RUSH</div>`;
+                
                 ph.innerHTML += `<div class="card" onclick="playCard(${i})">
                     <div class="cost-val">${c.cost}</div><img src="${c.img}">
-                    ${c.counter?'<div class="tag tag-counter">C+'+c.counter+'</div>':''}</div>`;
+                    ${badges}</div>`;
             });
 
             document.getElementById('e-leader').className = `card leader-card ${selected?'is-targetable':''}`;
