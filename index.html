@@ -60,6 +60,10 @@
 
         #defense-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .leader-card { width: 85px; height: 125px; border-width: 3px; }
+
+        #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        .faction-btn { width: 80%; padding: 20px; font-size: 18px; border-radius: 10px; border: 2px solid var(--gold); background: #111; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .faction-btn img { height: 100px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -79,21 +83,34 @@
         <div id="defense-options" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
     </div>
 
-    <div class="header-stats">
-        <div class="hp-box">🔱 ZEUS: <span id="e-hp-num">5</span> HP <div class="hp-bar-bg"><div id="e-hp-bar" class="hp-bar-fill"></div></div></div>
-        <div class="hp-box">⛩️ YOU: <span id="p-hp-num">5</span> HP <div class="hp-bar-bg"><div id="p-hp-bar" class="hp-bar-fill"></div></div></div>
+    <div id="faction-selection">
+        <h2 style="color:var(--gold); margin-bottom: 10px;">⚔️ TRAINING MODE ⚔️</h2>
+        <p>เลือกฝ่ายที่คุณต้องการเล่น</p>
+        <button class="faction-btn" onclick="selectFaction('china')">
+            <img src="./assets/images/leader_jade_emperor.png">
+            <div>⛩️ ฝ่ายจีน (China)<br><span style="font-size:12px;color:#aaa">ควบคุมเง็กเซียนฮ่องเต้ สู้กับ ซุส</span></div>
+        </button>
+        <button class="faction-btn" onclick="selectFaction('greek')">
+            <img src="./assets/images/leader_zeus.png">
+            <div>🔱 ฝ่ายกรีก (Greek)<br><span style="font-size:12px;color:#aaa">ควบคุมซุส สู้กับ เง็กเซียนฮ่องเต้</span></div>
+        </button>
     </div>
 
-    <div class="info-bar">
-        <div class="ess-monitor ess-e">Z: <span id="e-ess-ui">0/0</span></div>
+    <div class="header-stats game-ui" style="display:none;">
+        <div class="hp-box"><span id="e-leader-icon">🔱</span> <span id="e-leader-name-ui">ZEUS</span>: <span id="e-hp-num">5</span> HP <div class="hp-bar-bg"><div id="e-hp-bar" class="hp-bar-fill"></div></div></div>
+        <div class="hp-box"><span id="p-leader-icon">⛩️</span> <span id="p-leader-name-ui">YOU</span>: <span id="p-hp-num">5</span> HP <div class="hp-bar-bg"><div id="p-hp-bar" class="hp-bar-fill"></div></div></div>
+    </div>
+
+    <div class="info-bar game-ui" style="display:none;">
+        <div class="ess-monitor ess-e">AI: <span id="e-ess-ui">0/0</span></div>
         <div style="font-size: 10px; opacity: 0.6;">D: <span id="e-deck-ui">50</span> | <span id="p-deck-ui">50</span></div>
         <div class="ess-monitor ess-p">P: <span id="p-ess-ui">0/0</span></div>
     </div>
 
-    <div class="battlefield">
+    <div class="battlefield game-ui" style="display:none;">
         <div id="e-field-zone" class="field-zone">
             <div id="e-leader" class="card leader-card" onclick="onTarget('leader', 0)" style="border-color:var(--red)">
-                <img src="./assets/images/leader_zeus.png">
+                <img id="e-leader-img" src="./assets/images/leader_zeus.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
             <div id="e-units" style="display:flex; gap:8px;"></div>
@@ -102,23 +119,23 @@
         <div id="p-field-zone" class="field-zone">
             <div id="p-units" style="display:flex; gap:8px;"></div>
             <div id="p-leader" class="card leader-card" onclick="onAttack('leader', 0)" style="border-color:var(--blue)">
-                <img src="./assets/images/leader_jade_emperor.png">
+                <img id="p-leader-img" src="./assets/images/leader_jade_emperor.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
         </div>
     </div>
 
-    <div id="battle-log">> แตะหน้าจอเพื่อเปิดเพลง และเลือกฝ่ายเริ่มเกม...</div>
+    <div id="battle-log" class="game-ui" style="display:none;">> เลือกฝ่ายเริ่มเกม...</div>
     
-    <div class="controls">
+    <div class="controls game-ui" style="display:none;">
         <div id="start-buttons">
-            <button style="background:var(--gold)" onclick="startGame(true)">จีนเริ่มก่อน</button>
-            <button style="background:var(--red); color:white" onclick="startGame(false)">กรีกเริ่มก่อน</button>
+            <button id="btn-start-p" style="background:var(--gold)" onclick="startGame(true)">คุณ (จีน) เริ่มก่อน</button>
+            <button id="btn-start-e" style="background:var(--red); color:white" onclick="startGame(false)">AI (กรีก) เริ่มก่อน</button>
         </div>
         <button id="end-btn" style="display:none; background:var(--red); color:white;" onclick="endTurn()">⏭️ จบเทิร์น</button>
     </div>
 
-    <div id="p-hand-ui" class="hand-container"></div>
+    <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
 
     <script src="./js/cards.js"></script>
     <script>
@@ -130,6 +147,9 @@
         let pHand = [], eHand = [], pField = [], eField = [], selected = null;
         let currentDefenseTarget = { type: 'leader', idx: 0 };
         let aiAttackQueue = [];
+        
+        let pFaction = 'china', eFaction = 'greek';
+        let pLeaderName = "เง็กเซียน", eLeaderName = "ซุส";
 
         function playSound(id) {
             let s = document.getElementById(id);
@@ -142,11 +162,37 @@
 
         let audioUnlocked = false;
         document.body.addEventListener('click', () => {
-            if(!audioUnlocked && document.getElementById('start-buttons').style.display !== 'none') {
+            if(!audioUnlocked) {
                 audioUnlocked = true;
                 playSound('bgm-menu');
             }
         });
+
+        function selectFaction(faction) {
+            document.getElementById('faction-selection').style.display = 'none';
+            document.querySelectorAll('.game-ui').forEach(el => el.style.display = '');
+            
+            if (faction === 'greek') {
+                pFaction = 'greek'; eFaction = 'china';
+                pLeaderName = "ซุส"; eLeaderName = "เง็กเซียน";
+                document.getElementById('p-leader-img').src = "./assets/images/leader_zeus.png";
+                document.getElementById('e-leader-img').src = "./assets/images/leader_jade_emperor.png";
+                document.getElementById('p-leader-name-ui').innerText = "ZEUS";
+                document.getElementById('e-leader-name-ui').innerText = "JADE EMPEROR";
+                document.getElementById('p-leader-icon').innerText = "🔱";
+                document.getElementById('e-leader-icon').innerText = "⛩️";
+                document.getElementById('p-leader').style.borderColor = "var(--red)";
+                document.getElementById('e-leader').style.borderColor = "var(--blue)";
+                
+                document.getElementById('btn-start-p').innerText = "คุณ (กรีก) เริ่มก่อน";
+                document.getElementById('btn-start-e').innerText = "AI (จีน) เริ่มก่อน";
+            } else {
+                pFaction = 'china'; eFaction = 'greek';
+                pLeaderName = "เง็กเซียน"; eLeaderName = "ซุส";
+                document.getElementById('btn-start-p').innerText = "คุณ (จีน) เริ่มก่อน";
+                document.getElementById('btn-start-e').innerText = "AI (กรีก) เริ่มก่อน";
+            }
+        }
 
         function generateDeck(pool) {
             let deck = []; let i = 0;
@@ -164,20 +210,21 @@
             document.getElementById('start-buttons').style.display = 'none';
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
-            pDeckArr = generateDeck(chinaCards); eDeckArr = generateDeck(greekCards);
+            pDeckArr = generateDeck(pFaction === 'china' ? chinaCards : greekCards);
+            eDeckArr = generateDeck(eFaction === 'greek' ? greekCards : chinaCards);
             pDeck = 50; eDeck = 50;
             pHand = []; eHand = [];
             for(let i=0; i<5; i++) { if(eDeck > 0) { eHand.push(eDeckArr.pop()); eDeck--; } }
             drawCards(5);
-            addLog(`🎮 เริ่มเกม! ${first ? "คุณ (จีน) เริ่มก่อน" : "ซุส (กรีก) เริ่มก่อน"}`);
-            if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; addLog("⛩️ เทิร์นแรกของคุณ ได้รับ 1 Essence"); } 
-            else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; addLog("⚡ เทิร์นแรกของซุส ได้รับ 1 Essence"); setTimeout(enemyTurn, 1000); }
+            addLog(`🎮 เริ่มเกม! ${first ? "คุณเริ่มก่อน" : "AI เริ่มก่อน"}`);
+            if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; addLog("เทิร์นแรกของคุณ ได้รับ 1 Essence"); } 
+            else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; addLog(`เทิร์นแรกของ AI ได้รับ 1 Essence`); setTimeout(enemyTurn, 1000); }
             updateUI();
         }
 
         function onAttack(type, idx) {
             if (!isPlayerTurn || selected) { selected = null; updateUI(); return; }
-            let card = (type === 'leader') ? { name: "เง็กเซียน", atkCost: 1, isRest: document.getElementById('p-leader').classList.contains('rest') } : pField[idx];
+            let card = (type === 'leader') ? { name: pLeaderName, atkCost: 1, isRest: document.getElementById('p-leader').classList.contains('rest') } : pField[idx];
             if (card.isRest || pEss < card.atkCost) return;
             selected = { type, idx, atkCost: card.atkCost };
             updateUI();
@@ -185,10 +232,10 @@
 
         function onTarget(type, idx) {
             if (!selected) return;
-            let target = (type === 'leader') ? { name: "Zeus" } : eField[idx];
+            let target = (type === 'leader') ? { name: eLeaderName } : eField[idx];
             if (type !== 'leader' && !target.isRest) { selected = null; updateUI(); return; }
             
-            let attacker = (selected.type === 'leader') ? {name: "เง็กเซียน", atk: 5000} : pField[selected.idx];
+            let attacker = (selected.type === 'leader') ? {name: pLeaderName, atk: 5000} : pField[selected.idx];
             let targetATK = (type === 'leader') ? 5000 : target.atk;
             
             if (attacker.atk < targetATK) {
@@ -229,7 +276,7 @@
             
             if (eDeck > 0) { eHand.push(eDeckArr.pop()); eDeck--; }
             
-            addLog(`⚡ ซุสเข้าสู่เทิร์น! ได้รับ +2 Essence (รวม ${eEss}/${eMax})`);
+            addLog(`⚡ ${eLeaderName} เข้าสู่เทิร์น! ได้รับ +2 Essence (รวม ${eEss}/${eMax})`);
 
             let reservedEssence = 1 + eField.filter(c => !c.isRest).reduce((sum, c) => sum + c.atkCost, 0);
 
@@ -240,16 +287,16 @@
                     eEss -= rCard.cost;
                     
                     if (rCard.type === 'event') {
-                        addLog(`📜 ซุสใช้เวทมนตร์: ${rCard.name}`);
+                        addLog(`📜 AI ใช้เวทมนตร์: ${rCard.name}`);
                         playSound('sfx-magic');
                         
                         if (rCard.effect === 'heal_1') {
                             eHP = Math.min(5, eHP + 1);
                             showFloatingText('e-leader', "+1", "heal");
                             playSound('sfx-heal');
-                            addLog(`💖 ซุสฟื้นฟู 1 HP!`);
+                            addLog(`💖 ${eLeaderName} ฟื้นฟู 1 HP!`);
                         } else if (rCard.effect === 'ai_summon') {
-                            addLog(`✨ พลังนิมิต! ซุสเรียกทหาร 1 ตัว!`);
+                            addLog(`✨ พลังนิมิต! AI เรียกทหาร 1 ตัว!`);
                             let unit = eHand.find(c => c.type !== 'event'); // Pull from hand, if none, fail
                             if (unit) { 
                                 eHand.splice(eHand.indexOf(unit), 1);
@@ -263,7 +310,7 @@
                     } else {
                         rCard.isRest = !(rCard.skills && rCard.skills.includes('rush'));
                         eField.push(rCard);
-                        addLog(`🛡️ ซุสอัญเชิญ: ${rCard.name}`);
+                        addLog(`🛡️ AI อัญเชิญ: ${rCard.name}`);
                         if (!rCard.isRest) reservedEssence += rCard.atkCost;
                     }
                 } else {
@@ -273,7 +320,7 @@
             updateUI(); checkWin();
 
             aiAttackQueue = [];
-            if (eEss >= 1) aiAttackQueue.push({ type: 'leader', idx: 0, cost: 1, atk: 5000, name: "Zeus" });
+            if (eEss >= 1) aiAttackQueue.push({ type: 'leader', idx: 0, cost: 1, atk: 5000, name: eLeaderName });
             
             eField.forEach((c, idx) => {
                 if (!c.isRest) {
@@ -319,7 +366,7 @@
                     processAIAttackQueue();
                 }
             } else {
-                addLog(`⏭️ ซุสจบเทิร์น`);
+                addLog(`⏭️ AI จบเทิร์น`);
                 updateUI();
                 startPlayerTurn();
             }
@@ -370,7 +417,7 @@
             pEss = pMax; pField.forEach(c => c.isRest = false);
             document.getElementById('p-leader').classList.remove('rest');
             
-            addLog(`⛩️ เทิร์นของคุณเริ่มต้น! ได้รับ +2 Essence (รวม ${pEss}/${pMax})`);
+            addLog(`เทิร์นของคุณเริ่มต้น! ได้รับ +2 Essence (รวม ${pEss}/${pMax})`);
             drawCards(1);
             addLog(`🃏 คุณจั่วการ์ด 1 ใบ`);
             updateUI();
@@ -492,7 +539,7 @@
         function checkWin() { 
             let msg = ""; let win = false;
             if(pDeck <= 0) msg = "คุณการ์ดหมดกอง! คุณแพ้!";
-            else if(eDeck <= 0) { msg = "ซุสการ์ดหมดกอง! คุณชนะ!"; win = true; }
+            else if(eDeck <= 0) { msg = "AI การ์ดหมดกอง! คุณชนะ!"; win = true; }
             else if(eHP<=0) { msg = "คุณชนะ!"; win = true; }
             else if(pHP<=0) msg = "คุณแพ้!";
             
