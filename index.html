@@ -170,6 +170,7 @@
 
     <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/cards.js?v=2"></script>
     <script>
         const chinaCards = window.CardDatabase.chinaCards;
@@ -185,28 +186,54 @@
         let pLeaderName = "เง็กเซียน", eLeaderName = "ซุส";
         let customDeckChina = [];
         let customDeckGreek = [];
+        let playerId = localStorage.getItem('godswar_player_id');
+        let supabase;
 
-        // Mock Database Initialization
-        function initMockDB() {
-            let sChina = localStorage.getItem('godswar_deck_china');
-            if (sChina) {
-                customDeckChina = JSON.parse(sChina);
-            } else {
-                customDeckChina = [];
-                for(let i=0; i<50; i++) customDeckChina.push({...chinaCards[i%chinaCards.length], id: Math.random()});
-                localStorage.setItem('godswar_deck_china', JSON.stringify(customDeckChina));
-            }
+        // Database Initialization (Cloud + Local Fallback)
+        async function initDatabase() {
+            supabase = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
+            
+            try {
+                if (!playerId) {
+                    playerId = crypto.randomUUID();
+                    localStorage.setItem('godswar_player_id', playerId);
+                    await supabase.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
+                }
 
-            let sGreek = localStorage.getItem('godswar_deck_greek');
-            if (sGreek) {
-                customDeckGreek = JSON.parse(sGreek);
-            } else {
-                customDeckGreek = [];
-                for(let i=0; i<50; i++) customDeckGreek.push({...greekCards[i%greekCards.length], id: Math.random()});
-                localStorage.setItem('godswar_deck_greek', JSON.stringify(customDeckGreek));
+                const { data: decks, error } = await supabase.from('player_decks').select('*').eq('player_id', playerId);
+                if (error) throw error;
+
+                // Sync China Deck
+                let cDeck = decks?.find(d => d.faction === 'china');
+                if (cDeck && cDeck.cards_json) {
+                    customDeckChina = cDeck.cards_json;
+                    localStorage.setItem('godswar_deck_china', JSON.stringify(customDeckChina));
+                } else {
+                    let sChina = localStorage.getItem('godswar_deck_china');
+                    customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
+                    await supabase.from('player_decks').insert([{ player_id: playerId, faction: 'china', cards_json: customDeckChina }]);
+                }
+
+                // Sync Greek Deck
+                let gDeck = decks?.find(d => d.faction === 'greek');
+                if (gDeck && gDeck.cards_json) {
+                    customDeckGreek = gDeck.cards_json;
+                    localStorage.setItem('godswar_deck_greek', JSON.stringify(customDeckGreek));
+                } else {
+                    let sGreek = localStorage.getItem('godswar_deck_greek');
+                    customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
+                    await supabase.from('player_decks').insert([{ player_id: playerId, faction: 'greek', cards_json: customDeckGreek }]);
+                }
+                console.log("Database Sync Complete!");
+            } catch (err) {
+                console.warn("Supabase not ready or offline, using LocalStorage", err);
+                let sChina = localStorage.getItem('godswar_deck_china');
+                customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
+                let sGreek = localStorage.getItem('godswar_deck_greek');
+                customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
             }
         }
-        initMockDB();
+        initDatabase();
 
         // Deck Builder Logic
         let builderInventory = [];
@@ -268,14 +295,29 @@
             renderBuilder();
         }
 
-        function saveAndExitBuilder() {
+        async function saveAndExitBuilder() {
             if (builderDeck.length !== 50) {
                 return alert("ต้องมีการ์ดครบ 50 ใบพอดีถึงจะบันทึกได้ครับ!");
             }
+            
+            // 1. Save Local
             localStorage.setItem(`godswar_deck_${currentBuilderFaction}`, JSON.stringify(builderDeck));
             if (currentBuilderFaction === 'china') customDeckChina = builderDeck;
             else customDeckGreek = builderDeck;
             
+            // 2. Save Cloud (Supabase)
+            try {
+                if (playerId && supabase) {
+                    await supabase.from('player_decks').upsert({
+                        player_id: playerId,
+                        faction: currentBuilderFaction,
+                        cards_json: builderDeck
+                    }, { onConflict: 'player_id, faction' });
+                }
+            } catch (err) {
+                console.warn("Could not save to Supabase, but saved locally.", err);
+            }
+
             document.getElementById('deck-builder-screen').style.display = 'none';
             document.getElementById('faction-selection').style.display = 'flex';
             playSound('sfx-magic');
