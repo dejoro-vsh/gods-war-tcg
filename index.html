@@ -124,6 +124,7 @@
         let pDeckArr = [], eDeckArr = [], pDeck = 50, eDeck = 50;
         let pHand = [], pField = [], eField = [], selected = null;
         let currentDefenseTarget = { type: 'leader', idx: 0 };
+        let aiAttackQueue = [];
 
         function playSound(id) {
             let s = document.getElementById(id);
@@ -200,14 +201,16 @@
             
             addLog(`⚡ ซุสเข้าสู่เทิร์น! ได้รับ +2 Essence (รวม ${eEss}/${eMax})`);
 
-            if(eField.length < 5) {
-                let affordableIdx = eDeckArr.findIndex(c => c.cost <= eEss);
+            let reservedEssence = 1 + eField.filter(c => !c.isRest).reduce((sum, c) => sum + c.atkCost, 0);
+
+            while(eField.length < 5 && eDeck > 0 && eEss > reservedEssence) {
+                let affordableIdx = eDeckArr.findIndex(c => c.cost <= (eEss - reservedEssence));
                 if (affordableIdx !== -1) {
                     let rCard = eDeckArr.splice(affordableIdx, 1)[0];
                     eDeck--;
+                    eEss -= rCard.cost;
                     
                     if (rCard.type === 'event') {
-                        eEss -= rCard.cost;
                         addLog(`📜 ซุสใช้เวทมนตร์: ${rCard.name}`);
                         playSound('sfx-magic');
                         
@@ -218,40 +221,71 @@
                         } else if (rCard.effect === 'ai_summon') {
                             addLog(`✨ พลังนิมิต! ซุสเรียกทหาร 1 ตัว!`);
                             let unit = eDeckArr.find(c => c.type !== 'event');
-                            if (unit && eDeck > 0) { eField.push({...unit, isRest: true}); eDeck--; }
+                            if (unit && eDeck > 0) { 
+                                eField.push({...unit, isRest: true}); eDeck--; 
+                            }
                         } else if (rCard.effect === 'board_wipe') {
                             showFloatingText('p-leader', "⚡ พิโรธ!", "dmg");
                             pField = [];
                             addLog(`⚡ ${rCard.name} กวาดล้างทหารของคุณทั้งหมด!!`);
                         }
                     } else {
-                        eEss -= rCard.cost;
                         rCard.isRest = !(rCard.skills && rCard.skills.includes('rush'));
                         eField.push(rCard);
                         addLog(`🛡️ ซุสอัญเชิญ: ${rCard.name}`);
+                        if (!rCard.isRest) reservedEssence += rCard.atkCost;
                     }
+                } else {
+                    break;
                 }
             }
             updateUI(); checkWin();
 
-            setTimeout(() => { 
-                if(eEss >= 1) {
+            aiAttackQueue = [];
+            if (eEss >= 1) aiAttackQueue.push({ type: 'leader', idx: 0, cost: 1, atk: 5000, name: "Zeus" });
+            
+            eField.forEach((c, idx) => {
+                if (!c.isRest) {
+                    aiAttackQueue.push({ type: 'warrior', idx: idx, cost: c.atkCost, atk: c.atk, name: c.name });
+                }
+            });
+            aiAttackQueue.sort((a, b) => b.atk - a.atk);
+
+            setTimeout(processAIAttackQueue, 1000);
+        }
+
+        function processAIAttackQueue() {
+            if (!isPlayerTurn && aiAttackQueue.length > 0) {
+                let attacker = aiAttackQueue.shift();
+                
+                if (attacker.type === 'warrior' && (!eField[attacker.idx] || eField[attacker.idx].name !== attacker.name || eField[attacker.idx].isRest)) {
+                    return processAIAttackQueue();
+                }
+
+                if (eEss >= attacker.cost) {
+                    eEss -= attacker.cost;
+                    if (attacker.type === 'warrior') eField[attacker.idx].isRest = true;
+                    updateUI();
+
                     let validTargets = pField.map((c, i) => c.isRest ? i : -1).filter(i => i !== -1);
                     if (validTargets.length > 0) {
                         let targetIdx = validTargets[Math.floor(Math.random() * validTargets.length)];
-                        addLog(`⚔️ ซุสโจมตีทหารของคุณ: ${pField[targetIdx].name}!`);
+                        addLog(`⚔️ [${attacker.name}] โจมตีทหารของคุณ: ${pField[targetIdx].name}!`);
                         playSound('sfx-attack');
                         showDefenseOptions('warrior', targetIdx);
                     } else {
-                        addLog(`⚔️ ซุสสั่งโจมตีผู้นำของคุณ!`);
+                        addLog(`⚔️ [${attacker.name}] สั่งโจมตีผู้นำของคุณ!`);
                         playSound('sfx-attack');
                         showDefenseOptions('leader', 0); 
                     }
                 } else {
-                    addLog(`⏭️ ซุสจบเทิร์น`);
-                    startPlayerTurn(); 
+                    processAIAttackQueue();
                 }
-            }, 1500);
+            } else {
+                addLog(`⏭️ ซุสจบเทิร์น`);
+                updateUI();
+                startPlayerTurn();
+            }
         }
 
         function showDefenseOptions(type = 'leader', idx = 0) {
@@ -289,7 +323,8 @@
             } else {
                 addLog(`🛡️ คุณป้องกันการโจมตีสำเร็จ!`);
             }
-            updateUI(); checkWin(); setTimeout(startPlayerTurn, 500);
+            updateUI(); checkWin(); 
+            setTimeout(processAIAttackQueue, 800);
         }
 
         function startPlayerTurn() {
