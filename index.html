@@ -190,12 +190,23 @@
         let supabase;
 
         // Database Initialization (Cloud + Local Fallback)
+        function generateSafeUUID() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
         async function initDatabase() {
-            supabase = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
-            
             try {
+                if (!window.supabase) throw new Error("Supabase SDK not loaded");
+                supabase = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
+            
                 if (!playerId) {
-                    playerId = crypto.randomUUID();
+                    playerId = generateSafeUUID();
                     localStorage.setItem('godswar_player_id', playerId);
                     await supabase.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
                 }
@@ -227,13 +238,19 @@
                 console.log("Database Sync Complete!");
             } catch (err) {
                 console.warn("Supabase not ready or offline, using LocalStorage", err);
+                if (!playerId) {
+                    playerId = generateSafeUUID();
+                    localStorage.setItem('godswar_player_id', playerId);
+                }
                 let sChina = localStorage.getItem('godswar_deck_china');
                 customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
                 let sGreek = localStorage.getItem('godswar_deck_greek');
                 customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
             }
         }
-        initDatabase();
+        
+        // Wait for external scripts to load before init
+        window.addEventListener('load', initDatabase);
 
         // Deck Builder Logic
         let builderInventory = [];
