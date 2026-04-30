@@ -11,6 +11,14 @@ const CardDatabase = {
             img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" 
         },
         { 
+            name: "Guan Yu", 
+            atk: 6500, 
+            cost: 4, 
+            atkCost: 1, 
+            type: "blocker", 
+            img: "./assets/images/china_guanyu.png" 
+        },
+        { 
             name: "Erlang", 
             atk: 4500, 
             cost: 2, 
