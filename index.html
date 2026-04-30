@@ -211,7 +211,7 @@
         let playerId = null;
         try { playerId = localStorage.getItem('godswar_player_id'); } catch(e) {}
         
-        let supabase;
+        let dbClient;
 
         // Database Initialization (Cloud + Local Fallback)
         function generateSafeUUID() {
@@ -234,15 +234,15 @@
         async function initDatabase() {
             try {
                 if (!window.supabase) throw new Error("Supabase SDK not loaded or blocked by browser");
-                supabase = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
+                dbClient = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
             
                 if (!playerId) {
                     playerId = generateSafeUUID();
                     safeSetLocal('godswar_player_id', playerId);
-                    await supabase.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
+                    await dbClient.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
                 }
 
-                const { data: decks, error } = await supabase.from('player_decks').select('*').eq('player_id', playerId);
+                const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
                 if (error) throw error;
 
                 // Sync China Deck
@@ -253,7 +253,7 @@
                 } else {
                     let sChina = safeGetLocal('godswar_deck_china');
                     customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
-                    await supabase.from('player_decks').insert([{ player_id: playerId, faction: 'china', cards_json: customDeckChina }]);
+                    await dbClient.from('player_decks').insert([{ player_id: playerId, faction: 'china', cards_json: customDeckChina }]);
                 }
 
                 // Sync Greek Deck
@@ -264,7 +264,7 @@
                 } else {
                     let sGreek = safeGetLocal('godswar_deck_greek');
                     customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
-                    await supabase.from('player_decks').insert([{ player_id: playerId, faction: 'greek', cards_json: customDeckGreek }]);
+                    await dbClient.from('player_decks').insert([{ player_id: playerId, faction: 'greek', cards_json: customDeckGreek }]);
                 }
                 console.log("Database Sync Complete!");
             } catch (err) {
@@ -356,8 +356,8 @@
             
             // 2. Save Cloud (Supabase)
             try {
-                if (playerId && supabase) {
-                    await supabase.from('player_decks').upsert({
+                if (playerId && dbClient) {
+                    await dbClient.from('player_decks').upsert({
                         player_id: playerId,
                         faction: currentBuilderFaction,
                         cards_json: builderDeck
