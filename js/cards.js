@@ -49,6 +49,21 @@ const CardDatabase = {
             effect: "heal_1", 
             cost: 1, 
             img: "./assets/images/event_elixir.png" 
+        },
+        { 
+            name: "Zhu Bajie", 
+            atk: 5000, 
+            cost: 3, 
+            atkCost: 1, 
+            type: "warrior", 
+            img: "./assets/images/china_zhubajie.png" 
+        },
+        { 
+            name: "Nuwa's Flood", 
+            type: "event", 
+            effect: "board_wipe", 
+            cost: 8, 
+            img: "./assets/images/event_nuwa_flood.png" 
         }
     ],
     greekCards: [
@@ -89,6 +104,22 @@ const CardDatabase = {
             effect: "heal_1", 
             cost: 1, 
             img: "./assets/images/event_ambrosia.png" 
+        },
+        { 
+            name: "Ares", 
+            atk: 6000, 
+            cost: 5, 
+            atkCost: 2, 
+            skills: ["rush"], 
+            type: "warrior", 
+            img: "./assets/images/greek_ares.png" 
+        },
+        { 
+            name: "Zeus's Wrath", 
+            type: "event", 
+            effect: "board_wipe", 
+            cost: 8, 
+            img: "./assets/images/event_zeus_wrath.png" 
         }
     ]
 };
