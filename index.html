@@ -63,12 +63,16 @@
     </style>
 </head>
 <body>
-    <!-- Audio Assets (.mp3 format for iOS/Mobile support) -->
-    <audio id="bgm" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" loop></audio>
-    <audio id="sfx-attack" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/branch_break.mp3"></audio>
-    <audio id="sfx-draw" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/tap.mp3"></audio>
-    <audio id="sfx-magic" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/bell_ring.mp3"></audio>
-    <audio id="sfx-heal" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/water_droplet.mp3"></audio>
+    <!-- Audio Assets (Local MP3 for 100% Mobile Support) -->
+    <audio id="bgm-menu" src="./assets/sounds/bgm-menu.mp3" loop></audio>
+    <audio id="bgm-battle" src="./assets/sounds/bgm-battle.mp3" loop></audio>
+    <audio id="bgm-win" src="./assets/sounds/bgm-win.mp3"></audio>
+    <audio id="bgm-lose" src="./assets/sounds/bgm-lose.mp3"></audio>
+    
+    <audio id="sfx-attack" src="./assets/sounds/sfx-attack.mp3"></audio>
+    <audio id="sfx-draw" src="./assets/sounds/sfx-draw.mp3"></audio>
+    <audio id="sfx-magic" src="./assets/sounds/sfx-magic.mp3"></audio>
+    <audio id="sfx-heal" src="./assets/sounds/sfx-heal.mp3"></audio>
 
     <div id="defense-overlay">
         <h3 style="color:var(--red); margin-bottom:20px;">🚨 ถูกโจมตี! เลือกการป้องกัน</h3>
@@ -104,7 +108,7 @@
         </div>
     </div>
 
-    <div id="battle-log">> เลือกฝ่ายเพื่อเริ่ม...</div>
+    <div id="battle-log">> แตะหน้าจอเพื่อเปิดเพลง และเลือกฝ่ายเริ่มเกม...</div>
     
     <div class="controls">
         <div id="start-buttons">
@@ -129,8 +133,20 @@
 
         function playSound(id) {
             let s = document.getElementById(id);
-            if(s) { s.currentTime = 0; s.play().catch(e=>console.log("Audio play prevented")); }
+            if(s) { 
+                if(id.startsWith('bgm')) s.volume = 0.6;
+                s.currentTime = 0; 
+                s.play().catch(e=>console.log("Audio play prevented")); 
+            }
         }
+
+        let audioUnlocked = false;
+        document.body.addEventListener('click', () => {
+            if(!audioUnlocked && document.getElementById('start-buttons').style.display !== 'none') {
+                audioUnlocked = true;
+                playSound('bgm-menu');
+            }
+        });
 
         function generateDeck(pool) {
             let deck = []; let i = 0;
@@ -143,7 +159,8 @@
         }
 
         function startGame(first) {
-            playSound('bgm');
+            document.getElementById('bgm-menu').pause();
+            playSound('bgm-battle');
             document.getElementById('start-buttons').style.display = 'none';
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
@@ -473,18 +490,19 @@
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
         function checkWin() { 
-            let msg = "";
+            let msg = ""; let win = false;
             if(pDeck <= 0) msg = "คุณการ์ดหมดกอง! คุณแพ้!";
-            else if(eDeck <= 0) msg = "ซุสการ์ดหมดกอง! คุณชนะ!";
-            else if(eHP<=0) msg = "คุณชนะ!";
+            else if(eDeck <= 0) { msg = "ซุสการ์ดหมดกอง! คุณชนะ!"; win = true; }
+            else if(eHP<=0) { msg = "คุณชนะ!"; win = true; }
             else if(pHP<=0) msg = "คุณแพ้!";
             
             if(msg !== "") {
-                playSound(eHP<=0 || eDeck<=0 ? 'sfx-magic' : 'sfx-attack');
+                document.getElementById('bgm-battle').pause();
+                playSound(win ? 'bgm-win' : 'bgm-lose');
                 setTimeout(() => {
                     alert(msg);
                     location.reload();
-                }, 800);
+                }, 3000);
             }
         }
     </script>
