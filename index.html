@@ -92,7 +92,7 @@
     </div>
 
     <div id="faction-selection">
-        <h2 style="color:var(--gold); margin-bottom: 10px;">⚔️ TRAINING MODE ⚔️</h2>
+        <h1 style="color:var(--gold); margin-bottom: 15px; font-size: 3em; text-shadow: 0 0 15px var(--gold), 0 0 5px white; letter-spacing: 2px;">GODS WAR</h1>
         <p>เลือกฝ่ายที่คุณต้องการเล่น</p>
         <button class="faction-btn" onclick="selectFaction('china')">
             <img src="./assets/images/leader_jade_emperor.png">
@@ -435,6 +435,22 @@
         // --- MULTIPLAYER LOGIC ---
         let currentRoomId = null;
         let isMultiplayer = false;
+        let isGameFinished = false;
+
+        async function recordGameResult(win) {
+            if (!playerId || !dbClient) return;
+            try {
+                const { data } = await dbClient.from('players').select('win_count, loss_count').eq('id', playerId).single();
+                if (data) {
+                    let w = data.win_count || 0;
+                    let l = data.loss_count || 0;
+                    if (win) w++; else l++;
+                    await dbClient.from('players').update({ win_count: w, loss_count: l }).eq('id', playerId);
+                }
+            } catch(e) {
+                console.error("Failed to save stats", e);
+            }
+        }
 
         function findMatch() {
             document.getElementById('btn-start-p').style.display = 'none';
@@ -515,8 +531,10 @@
                 });
 
                 socket.on('opponentDisconnected', () => {
+                    if (isGameFinished) return; // Do not alert if game naturally ended
+                    isGameFinished = true;
                     alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!");
-                    location.reload();
+                    recordGameResult(true).then(() => location.reload());
                 });
             }
 
@@ -817,6 +835,13 @@
             
             if (isMultiplayer && socket) {
                 socket.emit('playerAction', { type: 'endTurn' });
+                // Simulate opponent's turn start locally for UI consistency
+                if (eMax === 0 && pOrder === 1) eMax = 2; else eMax = Math.min(10, eMax + 2);
+                eEss = eMax;
+                eField.forEach(c => c.isRest = false);
+                document.getElementById('e-leader').classList.remove('rest');
+                if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
+                updateUI();
             } else {
                 setTimeout(enemyTurn, 1000); 
             }
@@ -933,18 +958,20 @@
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
         function checkWin() { 
+            if (isGameFinished) return;
             let msg = ""; let win = false;
             if(pDeck <= 0) msg = "คุณการ์ดหมดกอง! คุณแพ้!";
-            else if(eDeck <= 0) { msg = "AI การ์ดหมดกอง! คุณชนะ!"; win = true; }
+            else if(eDeck <= 0) { msg = "ศัตรูการ์ดหมดกอง! คุณชนะ!"; win = true; }
             else if(eHP<=0) { msg = "คุณชนะ!"; win = true; }
             else if(pHP<=0) msg = "คุณแพ้!";
             
             if(msg !== "") {
+                isGameFinished = true;
                 document.getElementById('bgm-battle').pause();
                 playSound(win ? 'bgm-win' : 'bgm-lose');
                 setTimeout(() => {
                     alert(msg);
-                    location.reload();
+                    recordGameResult(win).then(() => location.reload());
                 }, 3000);
             }
         }
