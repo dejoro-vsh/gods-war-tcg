@@ -170,8 +170,9 @@
 
     <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./js/cards.js?v=2"></script>
+    <!-- Load Supabase Asynchronously so it doesn't block UI -->
+    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/cards.js?v=3"></script>
     <script>
         const chinaCards = window.CardDatabase.chinaCards;
         const greekCards = window.CardDatabase.greekCards;
@@ -186,7 +187,10 @@
         let pLeaderName = "เง็กเซียน", eLeaderName = "ซุส";
         let customDeckChina = [];
         let customDeckGreek = [];
-        let playerId = localStorage.getItem('godswar_player_id');
+        
+        let playerId = null;
+        try { playerId = localStorage.getItem('godswar_player_id'); } catch(e) {}
+        
         let supabase;
 
         // Database Initialization (Cloud + Local Fallback)
@@ -200,14 +204,21 @@
             });
         }
 
+        function safeSetLocal(key, val) {
+            try { localStorage.setItem(key, val); } catch(e) { console.warn("Local storage disabled"); }
+        }
+        function safeGetLocal(key) {
+            try { return localStorage.getItem(key); } catch(e) { return null; }
+        }
+
         async function initDatabase() {
             try {
-                if (!window.supabase) throw new Error("Supabase SDK not loaded");
+                if (!window.supabase) throw new Error("Supabase SDK not loaded or blocked by browser");
                 supabase = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
             
                 if (!playerId) {
                     playerId = generateSafeUUID();
-                    localStorage.setItem('godswar_player_id', playerId);
+                    safeSetLocal('godswar_player_id', playerId);
                     await supabase.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
                 }
 
@@ -218,9 +229,9 @@
                 let cDeck = decks?.find(d => d.faction === 'china');
                 if (cDeck && cDeck.cards_json) {
                     customDeckChina = cDeck.cards_json;
-                    localStorage.setItem('godswar_deck_china', JSON.stringify(customDeckChina));
+                    safeSetLocal('godswar_deck_china', JSON.stringify(customDeckChina));
                 } else {
-                    let sChina = localStorage.getItem('godswar_deck_china');
+                    let sChina = safeGetLocal('godswar_deck_china');
                     customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
                     await supabase.from('player_decks').insert([{ player_id: playerId, faction: 'china', cards_json: customDeckChina }]);
                 }
@@ -229,28 +240,28 @@
                 let gDeck = decks?.find(d => d.faction === 'greek');
                 if (gDeck && gDeck.cards_json) {
                     customDeckGreek = gDeck.cards_json;
-                    localStorage.setItem('godswar_deck_greek', JSON.stringify(customDeckGreek));
+                    safeSetLocal('godswar_deck_greek', JSON.stringify(customDeckGreek));
                 } else {
-                    let sGreek = localStorage.getItem('godswar_deck_greek');
+                    let sGreek = safeGetLocal('godswar_deck_greek');
                     customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
                     await supabase.from('player_decks').insert([{ player_id: playerId, faction: 'greek', cards_json: customDeckGreek }]);
                 }
                 console.log("Database Sync Complete!");
             } catch (err) {
-                console.warn("Supabase not ready or offline, using LocalStorage", err);
+                console.warn("Supabase Offline or Blocked, falling back to Local", err);
                 if (!playerId) {
                     playerId = generateSafeUUID();
-                    localStorage.setItem('godswar_player_id', playerId);
+                    safeSetLocal('godswar_player_id', playerId);
                 }
-                let sChina = localStorage.getItem('godswar_deck_china');
+                let sChina = safeGetLocal('godswar_deck_china');
                 customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
-                let sGreek = localStorage.getItem('godswar_deck_greek');
+                let sGreek = safeGetLocal('godswar_deck_greek');
                 customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
             }
         }
         
-        // Wait for external scripts to load before init
-        window.addEventListener('load', initDatabase);
+        // Wait for DOM to finish loading before trying to hit network
+        setTimeout(initDatabase, 500);
 
         // Deck Builder Logic
         let builderInventory = [];
@@ -270,7 +281,8 @@
             });
 
             // Load saved deck
-            builderDeck = JSON.parse(localStorage.getItem(`godswar_deck_${faction}`)) || [];
+            let sDeck = safeGetLocal(`godswar_deck_${faction}`);
+            builderDeck = sDeck ? JSON.parse(sDeck) : [];
             
             // Remove deck cards from inventory so they don't duplicate
             builderDeck.forEach(dc => {
@@ -318,7 +330,7 @@
             }
             
             // 1. Save Local
-            localStorage.setItem(`godswar_deck_${currentBuilderFaction}`, JSON.stringify(builderDeck));
+            safeSetLocal(`godswar_deck_${currentBuilderFaction}`, JSON.stringify(builderDeck));
             if (currentBuilderFaction === 'china') customDeckChina = builderDeck;
             else customDeckGreek = builderDeck;
             
