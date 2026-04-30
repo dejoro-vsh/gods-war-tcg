@@ -64,10 +64,11 @@
 </head>
 <body>
     <!-- Audio Assets -->
-    <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/02/10/audio_fcb16492cc.mp3" loop></audio>
+    <audio id="bgm" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Kevin_MacLeod_-_Volatile_Reaction.ogg" loop></audio>
     <audio id="sfx-attack" src="https://actions.google.com/sounds/v1/impacts/crash.ogg"></audio>
     <audio id="sfx-draw" src="https://actions.google.com/sounds/v1/foley/paper_rustle.ogg"></audio>
     <audio id="sfx-magic" src="https://actions.google.com/sounds/v1/magic/magical_ping.ogg"></audio>
+    <audio id="sfx-heal" src="https://actions.google.com/sounds/v1/water/water_splash.ogg"></audio>
 
     <div id="defense-overlay">
         <h3 style="color:var(--red); margin-bottom:20px;">🚨 ถูกโจมตี! เลือกการป้องกัน</h3>
@@ -122,7 +123,7 @@
 
         let pHP = 5, eHP = 5, pEss = 0, pMax = 0, eEss = 0, eMax = 0, isPlayerTurn = true, pOrder = 1;
         let pDeckArr = [], eDeckArr = [], pDeck = 50, eDeck = 50;
-        let pHand = [], pField = [], eField = [], selected = null;
+        let pHand = [], eHand = [], pField = [], eField = [], selected = null;
         let currentDefenseTarget = { type: 'leader', idx: 0 };
         let aiAttackQueue = [];
 
@@ -148,7 +149,9 @@
             pOrder = first ? 1 : 2; isPlayerTurn = first;
             pDeckArr = generateDeck(chinaCards); eDeckArr = generateDeck(greekCards);
             pDeck = 50; eDeck = 50;
-            pHand = []; drawCards(5);
+            pHand = []; eHand = [];
+            for(let i=0; i<5; i++) { if(eDeck > 0) { eHand.push(eDeckArr.pop()); eDeck--; } }
+            drawCards(5);
             addLog(`🎮 เริ่มเกม! ${first ? "คุณ (จีน) เริ่มก่อน" : "ซุส (กรีก) เริ่มก่อน"}`);
             if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; addLog("⛩️ เทิร์นแรกของคุณ ได้รับ 1 Essence"); } 
             else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; addLog("⚡ เทิร์นแรกของซุส ได้รับ 1 Essence"); setTimeout(enemyTurn, 1000); }
@@ -167,9 +170,17 @@
             if (!selected) return;
             let target = (type === 'leader') ? { name: "Zeus" } : eField[idx];
             if (type !== 'leader' && !target.isRest) { selected = null; updateUI(); return; }
+            
+            let attacker = (selected.type === 'leader') ? {name: "เง็กเซียน", atk: 5000} : pField[selected.idx];
+            let targetATK = (type === 'leader') ? 5000 : target.atk;
+            
+            if (attacker.atk < targetATK) {
+                alert(`โจมตีไม่ได้! พลังโจมตีของคุณ (${attacker.atk}) น้อยกว่าศัตรู (${targetATK})`);
+                selected = null; updateUI(); return;
+            }
+
             pEss -= selected.atkCost;
-            let attacker = (selected.type === 'leader') ? "เง็กเซียน" : pField[selected.idx].name;
-            addLog(`💥 ${attacker} โจมตีใส่ ${target.name}!`);
+            addLog(`💥 ${attacker.name} โจมตีใส่ ${target.name}!`);
             playSound('sfx-attack');
 
             if (selected.type === 'leader') document.getElementById('p-leader').classList.add('rest');
@@ -199,15 +210,16 @@
             eEss = eMax;
             eField.forEach(c => c.isRest = false);
             
+            if (eDeck > 0) { eHand.push(eDeckArr.pop()); eDeck--; }
+            
             addLog(`⚡ ซุสเข้าสู่เทิร์น! ได้รับ +2 Essence (รวม ${eEss}/${eMax})`);
 
             let reservedEssence = 1 + eField.filter(c => !c.isRest).reduce((sum, c) => sum + c.atkCost, 0);
 
-            while(eField.length < 5 && eDeck > 0 && eEss > reservedEssence) {
-                let affordableIdx = eDeckArr.findIndex(c => c.cost <= (eEss - reservedEssence));
+            while(eField.length < 5 && eHand.length > 0 && eEss > reservedEssence) {
+                let affordableIdx = eHand.findIndex(c => c.cost <= (eEss - reservedEssence));
                 if (affordableIdx !== -1) {
-                    let rCard = eDeckArr.splice(affordableIdx, 1)[0];
-                    eDeck--;
+                    let rCard = eHand.splice(affordableIdx, 1)[0];
                     eEss -= rCard.cost;
                     
                     if (rCard.type === 'event') {
@@ -217,12 +229,14 @@
                         if (rCard.effect === 'heal_1') {
                             eHP = Math.min(5, eHP + 1);
                             showFloatingText('e-leader', "+1", "heal");
+                            playSound('sfx-heal');
                             addLog(`💖 ซุสฟื้นฟู 1 HP!`);
                         } else if (rCard.effect === 'ai_summon') {
                             addLog(`✨ พลังนิมิต! ซุสเรียกทหาร 1 ตัว!`);
-                            let unit = eDeckArr.find(c => c.type !== 'event');
-                            if (unit && eDeck > 0) { 
-                                eField.push({...unit, isRest: true}); eDeck--; 
+                            let unit = eHand.find(c => c.type !== 'event'); // Pull from hand, if none, fail
+                            if (unit) { 
+                                eHand.splice(eHand.indexOf(unit), 1);
+                                eField.push({...unit, isRest: true});
                             }
                         } else if (rCard.effect === 'board_wipe') {
                             showFloatingText('p-leader', "⚡ พิโรธ!", "dmg");
@@ -263,20 +277,26 @@
                 }
 
                 if (eEss >= attacker.cost) {
-                    eEss -= attacker.cost;
-                    if (attacker.type === 'warrior') eField[attacker.idx].isRest = true;
-                    updateUI();
-
-                    let validTargets = pField.map((c, i) => c.isRest ? i : -1).filter(i => i !== -1);
+                    let validTargets = pField.map((c, i) => (c.isRest && attacker.atk >= c.atk) ? i : -1).filter(i => i !== -1);
+                    
                     if (validTargets.length > 0) {
+                        eEss -= attacker.cost;
+                        if (attacker.type === 'warrior') eField[attacker.idx].isRest = true;
+                        updateUI();
                         let targetIdx = validTargets[Math.floor(Math.random() * validTargets.length)];
                         addLog(`⚔️ [${attacker.name}] โจมตีทหารของคุณ: ${pField[targetIdx].name}!`);
                         playSound('sfx-attack');
                         showDefenseOptions('warrior', targetIdx);
-                    } else {
+                    } else if (attacker.atk >= 5000) {
+                        eEss -= attacker.cost;
+                        if (attacker.type === 'warrior') eField[attacker.idx].isRest = true;
+                        updateUI();
                         addLog(`⚔️ [${attacker.name}] สั่งโจมตีผู้นำของคุณ!`);
                         playSound('sfx-attack');
                         showDefenseOptions('leader', 0); 
+                    } else {
+                        addLog(`⚠️ [${attacker.name}] ATK ไม่พอโจมตีเป้าหมายใดๆ เลยผ่านเทิร์น!`);
+                        processAIAttackQueue();
                     }
                 } else {
                     processAIAttackQueue();
@@ -378,6 +398,7 @@
             } else if (card.effect === 'heal_1') {
                 pHP = Math.min(5, pHP + 1);
                 showFloatingText('p-leader', "+1", "heal");
+                playSound('sfx-heal');
                 addLog(`💖 ฟื้นฟู 1 HP!`);
             } else if (card.effect === 'board_wipe') {
                 showFloatingText('e-leader', "🌊 ล้างบาง!", "dmg");
