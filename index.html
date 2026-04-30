@@ -239,8 +239,10 @@
                 if (!playerId) {
                     playerId = generateSafeUUID();
                     safeSetLocal('godswar_player_id', playerId);
-                    await dbClient.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
                 }
+                
+                // Ensure player exists in DB to prevent Foreign Key constraints on player_decks
+                await dbClient.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
 
                 const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
                 if (error) throw error;
