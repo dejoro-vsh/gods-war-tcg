@@ -226,13 +226,13 @@
             const invZone = document.getElementById('db-inventory');
             invZone.innerHTML = '<div class="builder-section-title">คลังสมบัติ (แตะเพื่อนำเข้าเด็ค)</div>';
             builderInventory.forEach((c, i) => {
-                invZone.innerHTML += `<div class="card" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
+                invZone.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
             });
 
             const deckZone = document.getElementById('db-deck');
             deckZone.innerHTML = '<div class="builder-section-title">เด็คปัจจุบัน (แตะเพื่อถอดออก)</div>';
             builderDeck.forEach((c, i) => {
-                deckZone.innerHTML += `<div class="card" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
+                deckZone.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
             });
         }
 
@@ -627,14 +627,14 @@
 
             const pf = document.getElementById('p-units'); pf.innerHTML = '';
             pField.forEach((c, i) => {
-                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${selected?.idx===i?'is-attacking':''}" onclick="onAttack('warrior', ${i})">
+                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${selected?.idx===i?'is-attacking':''}" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
             });
 
             const ef = document.getElementById('e-units'); ef.innerHTML = '';
             eField.forEach((c, i) => {
-                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" onclick="onTarget('warrior', ${i})">
+                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="onTarget('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
             });
@@ -646,7 +646,7 @@
                 if (c.type === 'event') badges += `<div class="tag tag-event">EVENT</div>`;
                 if (c.skills && c.skills.includes('rush')) badges += `<div class="tag tag-rush">RUSH</div>`;
                 
-                ph.innerHTML += `<div class="card" onclick="playCard(${i})">
+                ph.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="playCard(${i})">
                     <div class="cost-val">${c.cost}</div><img src="${c.img}">
                     ${badges}</div>`;
             });
