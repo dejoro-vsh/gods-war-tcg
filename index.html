@@ -61,8 +61,8 @@
         #defense-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .leader-card { width: 85px; height: 125px; border-width: 3px; }
 
-        #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; overflow-y: auto; padding: 20px;}
-        .faction-btn { width: 90%; max-width: 400px; padding: 15px; font-size: 16px; border-radius: 10px; border: 2px solid var(--gold); background: #111; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 20px; overflow-y: auto; padding: 40px 20px 20px;}
+        .faction-btn { width: 90%; max-width: 400px; padding: 15px; font-size: 16px; border-radius: 10px; border: none; background: #1a1a1a; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
         .faction-btn img { height: 80px; border-radius: 5px; }
 
         /* Deck Builder Styles */
@@ -92,22 +92,22 @@
     </div>
 
     <div id="faction-selection">
-        <img src="./assets/images/logo_gods_war.png" alt="GODS WAR" style="width: 90%; max-width: 350px; max-height: 25vh; object-fit: contain; margin-bottom: -15px; mix-blend-mode: screen;">
+        <img src="./assets/images/logo_gods_war.png" alt="GODS WAR" style="width: 90%; max-width: 350px; max-height: 30vh; object-fit: contain; margin-bottom: 5px; mix-blend-mode: screen;">
         <p>เลือกฝ่ายที่คุณต้องการเล่น</p>
         <button class="faction-btn" onclick="selectFaction('china')">
             <img src="./assets/images/leader_jade_emperor.png">
             <div>⛩️ ฝ่ายจีน (China)<br><span style="font-size:12px;color:#aaa">ควบคุมเง็กเซียนฮ่องเต้ สู้กับ ซุส</span></div>
         </button>
-        <button class="faction-btn" onclick="selectFaction('greek')" style="border-color: var(--blue);">
+        <button class="faction-btn" onclick="selectFaction('greek')">
             <img src="./assets/images/leader_zeus.png">
             <div>🔱 ฝ่ายกรีก (Greek)<br><span style="font-size:12px;color:#aaa">ควบคุมซุส สู้กับ เง็กเซียนฮ่องเต้</span></div>
         </button>
         <div style="display:flex; gap:10px; width: 90%; max-width: 400px;">
-            <button class="faction-btn" onclick="openDeckBuilder('china')" style="border-color: var(--red); padding: 10px; flex:1;">
+            <button class="faction-btn" onclick="openDeckBuilder('china')" style="padding: 10px; flex:1;">
                 <div style="font-size:24px;">⛩️</div>
                 <div style="font-size:14px;">จัดเด็คจีน</div>
             </button>
-            <button class="faction-btn" onclick="openDeckBuilder('greek')" style="border-color: var(--blue); padding: 10px; flex:1;">
+            <button class="faction-btn" onclick="openDeckBuilder('greek')" style="padding: 10px; flex:1;">
                 <div style="font-size:24px;">🔱</div>
                 <div style="font-size:14px;">จัดเด็คกรีก</div>
             </button>
