@@ -161,14 +161,21 @@
     <div id="battle-log" class="game-ui" style="display:none;">> เลือกฝ่ายเริ่มเกม...</div>
     
     <div class="controls game-ui" style="display:none;">
-        <div id="start-buttons">
-            <button id="btn-start-p" style="background:var(--gold)" onclick="startGame(true)">คุณ (จีน) เริ่มก่อน</button>
-            <button id="btn-start-e" style="background:var(--red); color:white" onclick="startGame(false)">AI (กรีก) เริ่มก่อน</button>
+        <div id="start-buttons" style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; gap:10px;">
+                <button id="btn-start-p" style="background:var(--gold)" onclick="startGame(true)">สู้กับบอท (คุณเริ่มก่อน)</button>
+                <button id="btn-start-e" style="background:var(--red); color:white" onclick="startGame(false)">สู้กับบอท (บอทเริ่มก่อน)</button>
+            </div>
+            <button id="btn-find-match" style="background:var(--blue); color:white; width:100%; font-size:16px;" onclick="findMatch()">🌐 ค้นหาคู่ต่อสู้ (Multiplayer)</button>
+            <div id="queue-status" style="color:var(--blue); font-weight:bold; display:none; text-align:center;">กำลังรอผู้เล่นคนอื่น... ⏳</div>
         </div>
         <button id="end-btn" style="display:none; background:var(--red); color:white;" onclick="endTurn()">⏭️ จบเทิร์น</button>
     </div>
 
     <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
+
+    <!-- Load Socket.io Client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <!-- Load Supabase Asynchronously so it doesn't block UI -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
@@ -196,6 +203,11 @@
         try { playerId = localStorage.getItem('godswar_player_id'); } catch(e) {}
         
         let dbClient;
+        let socket;
+        
+        // --- MULTIPLAYER CONFIG ---
+        // Change this to your Render.com URL after deploying the server folder
+        const SOCKET_SERVER_URL = "https://gods-war-server.onrender.com"; 
 
         // Database Initialization (Cloud + Local Fallback)
         function generateSafeUUID() {
@@ -409,6 +421,90 @@
                 [deck[i], deck[j]] = [deck[j], deck[i]];
             }
             return deck;
+        }
+
+        // --- MULTIPLAYER LOGIC ---
+        let currentRoomId = null;
+        let isMultiplayer = false;
+
+        function findMatch() {
+            document.getElementById('btn-start-p').style.display = 'none';
+            document.getElementById('btn-start-e').style.display = 'none';
+            document.getElementById('btn-find-match').style.display = 'none';
+            document.getElementById('queue-status').style.display = 'block';
+
+            if (!socket) {
+                socket = io(SOCKET_SERVER_URL);
+                
+                socket.on('connect_error', () => {
+                    alert("เซิร์ฟเวอร์ Multiplayer ปิดอยู่ครับ (รอเซ็ตอัพบน Render)");
+                    location.reload();
+                });
+
+                socket.on('matchFound', (data) => {
+                    document.getElementById('queue-status').innerText = "พบผู้เล่นแล้ว! กำลังเข้าสู่สังเวียน...";
+                    setTimeout(() => startMultiplayerGame(data), 1500);
+                });
+
+                socket.on('opponentDisconnected', () => {
+                    alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!");
+                    location.reload();
+                });
+            }
+
+            let activeDeck = pFaction === 'china' ? customDeckChina : customDeckGreek;
+            socket.emit('joinQueue', {
+                faction: pFaction,
+                deck: activeDeck,
+                username: "Player" // Can be fetched from Supabase later
+            });
+        }
+
+        function startMultiplayerGame(matchData) {
+            isMultiplayer = true;
+            currentRoomId = matchData.roomId;
+            let opponent = matchData.opponent;
+            
+            document.getElementById('bgm-menu').pause();
+            playSound('bgm-battle');
+            document.getElementById('start-buttons').style.display = 'none';
+            document.getElementById('queue-status').style.display = 'none';
+            document.getElementById('end-btn').style.display = 'block';
+
+            // Override opponent data with real player data
+            eFaction = opponent.faction;
+            eLeaderName = eFaction === 'china' ? 'เง็กเซียน' : 'ซุส';
+            document.getElementById('e-leader-img').src = eFaction === 'china' ? "./assets/images/leader_jade_emperor.png" : "./assets/images/leader_zeus.png";
+            document.getElementById('e-leader-name-ui').innerText = eFaction === 'china' ? "JADE EMPEROR" : "ZEUS";
+            document.getElementById('e-leader-icon').innerText = eFaction === 'china' ? "⛩️" : "🔱";
+            document.getElementById('e-leader').style.borderColor = eFaction === 'china' ? "var(--red)" : "var(--blue)";
+
+            // Prepare Decks
+            let activeDeck = pFaction === 'china' ? customDeckChina : customDeckGreek;
+            pDeckArr = JSON.parse(JSON.stringify(activeDeck)).map(c => ({...c, id: Math.random()}));
+            for (let i = pDeckArr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pDeckArr[i], pDeckArr[j]] = [pDeckArr[j], pDeckArr[i]]; }
+            
+            eDeckArr = opponent.deck.map(c => ({...c, id: Math.random()}));
+            for (let i = eDeckArr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [eDeckArr[i], eDeckArr[j]] = [eDeckArr[j], eDeckArr[i]]; }
+            
+            pDeck = 50; eDeck = 50;
+            pHand = []; eHand = [];
+            for(let i=0; i<5; i++) { if(eDeck > 0) { eHand.push(eDeckArr.pop()); eDeck--; } }
+            drawCards(5);
+
+            pOrder = matchData.isFirst ? 1 : 2; 
+            isPlayerTurn = matchData.isFirst;
+
+            addLog(`🎮 เริ่มเกม! (Multiplayer VS Real Player)`);
+            if(isPlayerTurn) { 
+                pMax = 1; pEss = 1; eMax = 0; eEss = 0; 
+                addLog("คุณได้เริ่มก่อน! ได้รับ 1 Essence"); 
+            } else { 
+                eMax = 1; eEss = 1; pMax = 0; pEss = 0; 
+                addLog(`คู่ต่อสู้เริ่มก่อน รอเทิร์น...`); 
+                // Multiplayer wait logic will be implemented here
+            }
+            updateUI();
         }
 
         function startGame(first) {
