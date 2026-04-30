@@ -164,7 +164,7 @@
 
     <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
 
-    <script src="./js/cards.js"></script>
+    <script src="./js/cards.js?v=2"></script>
     <script>
         const chinaCards = window.CardDatabase.chinaCards;
         const greekCards = window.CardDatabase.greekCards;
@@ -184,6 +184,16 @@
             let savedDeck = localStorage.getItem('godswar_deck');
             if (savedDeck) {
                 customDeck = JSON.parse(savedDeck);
+                // Fix old data missing faction
+                let modified = false;
+                customDeck.forEach(c => {
+                    if (!c.faction) {
+                        if (chinaCards.find(ch => ch.name === c.name)) c.faction = 'china';
+                        else c.faction = 'greek';
+                        modified = true;
+                    }
+                });
+                if (modified) localStorage.setItem('godswar_deck', JSON.stringify(customDeck));
             } else {
                 // If no custom deck, auto-generate a starter deck (Mixed China & Greek)
                 customDeck = [...chinaCards, ...greekCards].sort(() => 0.5 - Math.random()).slice(0, 50);
