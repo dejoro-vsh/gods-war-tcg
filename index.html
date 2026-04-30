@@ -293,11 +293,11 @@
             document.getElementById('faction-selection').style.display = 'none';
             document.getElementById('deck-builder-screen').style.display = 'flex';
             
-            // Give player 4 copies of their faction cards as "Inventory"
+            // Give player 10 copies of their faction cards as "Inventory" for testing
             const allCards = faction === 'china' ? chinaCards : greekCards;
             builderInventory = [];
             allCards.forEach(c => {
-                for(let i=0; i<4; i++) builderInventory.push({...c, builderId: Math.random()});
+                for(let i=0; i<10; i++) builderInventory.push({...c, builderId: Math.random()});
             });
 
             // Load saved deck
