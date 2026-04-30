@@ -61,9 +61,17 @@
         #defense-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .leader-card { width: 85px; height: 125px; border-width: 3px; }
 
-        #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-        .faction-btn { width: 80%; padding: 20px; font-size: 18px; border-radius: 10px; border: 2px solid var(--gold); background: #111; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .faction-btn img { height: 100px; border-radius: 5px; }
+        #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; overflow-y: auto; padding: 20px;}
+        .faction-btn { width: 90%; max-width: 400px; padding: 15px; font-size: 16px; border-radius: 10px; border: 2px solid var(--gold); background: #111; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .faction-btn img { height: 80px; border-radius: 5px; }
+
+        /* Deck Builder Styles */
+        #deck-builder-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; display: none; flex-direction: column; }
+        .builder-header { background: #111; border-bottom: 2px solid var(--gold); padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .builder-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .card-pool { flex: 1; overflow-y: auto; padding: 10px; border-bottom: 1px solid #333; background: #1a1a1a; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start; }
+        .deck-list { flex: 1; overflow-y: auto; padding: 10px; background: #0a0a0a; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start; }
+        .builder-section-title { width: 100%; text-align: center; color: #888; font-size: 12px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -94,6 +102,25 @@
             <img src="./assets/images/leader_zeus.png">
             <div>🔱 ฝ่ายกรีก (Greek)<br><span style="font-size:12px;color:#aaa">ควบคุมซุส สู้กับ เง็กเซียนฮ่องเต้</span></div>
         </button>
+        <button class="faction-btn" onclick="openDeckBuilder()" style="border-color: var(--blue);">
+            <div style="font-size:30px;">🛠️</div>
+            <div>จัดเด็คของคุณ (Deck Builder)<br><span style="font-size:12px;color:#aaa">ปรับแต่งไพ่ 50 ใบก่อนลุย!</span></div>
+        </button>
+    </div>
+
+    <div id="deck-builder-screen">
+        <div class="builder-header">
+            <h3 style="margin:0; color:var(--gold);">🛠️ Deck: <span id="db-count">0</span>/50</h3>
+            <button style="background:var(--green); color:black;" onclick="saveAndExitBuilder()">💾 บันทึก & ออก</button>
+        </div>
+        <div class="builder-content">
+            <div class="card-pool" id="db-inventory">
+                <div class="builder-section-title">คลังสมบัติ (แตะเพื่อนำเข้าเด็ค)</div>
+            </div>
+            <div class="deck-list" id="db-deck">
+                <div class="builder-section-title">เด็คปัจจุบัน (แตะเพื่อถอดออก)</div>
+            </div>
+        </div>
     </div>
 
     <div class="header-stats game-ui" style="display:none;">
@@ -150,6 +177,89 @@
         
         let pFaction = 'china', eFaction = 'greek';
         let pLeaderName = "เง็กเซียน", eLeaderName = "ซุส";
+        let customDeck = [];
+
+        // Mock Database Initialization
+        function initMockDB() {
+            let savedDeck = localStorage.getItem('godswar_deck');
+            if (savedDeck) {
+                customDeck = JSON.parse(savedDeck);
+            } else {
+                // If no custom deck, auto-generate a starter deck (Mixed China & Greek)
+                customDeck = [...chinaCards, ...greekCards].sort(() => 0.5 - Math.random()).slice(0, 50);
+                localStorage.setItem('godswar_deck', JSON.stringify(customDeck));
+            }
+        }
+        initMockDB();
+
+        // Deck Builder Logic
+        let builderInventory = [];
+        let builderDeck = [];
+
+        function openDeckBuilder() {
+            document.getElementById('faction-selection').style.display = 'none';
+            document.getElementById('deck-builder-screen').style.display = 'flex';
+            
+            // Give player 4 copies of EVERY card in the game as their "Inventory" for testing
+            const allCards = [...chinaCards, ...greekCards];
+            builderInventory = [];
+            allCards.forEach(c => {
+                for(let i=0; i<4; i++) builderInventory.push({...c, builderId: Math.random()});
+            });
+
+            // Load saved deck
+            builderDeck = JSON.parse(localStorage.getItem('godswar_deck')) || [];
+            
+            // Remove deck cards from inventory so they don't duplicate
+            builderDeck.forEach(dc => {
+                let idx = builderInventory.findIndex(ic => ic.name === dc.name);
+                if(idx !== -1) builderInventory.splice(idx, 1);
+            });
+
+            renderBuilder();
+        }
+
+        function renderBuilder() {
+            document.getElementById('db-count').innerText = builderDeck.length;
+            document.getElementById('db-count').style.color = builderDeck.length === 50 ? 'var(--green)' : 'var(--red)';
+
+            const invZone = document.getElementById('db-inventory');
+            invZone.innerHTML = '<div class="builder-section-title">คลังสมบัติ (แตะเพื่อนำเข้าเด็ค)</div>';
+            builderInventory.forEach((c, i) => {
+                invZone.innerHTML += `<div class="card" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
+            });
+
+            const deckZone = document.getElementById('db-deck');
+            deckZone.innerHTML = '<div class="builder-section-title">เด็คปัจจุบัน (แตะเพื่อถอดออก)</div>';
+            builderDeck.forEach((c, i) => {
+                deckZone.innerHTML += `<div class="card" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
+            });
+        }
+
+        function moveCard(direction, idx) {
+            if (direction === 'toDeck') {
+                if (builderDeck.length >= 50) return alert("เด็คเต็มแล้ว! (สูงสุด 50 ใบ)");
+                let card = builderInventory.splice(idx, 1)[0];
+                builderDeck.push(card);
+                playSound('sfx-draw');
+            } else {
+                let card = builderDeck.splice(idx, 1)[0];
+                builderInventory.push(card);
+                playSound('sfx-draw');
+            }
+            renderBuilder();
+        }
+
+        function saveAndExitBuilder() {
+            if (builderDeck.length !== 50) {
+                return alert("ต้องมีการ์ดครบ 50 ใบพอดีถึงจะบันทึกได้ครับ!");
+            }
+            localStorage.setItem('godswar_deck', JSON.stringify(builderDeck));
+            customDeck = builderDeck;
+            document.getElementById('deck-builder-screen').style.display = 'none';
+            document.getElementById('faction-selection').style.display = 'flex';
+            playSound('sfx-magic');
+        }
 
         function playSound(id) {
             let s = document.getElementById(id);
@@ -210,8 +320,18 @@
             document.getElementById('start-buttons').style.display = 'none';
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
-            pDeckArr = generateDeck(pFaction === 'china' ? chinaCards : greekCards);
+            
+            // Load user's custom deck!
+            let userDeckClone = JSON.parse(JSON.stringify(customDeck)).map(c => ({...c, id: Math.random()}));
+            for (let i = userDeckClone.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [userDeckClone[i], userDeckClone[j]] = [userDeckClone[j], userDeckClone[i]];
+            }
+            pDeckArr = userDeckClone;
+            
+            // AI still uses standard generated deck based on faction
             eDeckArr = generateDeck(eFaction === 'greek' ? greekCards : chinaCards);
+            
             pDeck = 50; eDeck = 50;
             pHand = []; eHand = [];
             for(let i=0; i<5; i++) { if(eDeck > 0) { eHand.push(eDeckArr.pop()); eDeck--; } }
