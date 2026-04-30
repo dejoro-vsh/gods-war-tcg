@@ -231,7 +231,7 @@
                 if (error) throw error;
 
                 // Sync China Deck
-                let cDeck = decks?.find(d => d.faction === 'china');
+                let cDeck = decks && decks.find(d => d.faction === 'china');
                 if (cDeck && cDeck.cards_json) {
                     customDeckChina = cDeck.cards_json;
                     safeSetLocal('godswar_deck_china', JSON.stringify(customDeckChina));
@@ -242,7 +242,7 @@
                 }
 
                 // Sync Greek Deck
-                let gDeck = decks?.find(d => d.faction === 'greek');
+                let gDeck = decks && decks.find(d => d.faction === 'greek');
                 if (gDeck && gDeck.cards_json) {
                     customDeckGreek = gDeck.cards_json;
                     safeSetLocal('godswar_deck_greek', JSON.stringify(customDeckGreek));
@@ -724,7 +724,8 @@
 
             const pf = document.getElementById('p-units'); pf.innerHTML = '';
             pField.forEach((c, i) => {
-                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${selected?.idx===i?'is-attacking':''}" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="onAttack('warrior', ${i})">
+                let isSelectedAttack = selected && selected.idx === i;
+                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
             });
@@ -749,7 +750,7 @@
             });
 
             document.getElementById('e-leader').className = `card leader-card ${selected?'is-targetable':''}`;
-            document.getElementById('p-leader').classList.toggle('is-attacking', selected?.type==='leader');
+            document.getElementById('p-leader').classList.toggle('is-attacking', selected && selected.type==='leader');
         }
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
