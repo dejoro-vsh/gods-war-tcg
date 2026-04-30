@@ -63,12 +63,12 @@
     </style>
 </head>
 <body>
-    <!-- Audio Assets -->
-    <audio id="bgm" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Kevin_MacLeod_-_Volatile_Reaction.ogg" loop></audio>
-    <audio id="sfx-attack" src="https://actions.google.com/sounds/v1/impacts/crash.ogg"></audio>
-    <audio id="sfx-draw" src="https://actions.google.com/sounds/v1/foley/paper_rustle.ogg"></audio>
-    <audio id="sfx-magic" src="https://actions.google.com/sounds/v1/magic/magical_ping.ogg"></audio>
-    <audio id="sfx-heal" src="https://actions.google.com/sounds/v1/water/water_splash.ogg"></audio>
+    <!-- Audio Assets (.mp3 format for iOS/Mobile support) -->
+    <audio id="bgm" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" loop></audio>
+    <audio id="sfx-attack" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/branch_break.mp3"></audio>
+    <audio id="sfx-draw" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/tap.mp3"></audio>
+    <audio id="sfx-magic" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/bell_ring.mp3"></audio>
+    <audio id="sfx-heal" src="https://raw.githubusercontent.com/IonDen/ion.sound/master/sounds/water_droplet.mp3"></audio>
 
     <div id="defense-overlay">
         <h3 style="color:var(--red); margin-bottom:20px;">🚨 ถูกโจมตี! เลือกการป้องกัน</h3>
@@ -473,9 +473,19 @@
 
         function addLog(m) { const l = document.getElementById('battle-log'); l.innerHTML += `<br>> ${m}`; l.scrollTop = l.scrollHeight; }
         function checkWin() { 
-            if(pDeck <= 0) { alert("คุณการ์ดหมดกอง! คุณแพ้!"); location.reload(); }
-            if(eDeck <= 0) { alert("ซุสการ์ดหมดกอง! คุณชนะ!"); location.reload(); }
-            if(eHP<=0 || pHP<=0) { alert(eHP<=0?"คุณชนะ!":"คุณแพ้!"); location.reload(); } 
+            let msg = "";
+            if(pDeck <= 0) msg = "คุณการ์ดหมดกอง! คุณแพ้!";
+            else if(eDeck <= 0) msg = "ซุสการ์ดหมดกอง! คุณชนะ!";
+            else if(eHP<=0) msg = "คุณชนะ!";
+            else if(pHP<=0) msg = "คุณแพ้!";
+            
+            if(msg !== "") {
+                playSound(eHP<=0 || eDeck<=0 ? 'sfx-magic' : 'sfx-attack');
+                setTimeout(() => {
+                    alert(msg);
+                    location.reload();
+                }, 800);
+            }
         }
     </script>
 </body>
