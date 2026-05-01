@@ -39,7 +39,12 @@
         .tag-blocker { background: var(--green); color: black; }
         .tag-counter { background: var(--orange); color: white; }
         .tag-event { background: #8e44ad; color: white; left: 3px; bottom: 3px; top: auto; right: auto; }
+        .tag-stage { background: var(--gold); color: black; left: 3px; top: 3px; right: auto; }
         .tag-rush { background: var(--red); color: white; left: 3px; top: 3px; right: auto; }
+        
+        /* Stage Zone */
+        .stage-zone { width: 65px; height: 95px; border: 2px dashed #555; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #555; border-radius: 5px; margin-right: 10px; flex-shrink: 0; }
+        .stage-card { width: 100%; height: 100%; border-width: 2px; }
 
         /* Animations */
         .float-text { position: absolute; font-weight: bold; font-size: 24px; z-index: 1000; animation: floatUp 1s ease-out forwards; pointer-events: none; text-shadow: 2px 2px 4px #000; }
@@ -142,6 +147,7 @@
 
     <div class="battlefield game-ui" style="display:none;">
         <div id="e-field-zone" class="field-zone">
+            <div id="e-stage-slot" class="stage-zone">STAGE</div>
             <div id="e-leader" class="card leader-card" onclick="onTarget('leader', 0)" style="border-color:var(--blue)">
                 <img id="e-leader-img" src="./assets/images/leader_zeus.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
@@ -155,6 +161,7 @@
                 <img id="p-leader-img" src="./assets/images/leader_jade_emperor.png">
                 <div class="badge atk-cost">⚔️ 1</div><div class="badge atk-val">5000</div>
             </div>
+            <div id="p-stage-slot" class="stage-zone" style="margin-right:0; margin-left:10px;">STAGE</div>
         </div>
     </div>
 
@@ -188,7 +195,8 @@
         const chinaCards = window.CardDatabase ? window.CardDatabase.chinaCards : [];
         const greekCards = window.CardDatabase ? window.CardDatabase.greekCards : [];
 
-        let pHP = 5, eHP = 5, pEss = 0, pMax = 0, eEss = 0, eMax = 0, isPlayerTurn = true, pOrder = 1;
+        let pHP = 5, eHP = 5, pEss = 0, pMax = 0, eEss = 0, eMax = 0, isPlayerTurn = false, pOrder = 1;
+        let pStage = null, eStage = null;
         let pDeckArr = [], eDeckArr = [], pDeck = 50, eDeck = 50;
         let pHand = [], eHand = [], pField = [], eField = [], selected = null;
         let currentDefenseTarget = { type: 'leader', idx: 0 };
@@ -205,11 +213,8 @@
         let dbClient;
         let socket;
         
-        // --- MULTIPLAYER CONFIG ---
-        // Change this to your Render.com URL after deploying the server folder
         const SOCKET_SERVER_URL = "https://gods-war-tcg-server.onrender.com"; 
 
-        // Database Initialization (Cloud + Local Fallback)
         function generateSafeUUID() {
             if (typeof crypto !== 'undefined' && crypto.randomUUID) {
                 return crypto.randomUUID();
@@ -229,7 +234,7 @@
 
         async function initDatabase() {
             try {
-                if (!window.supabase) throw new Error("Supabase SDK not loaded or blocked by browser");
+                if (!window.supabase) throw new Error("Supabase SDK not loaded");
                 dbClient = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
             
                 if (!playerId) {
@@ -237,7 +242,6 @@
                     safeSetLocal('godswar_player_id', playerId);
                 }
                 
-                // Ensure player exists in DB to prevent Foreign Key constraints on player_decks
                 await dbClient.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
 
                 const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
@@ -264,7 +268,6 @@
                     customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
                     await dbClient.from('player_decks').insert([{ player_id: playerId, faction: 'greek', cards_json: customDeckGreek }]);
                 }
-                console.log("Database Sync Complete!");
             } catch (err) {
                 console.warn("Supabase Offline or Blocked, falling back to Local", err);
                 if (!playerId) {
@@ -278,10 +281,8 @@
             }
         }
         
-        // Wait for DOM to finish loading before trying to hit network
         setTimeout(initDatabase, 500);
 
-        // Deck Builder Logic
         let builderInventory = [];
         let builderDeck = [];
         let currentBuilderFaction = 'china';
@@ -291,18 +292,15 @@
             document.getElementById('faction-selection').style.display = 'none';
             document.getElementById('deck-builder-screen').style.display = 'flex';
             
-            // Give player 10 copies of their faction cards as "Inventory" for testing
             const allCards = faction === 'china' ? chinaCards : greekCards;
             builderInventory = [];
             allCards.forEach(c => {
                 for(let i=0; i<10; i++) builderInventory.push({...c, builderId: Math.random()});
             });
 
-            // Load saved deck
             let sDeck = safeGetLocal(`godswar_deck_${faction}`);
             builderDeck = sDeck ? JSON.parse(sDeck) : [];
             
-            // Remove deck cards from inventory so they don't duplicate
             builderDeck.forEach(dc => {
                 let idx = builderInventory.findIndex(ic => ic.name === dc.name);
                 if(idx !== -1) builderInventory.splice(idx, 1);
@@ -347,12 +345,10 @@
                 return alert("ต้องมีการ์ดครบ 50 ใบพอดีถึงจะบันทึกได้ครับ!");
             }
             
-            // 1. Save Local
             safeSetLocal(`godswar_deck_${currentBuilderFaction}`, JSON.stringify(builderDeck));
             if (currentBuilderFaction === 'china') customDeckChina = builderDeck;
             else customDeckGreek = builderDeck;
             
-            // 2. Save Cloud (Supabase)
             try {
                 if (playerId && dbClient) {
                     await dbClient.from('player_decks').upsert({
@@ -402,9 +398,6 @@
                 document.getElementById('e-leader-icon').innerText = "⛩️";
                 document.getElementById('p-leader').style.borderColor = "var(--blue)";
                 document.getElementById('e-leader').style.borderColor = "var(--red)";
-                
-                document.getElementById('btn-start-p').innerText = "สู้กับบอท (คุณเริ่มก่อน)";
-                document.getElementById('btn-start-e').innerText = "สู้กับบอท (บอทเริ่มก่อน)";
             } else {
                 pFaction = 'china'; eFaction = 'greek';
                 pLeaderName = "เง็กเซียน"; eLeaderName = "ซุส";
@@ -416,9 +409,6 @@
                 document.getElementById('e-leader-icon').innerText = "🔱";
                 document.getElementById('p-leader').style.borderColor = "var(--red)";
                 document.getElementById('e-leader').style.borderColor = "var(--blue)";
-
-                document.getElementById('btn-start-p').innerText = "สู้กับบอท (คุณเริ่มก่อน)";
-                document.getElementById('btn-start-e').innerText = "สู้กับบอท (บอทเริ่มก่อน)";
             }
         }
 
@@ -432,7 +422,6 @@
             return deck;
         }
 
-        // --- MULTIPLAYER LOGIC ---
         let currentRoomId = null;
         let isMultiplayer = false;
         let isGameFinished = false;
@@ -460,18 +449,10 @@
 
             if (!socket) {
                 socket = io(SOCKET_SERVER_URL);
-                
-                socket.on('connect_error', (err) => {
-                    console.warn("Connection error, server might be sleeping...", err);
-                    document.getElementById('queue-status').innerText = "กำลังปลุกเซิร์ฟเวอร์คลาวด์... (อาจใช้เวลาประมาณ 30-50 วินาที) ⏳";
-                });
-
-                socket.on('connect', () => {
-                    document.getElementById('queue-status').innerText = "กำลังรอผู้เล่นคนอื่น... ⏳";
-                });
-
+                socket.on('connect_error', () => { document.getElementById('queue-status').innerText = "กำลังปลุกเซิร์ฟเวอร์... ⏳"; });
+                socket.on('connect', () => { document.getElementById('queue-status').innerText = "กำลังรอผู้เล่นคนอื่น... ⏳"; });
                 socket.on('matchFound', (data) => {
-                    document.getElementById('queue-status').innerText = "พบผู้เล่นแล้ว! กำลังเข้าสู่สังเวียน...";
+                    document.getElementById('queue-status').innerText = "พบผู้เล่น! เข้าสู่สังเวียน...";
                     setTimeout(() => startMultiplayerGame(data), 1500);
                 });
 
@@ -495,6 +476,10 @@
                                 showFloatingText('p-leader', "🌊 ล้างบาง!", "dmg");
                                 pField = [];
                             }
+                        } else if (card.type === 'stage') {
+                            eStage = card;
+                            addLog(`🏰 คู่ต่อสู้กางอาณาเขต: ${card.name}`);
+                            playSound('sfx-magic');
                         } else {
                             card.isRest = !(card.skills && card.skills.includes('rush'));
                             eField.push(card);
@@ -849,7 +834,7 @@
 
         function playCard(idx) {
             let card = pHand[idx];
-            if (card.type !== 'event' && pField.length >= 5) return;
+            if (card.type !== 'event' && card.type !== 'stage' && pField.length >= 5) return;
             if (pEss < card.cost) return;
             
             if (isMultiplayer && socket) {
@@ -861,6 +846,11 @@
             
             if (card.type === 'event') {
                 resolveEvent(card);
+            } else if (card.type === 'stage') {
+                if (pStage) addLog(`🏰 ทำลาย ${pStage.name} ทิ้ง`);
+                pStage = card;
+                addLog(`🏰 กางอาณาเขต: ${card.name}`);
+                playSound('sfx-magic');
             } else {
                 card.isRest = !(card.skills && card.skills.includes('rush'));
                 pField.push(card);
@@ -940,11 +930,30 @@
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
             });
 
+            const pStageSlot = document.getElementById('p-stage-slot');
+            if (pStage) {
+                pStageSlot.innerHTML = `<div class="card stage-card" style="border-color:${pStage.faction==='china'?'var(--red)':'var(--blue)'}"><img src="${pStage.img}"></div>`;
+                pStageSlot.style.border = 'none';
+            } else {
+                pStageSlot.innerHTML = 'STAGE';
+                pStageSlot.style.border = '';
+            }
+
+            const eStageSlot = document.getElementById('e-stage-slot');
+            if (eStage) {
+                eStageSlot.innerHTML = `<div class="card stage-card" style="border-color:${eStage.faction==='china'?'var(--red)':'var(--blue)'}"><img src="${eStage.img}"></div>`;
+                eStageSlot.style.border = 'none';
+            } else {
+                eStageSlot.innerHTML = 'STAGE';
+                eStageSlot.style.border = '';
+            }
+
             const ph = document.getElementById('p-hand-ui'); ph.innerHTML = '';
             pHand.forEach((c, i) => {
                 let badges = '';
                 if (c.counter) badges += `<div class="tag tag-counter">C+${c.counter}</div>`;
                 if (c.type === 'event') badges += `<div class="tag tag-event">EVENT</div>`;
+                if (c.type === 'stage') badges += `<div class="tag tag-stage">STAGE</div>`;
                 if (c.skills && c.skills.includes('rush')) badges += `<div class="tag tag-rush">RUSH</div>`;
                 
                 ph.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="playCard(${i})">
