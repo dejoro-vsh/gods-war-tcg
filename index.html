@@ -696,6 +696,10 @@
                             pField = [];
                             addLog(`⚡ ${rCard.name} กวาดล้างทหารของคุณทั้งหมด!!`);
                         }
+                    } else if (rCard.type === 'stage') {
+                        eStage = rCard;
+                        addLog(`🏰 AI กางอาณาเขต: ${rCard.name}`);
+                        playSound('sfx-magic');
                     } else {
                         rCard.isRest = !(rCard.skills && rCard.skills.includes('rush'));
                         eField.push(rCard);
