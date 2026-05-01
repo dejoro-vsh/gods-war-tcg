@@ -495,7 +495,7 @@
         async function recordGameResult(win, kills, heals, playTime) {
             if (!playerId || !dbClient) return;
             try {
-                const { data } = await dbClient.from('players').select('win_count, loss_count, kills, heals, play_time_seconds, exp, level').eq('id', playerId).single();
+                const { data } = await dbClient.from('players').select('win_count, loss_count, kills, heals, play_time_seconds, exp, level, gold').eq('id', playerId).single();
                 if (data) {
                     let w = data.win_count || 0;
                     let l = data.loss_count || 0;
@@ -503,12 +503,15 @@
                     let h = (data.heals || 0) + heals;
                     let pt = (data.play_time_seconds || 0) + playTime;
                     
+                    let earnedGold = win ? 50 : 10;
+                    let g = (data.gold || 0) + earnedGold;
+                    
                     let xp = (data.exp || 0) + (win ? 100 : 25);
                     let lvl = data.level || 1;
                     if (xp >= lvl * 100) { xp -= (lvl * 100); lvl++; }
 
                     if (win) w++; else l++;
-                    await dbClient.from('players').update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl }).eq('id', playerId);
+                    await dbClient.from('players').update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl, gold: g }).eq('id', playerId);
                 }
             } catch(e) {
                 console.error("Failed to save stats", e);
@@ -592,8 +595,9 @@
                 socket.on('opponentDisconnected', () => {
                     if (isGameFinished) return; // Do not alert if game naturally ended
                     isGameFinished = true;
-                    alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!");
-                    recordGameResult(true).then(() => location.reload());
+                    alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!\nได้รับ 50 ทอง! 💰");
+                    let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
+                    recordGameResult(true, matchKills, matchHeals, playTimeSeconds).then(() => location.reload());
                 });
             }
 
@@ -1061,6 +1065,10 @@
                 isGameFinished = true;
                 document.getElementById('bgm-battle').pause();
                 playSound(win ? 'bgm-win' : 'bgm-lose');
+                
+                let earnedGold = win ? 50 : 10;
+                msg += `\nได้รับ ${earnedGold} ทอง! 💰`;
+
                 setTimeout(() => {
                     alert(msg);
                     let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
