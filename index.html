@@ -96,7 +96,22 @@
         <div id="defense-options" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
     </div>
 
-    <div id="faction-selection">
+    <!-- Auth Screen -->
+    <div id="auth-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2500; flex-direction: column; align-items: center; justify-content: flex-start; padding: 40px 20px;">
+        <img src="./assets/images/logo_gods_war.png" alt="GODS WAR" style="width: 90%; max-width: 350px; max-height: 25vh; object-fit: contain; margin-bottom: 20px; mix-blend-mode: screen;">
+        <div style="width: 90%; max-width: 400px; background: #1a1a1a; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px;">
+            <h3 style="text-align:center; margin:0; color:var(--gold);">เข้าสู่ระบบ / ลงทะเบียน</h3>
+            <input type="email" id="auth-email" style="padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; width: 100%; box-sizing: border-box;" placeholder="อีเมล (Email)">
+            <input type="password" id="auth-pass" style="padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; width: 100%; box-sizing: border-box;" placeholder="รหัสผ่าน (Password)">
+            <button onclick="handleLogin()" style="padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: var(--blue); color: white;">🔓 เข้าสู่ระบบ (Login)</button>
+            <button onclick="handleRegister()" style="padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: var(--gold); color: black;">📝 สมัครสมาชิก (Register)</button>
+            <hr style="border-color:#333; width:100%; margin: 10px 0;">
+            <button onclick="handleGuest()" style="padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: #444; color: white;">🕵️ เล่นแบบไม่ล็อคอิน (Guest)</button>
+        </div>
+        <div id="auth-msg" style="color:var(--red); margin-top:15px; font-size:14px; text-align:center;"></div>
+    </div>
+
+    <div id="faction-selection" style="display:none;">
         <img src="./assets/images/logo_gods_war.png" alt="GODS WAR" style="width: 90%; max-width: 350px; max-height: 30vh; object-fit: contain; margin-bottom: 5px; mix-blend-mode: screen;">
         <p>เลือกฝ่ายที่คุณต้องการเล่น</p>
         <button class="faction-btn" onclick="selectFaction('china')">
@@ -210,6 +225,8 @@
         let playerId = null;
         try { playerId = localStorage.getItem('godswar_player_id'); } catch(e) {}
         
+        let matchKills = 0; let matchHeals = 0; let matchStartTime = 0;
+        
         let dbClient;
         let socket;
         
@@ -237,51 +254,100 @@
                 if (!window.supabase) throw new Error("Supabase SDK not loaded");
                 dbClient = window.supabase.createClient('https://xgmqqyriwoxzxtlzkmwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8');
             
-                if (!playerId) {
-                    playerId = generateSafeUUID();
-                    safeSetLocal('godswar_player_id', playerId);
-                }
-                
-                await dbClient.from('players').insert([{ id: playerId, username: 'Player_' + Math.floor(Math.random()*1000) }]);
-
-                const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
-                if (error) throw error;
-
-                // Sync China Deck
-                let cDeck = decks && decks.find(d => d.faction === 'china');
-                if (cDeck && cDeck.cards_json) {
-                    customDeckChina = cDeck.cards_json;
-                    safeSetLocal('godswar_deck_china', JSON.stringify(customDeckChina));
+                // Check active session
+                const { data: { session } } = await dbClient.auth.getSession();
+                if (session) {
+                    playerId = session.user.id;
+                    await loadPlayerData(session.user.email);
+                    document.getElementById('auth-screen').style.display = 'none';
+                    document.getElementById('faction-selection').style.display = 'flex';
                 } else {
-                    let sChina = safeGetLocal('godswar_deck_china');
-                    customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
-                    await dbClient.from('player_decks').insert([{ player_id: playerId, faction: 'china', cards_json: customDeckChina }]);
-                }
-
-                // Sync Greek Deck
-                let gDeck = decks && decks.find(d => d.faction === 'greek');
-                if (gDeck && gDeck.cards_json) {
-                    customDeckGreek = gDeck.cards_json;
-                    safeSetLocal('godswar_deck_greek', JSON.stringify(customDeckGreek));
-                } else {
-                    let sGreek = safeGetLocal('godswar_deck_greek');
-                    customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
-                    await dbClient.from('player_decks').insert([{ player_id: playerId, faction: 'greek', cards_json: customDeckGreek }]);
+                    document.getElementById('auth-screen').style.display = 'flex';
                 }
             } catch (err) {
                 console.warn("Supabase Offline or Blocked, falling back to Local", err);
-                if (!playerId) {
-                    playerId = generateSafeUUID();
-                    safeSetLocal('godswar_player_id', playerId);
-                }
-                let sChina = safeGetLocal('godswar_deck_china');
-                customDeckChina = sChina ? JSON.parse(sChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
-                let sGreek = safeGetLocal('godswar_deck_greek');
-                customDeckGreek = sGreek ? JSON.parse(sGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('auth-msg').innerText = "ฐานข้อมูลขัดข้อง (ใช้โหมด Guest ไปก่อน)";
             }
         }
         
         setTimeout(initDatabase, 500);
+
+        // --- AUTHENTICATION LOGIC ---
+        function showAuthMsg(msg, isError = true) {
+            const el = document.getElementById('auth-msg');
+            el.style.color = isError ? 'var(--red)' : 'var(--green)';
+            el.innerText = msg;
+        }
+
+        async function handleLogin() {
+            if (!dbClient) return showAuthMsg("เชื่อมต่อฐานข้อมูลไม่ได้");
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            if (!email || !pass) return showAuthMsg("กรุณากรอกข้อมูลให้ครบถ้วน");
+            
+            const { data, error } = await dbClient.auth.signInWithPassword({ email, password: pass });
+            if (error) return showAuthMsg(error.message);
+            
+            playerId = data.user.id;
+            await loadPlayerData(data.user.email);
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('faction-selection').style.display = 'flex';
+        }
+
+        async function handleRegister() {
+            if (!dbClient) return showAuthMsg("เชื่อมต่อฐานข้อมูลไม่ได้");
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            if (!email || !pass) return showAuthMsg("กรุณากรอกข้อมูลให้ครบถ้วน");
+            
+            const { data, error } = await dbClient.auth.signUp({ email, password: pass });
+            if (error) return showAuthMsg(error.message);
+            
+            showAuthMsg("สมัครสำเร็จ! กรุณาเข้าสู่ระบบ", false);
+        }
+
+        function handleGuest() {
+            playerId = safeGetLocal('godswar_player_id');
+            if (!playerId) {
+                playerId = generateSafeUUID();
+                safeSetLocal('godswar_player_id', playerId);
+            }
+            loadPlayerData("Guest");
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('faction-selection').style.display = 'flex';
+        }
+
+        async function loadPlayerData(email) {
+            try {
+                if (!playerId || !dbClient) throw new Error("No DB");
+                
+                await dbClient.from('players').upsert([{ id: playerId, username: email.split('@')[0] }], { onConflict: 'id' });
+
+                const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
+                if (error) throw error;
+                
+                let sChina = decks.find(d => d.faction === 'china')?.cards_json;
+                if (sChina) customDeckChina = sChina;
+                else {
+                    let ls = safeGetLocal('godswar_deck_china');
+                    customDeckChina = ls ? JSON.parse(ls) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
+                }
+
+                let sGreek = decks.find(d => d.faction === 'greek')?.cards_json;
+                if (sGreek) customDeckGreek = sGreek;
+                else {
+                    let ls = safeGetLocal('godswar_deck_greek');
+                    customDeckGreek = ls ? JSON.parse(ls) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
+                }
+            } catch (err) {
+                console.warn("Offline Load", err);
+                let lsChina = safeGetLocal('godswar_deck_china');
+                customDeckChina = lsChina ? JSON.parse(lsChina) : Array.from({length: 50}, (_, i) => ({...chinaCards[i%chinaCards.length], id: Math.random()}));
+                let lsGreek = safeGetLocal('godswar_deck_greek');
+                customDeckGreek = lsGreek ? JSON.parse(lsGreek) : Array.from({length: 50}, (_, i) => ({...greekCards[i%greekCards.length], id: Math.random()}));
+            }
+        }
 
         let builderInventory = [];
         let builderDeck = [];
@@ -426,15 +492,23 @@
         let isMultiplayer = false;
         let isGameFinished = false;
 
-        async function recordGameResult(win) {
+        async function recordGameResult(win, kills, heals, playTime) {
             if (!playerId || !dbClient) return;
             try {
-                const { data } = await dbClient.from('players').select('win_count, loss_count').eq('id', playerId).single();
+                const { data } = await dbClient.from('players').select('win_count, loss_count, kills, heals, play_time_seconds, exp, level').eq('id', playerId).single();
                 if (data) {
                     let w = data.win_count || 0;
                     let l = data.loss_count || 0;
+                    let k = (data.kills || 0) + kills;
+                    let h = (data.heals || 0) + heals;
+                    let pt = (data.play_time_seconds || 0) + playTime;
+                    
+                    let xp = (data.exp || 0) + (win ? 100 : 25);
+                    let lvl = data.level || 1;
+                    if (xp >= lvl * 100) { xp -= (lvl * 100); lvl++; }
+
                     if (win) w++; else l++;
-                    await dbClient.from('players').update({ win_count: w, loss_count: l }).eq('id', playerId);
+                    await dbClient.from('players').update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl }).eq('id', playerId);
                 }
             } catch(e) {
                 console.error("Failed to save stats", e);
@@ -536,6 +610,8 @@
             currentRoomId = matchData.roomId;
             let opponent = matchData.opponent;
             
+            matchKills = 0; matchHeals = 0; matchStartTime = Date.now();
+
             document.getElementById('bgm-menu').pause();
             playSound('bgm-battle');
             document.getElementById('start-buttons').style.display = 'none';
@@ -579,6 +655,7 @@
         }
 
         function startGame(first) {
+            matchKills = 0; matchHeals = 0; matchStartTime = Date.now();
             document.getElementById('bgm-menu').pause();
             playSound('bgm-battle');
             document.getElementById('start-buttons').style.display = 'none';
@@ -652,6 +729,7 @@
                     } else { 
                         showFloatingText(`e-unit-${idx}`, "DEAD", "dmg");
                         eField.splice(idx, 1); 
+                        matchKills++;
                     } 
                 }
                 selected = null; updateUI(); checkWin();
@@ -875,6 +953,7 @@
                 drawCards(2);
             } else if (card.effect === 'heal_1') {
                 pHP = Math.min(5, pHP + 1);
+                matchHeals++;
                 showFloatingText('p-leader', "+1", "heal");
                 playSound('sfx-heal');
                 addLog(`💖 ฟื้นฟู 1 HP!`);
@@ -984,7 +1063,8 @@
                 playSound(win ? 'bgm-win' : 'bgm-lose');
                 setTimeout(() => {
                     alert(msg);
-                    recordGameResult(win).then(() => location.reload());
+                    let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
+                    recordGameResult(win, matchKills, matchHeals, playTimeSeconds).then(() => location.reload());
                 }, 3000);
             }
         }
