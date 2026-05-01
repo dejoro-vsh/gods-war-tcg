@@ -72,6 +72,13 @@ const CardDatabase = {
             cost: 8,
             faction: "china", 
             img: "./assets/images/event_nuwa_flood.png" 
+        },
+        { 
+            name: "Heavenly Court", 
+            type: "stage", 
+            cost: 2,
+            faction: "china", 
+            img: "./assets/images/stage_heavenly_court.png" 
         }
     ],
     greekCards: [
@@ -135,6 +142,13 @@ const CardDatabase = {
             cost: 8,
             faction: "greek", 
             img: "./assets/images/event_zeus_wrath.png" 
+        },
+        { 
+            name: "Mount Olympus", 
+            type: "stage", 
+            cost: 2,
+            faction: "greek", 
+            img: "./assets/images/stage_mount_olympus.png" 
         }
     ]
 };
