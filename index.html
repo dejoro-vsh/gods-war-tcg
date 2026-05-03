@@ -435,6 +435,10 @@
                     playerStats.nft_serial = pData.nft_serial || null;
                 }
 
+                // Load Inventory
+                const { data: invData, error: invErr } = await dbClient.from('player_inventory').select('*').eq('player_id', playerId);
+                playerStats.inventory = (!invErr && invData) ? invData : [];
+
                 const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
                 if (error) throw error;
                 
@@ -548,7 +552,14 @@
                 if (result.success) {
                     playerStats.free_mint_claimed = true;
                     playerStats.nft_serial = result.serial;
-                    alert("🎉 ยินดีด้วย! คุณสุ่มได้หมายเลข #" + result.serial + " ส่งเข้ากระเป๋าเรียบร้อยแล้ว!\nTxHash: " + result.txHash);
+                    
+                    let gradeColor = 'var(--text)';
+                    if (result.grade === 'Rare') gradeColor = '#00ffff';
+                    if (result.grade === 'Epic') gradeColor = '#a333c8';
+                    if (result.grade === 'Legendary') gradeColor = '#ffd700';
+                    if (result.grade === 'Mythic') gradeColor = '#ff00ff';
+
+                    alert(`🎉 ยินดีด้วย! คุณสุ่มได้การ์ด:\n\n[ ${result.cardName} ]\nระดับ: ${result.grade}\nสไตล์: ${result.style}\nหมายเลข Serial: #${result.serial}\n\nส่งเข้าคลังสมบัติเรียบร้อยแล้ว!\nTxHash: ${result.txHash}`);
                     openProfile();
                     showcaseNFT();
                 } else {
@@ -563,9 +574,45 @@
             }
         }
 
-        let builderInventory = [];
-        let builderDeck = [];
-        let currentBuilderFaction = 'china';
+        function getStyleImage(name, style, originalImg) {
+            if (!style || style === 'original' || style === 'Original') return originalImg;
+            let simpleName = name.toLowerCase().replace(/ /g, '').replace("'", '');
+            let fileMap = {
+                "wukong": "wukong", "guanyu": "guanyu", "nezha": "nezha", "zhubajie": "zhubajie",
+                "erlang": "erlang", "houyi": "houyi", "qilin": "qilin", "mazu": "mazu",
+                "jadeemperor": "jade_emperor", "meditation": "meditation", "divineelixir": "elixir",
+                "nuwasflood": "nuwa_flood", "heavenlycourt": "heavenly_court",
+                "achilles": "achilles", "ares": "ares", "hercules": "hercules", "valkyrie": "valkyrie",
+                "spartan": "spartan", "poseidon": "poseidon", "pegasus": "pegasus", "medusa": "medusa",
+                "zeus": "zeus", "oraclesvision": "oracle", "ambrosia": "ambrosia",
+                "zeus'swrath": "zeus_wrath", "mountolympus": "olympus"
+            };
+            let mapped = fileMap[simpleName] || simpleName;
+            return `./assets/images/${mapped}_${style.toLowerCase()}.png`;
+        }
+
+        function applyGradeModifiers(card, grade, style) {
+            let mod = {...card, builderId: Math.random(), grade: grade || 'Normal', style: style || 'original'};
+            mod.img = getStyleImage(mod.name, mod.style, mod.img);
+            if (mod.grade === 'Rare') {
+                mod.atk = (mod.atk || 0) + 500;
+                mod.gradeColor = '#00ffff'; 
+            } else if (mod.grade === 'Epic') {
+                mod.atk = (mod.atk || 0) + 1000;
+                mod.gradeColor = '#a333c8'; 
+            } else if (mod.grade === 'Legendary') {
+                mod.atk = (mod.atk || 0) + 1500;
+                mod.skills = [...(mod.skills || []), 'rush']; 
+                mod.gradeColor = '#ffd700'; 
+            } else if (mod.grade === 'Mythic') {
+                mod.atk = (mod.atk || 0) + 2000;
+                mod.skills = [...(mod.skills || []), 'evade']; 
+                mod.gradeColor = 'linear-gradient(45deg, red, orange, yellow, green, blue, purple)'; 
+            } else {
+                mod.gradeColor = mod.faction === 'china' ? 'var(--red)' : 'var(--blue)'; 
+            }
+            return mod;
+        }
 
         function openDeckBuilder(faction) {
             currentBuilderFaction = faction;
@@ -574,9 +621,19 @@
             
             const allCards = faction === 'china' ? chinaCards : greekCards;
             builderInventory = [];
+            
+            // 1. Add 10 Normal copies of each card by default
             allCards.forEach(c => {
-                for(let i=0; i<10; i++) builderInventory.push({...c, builderId: Math.random()});
+                for(let i=0; i<10; i++) builderInventory.push(applyGradeModifiers(c, 'Normal', 'original'));
             });
+
+            // 2. Add Minted/NFT cards from Inventory
+            if (playerStats.inventory) {
+                playerStats.inventory.forEach(invCard => {
+                    let baseCard = allCards.find(c => c.name === invCard.card_name);
+                    if (baseCard) builderInventory.push(applyGradeModifiers(baseCard, invCard.grade, invCard.style));
+                });
+            }
 
             let sDeck = safeGetLocal(`godswar_deck_${faction}`);
             builderDeck = sDeck ? JSON.parse(sDeck) : [];
@@ -596,13 +653,19 @@
             const invZone = document.getElementById('db-inventory');
             invZone.innerHTML = '<div class="builder-section-title">คลังสมบัติ (แตะเพื่อนำเข้าเด็ค)</div>';
             builderInventory.forEach((c, i) => {
-                invZone.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
+                if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
+                
+                invZone.innerHTML += `<div class="card" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             const deckZone = document.getElementById('db-deck');
             deckZone.innerHTML = '<div class="builder-section-title">เด็คปัจจุบัน (แตะเพื่อถอดออก)</div>';
             builderDeck.forEach((c, i) => {
-                deckZone.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div></div>`;
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
+                if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
+                
+                deckZone.innerHTML += `<div class="card" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
         }
 
@@ -1305,16 +1368,22 @@
             const pf = document.getElementById('p-units'); pf.innerHTML = '';
             pField.forEach((c, i) => {
                 let isSelectedAttack = selected && selected.idx === i;
-                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="onAttack('warrior', ${i})">
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
+                
+                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="${borderStyle}" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
-                    ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
+                    ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}
+                    ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             const ef = document.getElementById('e-units'); ef.innerHTML = '';
             eField.forEach((c, i) => {
-                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="onTarget('warrior', ${i})">
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
+                
+                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="${borderStyle}" onclick="onTarget('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
-                    ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}</div>`;
+                    ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}
+                    ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             const pStageSlot = document.getElementById('p-stage-slot');
@@ -1343,9 +1412,12 @@
                 if (c.type === 'stage') badges += `<div class="tag tag-stage">STAGE</div>`;
                 if (c.skills && c.skills.includes('rush')) badges += `<div class="tag tag-rush">RUSH</div>`;
                 
-                ph.innerHTML += `<div class="card" style="border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}" onclick="playCard(${i})">
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
+                
+                ph.innerHTML += `<div class="card" style="${borderStyle}" onclick="playCard(${i})">
                     <div class="cost-val">${c.cost}</div><img src="${c.img}">
-                    ${badges}</div>`;
+                    ${badges}
+                    ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             document.getElementById('e-leader').className = `card leader-card ${selected?'is-targetable':''}`;

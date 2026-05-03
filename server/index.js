@@ -148,7 +148,28 @@ app.post('/api/mint', async (req, res) => {
         if (player.free_mint_claimed) return res.status(400).json({ error: "Already claimed" });
         if (player.level < 2) return res.status(400).json({ error: "Must be Level 2 or higher" });
 
-        // Random Gacha Serial Number Logic
+        // Gacha Logic: Roll Card, Grade, Style
+        const allCardsNames = [
+            "Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor",
+            "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court",
+            "Achilles", "Ares", "Hercules", "Valkyrie", "Spartan", "Poseidon", "Pegasus", "Medusa", "Zeus",
+            "Oracle's Vision", "Ambrosia", "Zeus's Wrath", "Mount Olympus"
+        ];
+        
+        const cardName = allCardsNames[Math.floor(Math.random() * allCardsNames.length)];
+        
+        const rollGrade = Math.random();
+        let grade = 'Normal';
+        if (rollGrade > 0.99) grade = 'Mythic';        // 1%
+        else if (rollGrade > 0.95) grade = 'Legendary'; // 4%
+        else if (rollGrade > 0.80) grade = 'Epic';      // 15%
+        else if (rollGrade > 0.50) grade = 'Rare';      // 30%
+        // Normal 50%
+
+        const styles = ['original', 'disney', 'pixar', 'anime', 'bishounen'];
+        const style = styles[Math.floor(Math.random() * styles.length)];
+
+        // Get a serial number (1-1000)
         const { data: issued } = await supabase.from('players').select('nft_serial').not('nft_serial', 'is', null);
         const issuedSerials = issued ? issued.map(p => p.nft_serial) : [];
         let availableSerials = [];
@@ -157,11 +178,19 @@ app.post('/api/mint', async (req, res) => {
         }
 
         if (availableSerials.length === 0) return res.status(400).json({ error: "Sold out" });
+        const selectedSerial = availableSerials[Math.floor(Math.random() * availableSerials.length)];
 
-        const randIndex = Math.floor(Math.random() * availableSerials.length);
-        const selectedSerial = availableSerials[randIndex];
+        // Insert into player_inventory FIRST
+        const { error: invErr } = await supabase.from('player_inventory').insert([
+            { player_id: playerId, card_name: cardName, grade: grade, style: style }
+        ]);
 
-        // Prevent double minting by marking as claimed FIRST and assigning the UNIQUE serial
+        if (invErr) {
+            console.error("Inventory Insert Error:", invErr);
+            return res.status(500).json({ error: "Failed to add card to inventory." });
+        }
+
+        // Mark as claimed and assign serial
         const { error: updateErr } = await supabase.from('players')
             .update({ free_mint_claimed: true, wallet_address: walletAddress, nft_serial: selectedSerial })
             .eq('id', playerId);
@@ -171,17 +200,17 @@ app.post('/api/mint', async (req, res) => {
             return res.status(500).json({ error: "Collision occurred, please try again." });
         }
 
-        console.log(`[MINT] Minting Rare Card (Serial #${selectedSerial}) to ${walletAddress} for player ${playerId}...`);
+        console.log(`[MINT] Minting ${grade} ${cardName} (Style: ${style}, Serial #${selectedSerial}) to ${walletAddress}...`);
         
         // Execute Gasless Mint (Server pays Gas)
-        const rareCardId = 1; // Example: 1 = Rare Zeus Card
-        const tx = await contract.serverMint(walletAddress, rareCardId, 1);
+        const nftId = 1; // Example standard ERC1155 ID
+        const tx = await contract.serverMint(walletAddress, nftId, 1);
         
         // Wait for network confirmation
         await tx.wait(1);
         console.log(`[MINT] Success! TxHash: ${tx.hash}`);
 
-        res.json({ success: true, txHash: tx.hash, serial: selectedSerial });
+        res.json({ success: true, txHash: tx.hash, serial: selectedSerial, cardName, grade, style });
     } catch (err) {
         console.error("Minting Error:", err);
         res.status(500).json({ error: "Minting failed: " + err.message });

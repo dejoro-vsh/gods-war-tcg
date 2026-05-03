@@ -142,6 +142,7 @@ const CardDatabase = {
             atk: 4500, 
             cost: 3, 
             atkCost: 1, 
+            counter: 2000,
             type: "warrior",
             faction: "greek", 
             img: "./assets/images/greek_valkyrie.png" 
