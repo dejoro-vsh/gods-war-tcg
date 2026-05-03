@@ -107,6 +107,16 @@ const CardDatabase = {
             cost: 3,
             faction: "china", 
             img: "./assets/images/china_mazu.png" 
+        },
+        { 
+            name: "Jade Emperor", 
+            atk: 8000, 
+            cost: 6, 
+            atkCost: 2, 
+            skills: ["pierce"], 
+            type: "warrior",
+            faction: "china", 
+            img: "./assets/images/leader_jade_emperor.png" 
         }
     ],
     greekCards: [
@@ -215,6 +225,16 @@ const CardDatabase = {
             type: "warrior",
             faction: "greek", 
             img: "./assets/images/greek_pegasus.png" 
+        },
+        { 
+            name: "Zeus", 
+            atk: 8000, 
+            cost: 6, 
+            atkCost: 2, 
+            skills: ["pierce"], 
+            type: "warrior",
+            faction: "greek", 
+            img: "./assets/images/leader_zeus.png" 
         }
     ]
 };
