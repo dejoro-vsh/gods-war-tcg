@@ -155,6 +155,15 @@
                     <div id="prof-time" style="font-size:18px; font-weight:bold;">0 นาที</div>
                 </div>
             </div>
+            </div>
+            
+            <!-- WEB3 MINT SECTION -->
+            <div style="background:#222; padding:15px; border-radius:10px; text-align:center; margin-top:10px; border:1px solid #444;">
+                <h3 style="margin:0 0 10px 0; color:var(--gold);">💎 Web3 NFT</h3>
+                <div id="web3-status" style="font-size:14px; margin-bottom:10px; color:#aaa;">Not Connected</div>
+                <button id="btn-connect-wallet" onclick="connectWallet()" style="background:#f6851b; border:none; padding:10px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:white; margin-bottom:10px; width:100%;">🦊 Connect MetaMask</button>
+                <button id="btn-mint-nft" onclick="mintFreeNFT()" style="background:var(--blue); border:none; padding:10px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:white; width:100%; display:none;">🎁 Mint Free NFT</button>
+            </div>
             
             <button onclick="document.getElementById('profile-screen').style.display='none'" style="margin-top:10px; padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: #444; color: white;">ปิดหน้าต่าง</button>
         </div>
@@ -368,7 +377,7 @@
             document.getElementById('faction-selection').style.display = 'flex';
         }
 
-        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player" };
+        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", wallet_address: null, free_mint_claimed: false };
 
         async function loadPlayerData(email) {
             try {
@@ -387,6 +396,8 @@
                     playerStats.loss = pData.loss_count || 0;
                     playerStats.kills = pData.kills || 0;
                     playerStats.time = pData.play_time_seconds || 0;
+                    playerStats.wallet_address = pData.wallet_address || null;
+                    playerStats.free_mint_claimed = pData.free_mint_claimed || false;
                 }
 
                 const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
@@ -429,7 +440,80 @@
             document.getElementById('prof-kills').innerText = playerStats.kills;
             document.getElementById('prof-time').innerText = Math.floor(playerStats.time / 60) + " นาที";
 
+            // Web3 UI Update
+            const web3Status = document.getElementById('web3-status');
+            const btnConnect = document.getElementById('btn-connect-wallet');
+            const btnMint = document.getElementById('btn-mint-nft');
+
+            if (playerStats.free_mint_claimed) {
+                web3Status.innerText = "✅ คุณได้รับ Free NFT ไปแล้ว!";
+                web3Status.style.color = "var(--green)";
+                btnConnect.style.display = "none";
+                btnMint.style.display = "none";
+            } else if (playerStats.level < 2) {
+                web3Status.innerText = "🔒 ต้องเล่นให้ถึง Level 2 ก่อนจึงจะ Mint ได้";
+                web3Status.style.color = "var(--red)";
+                btnConnect.style.display = "block";
+                btnMint.style.display = "none";
+            } else {
+                web3Status.innerText = playerStats.wallet_address ? `Connected: ${playerStats.wallet_address.substring(0,6)}...` : "พร้อมรับ NFT ฟรี! เชื่อมต่อกระเป๋าก่อน";
+                web3Status.style.color = playerStats.wallet_address ? "var(--green)" : "#aaa";
+                btnConnect.style.display = playerStats.wallet_address ? "none" : "block";
+                btnMint.style.display = playerStats.wallet_address ? "block" : "none";
+            }
+
             document.getElementById('profile-screen').style.display = 'flex';
+        }
+
+        // --- WEB3 LOGIC ---
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const account = accounts[0];
+                    playerStats.wallet_address = account;
+                    openProfile(); // Refresh UI
+                } catch (error) {
+                    alert("การเชื่อมต่อกระเป๋าล้มเหลว");
+                }
+            } else {
+                alert("กรุณาติดตั้งส่วนขยาย MetaMask ก่อนครับ!");
+            }
+        }
+
+        async function mintFreeNFT() {
+            if (!playerId || !playerStats.wallet_address) return alert("ข้อมูลไม่ครบถ้วน");
+            const btnMint = document.getElementById('btn-mint-nft');
+            btnMint.innerText = "⏳ กำลังประมวลผล (กรุณารอ...)";
+            btnMint.disabled = true;
+            btnMint.style.background = "#555";
+
+            try {
+                // Determine server URL (localhost vs production)
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://godswar-server.onrender.com';
+                
+                const res = await fetch(`${serverUrl}/api/mint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: playerId, walletAddress: playerStats.wallet_address })
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    playerStats.free_mint_claimed = true;
+                    alert("🎉 ยินดีด้วย! ส่งการ์ด NFT เข้ากระเป๋าคุณเรียบร้อยแล้ว!\nTxHash: " + result.txHash);
+                    openProfile();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + (result.error || "Unknown error"));
+                }
+            } catch (err) {
+                alert("เชื่อมต่อ Server ไม่ได้: " + err.message);
+            } finally {
+                btnMint.innerText = "🎁 Mint Free NFT";
+                btnMint.disabled = false;
+                btnMint.style.background = "var(--blue)";
+            }
         }
 
         let builderInventory = [];
