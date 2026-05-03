@@ -203,28 +203,33 @@
         </div>
     </div>
 
-    <div id="faction-selection" style="display:none;">
-        <button onclick="openProfile()" style="position:absolute; top:20px; right:20px; background:var(--gold); border:none; padding:10px 15px; border-radius:20px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.5); z-index:1000;">👤 ข้อมูลผู้เล่น</button>
-        <img src="./assets/images/logo_gods_war.png" alt="GODS WAR" style="width: 90%; max-width: 350px; max-height: 30vh; object-fit: contain; margin-bottom: 5px; mix-blend-mode: screen;">
-        <p>เลือกฝ่ายที่คุณต้องการเล่น</p>
-        <button class="faction-btn" onclick="selectFaction('china')">
-            <img src="./assets/images/leader_jade_emperor.png">
-            <div>⛩️ ฝ่ายจีน (China)<br><span style="font-size:12px;color:#aaa">ควบคุมเง็กเซียนฮ่องเต้ สู้กับ ซุส</span></div>
-        </button>
-        <button class="faction-btn" onclick="selectFaction('greek')">
-            <img src="./assets/images/leader_zeus.png">
-            <div>🔱 ฝ่ายกรีก (Greek)<br><span style="font-size:12px;color:#aaa">ควบคุมซุส สู้กับ เง็กเซียนฮ่องเต้</span></div>
-        </button>
-        <div style="display:flex; gap:10px; width: 90%; max-width: 400px;">
-            <button class="faction-btn" onclick="openDeckBuilder('china')" style="padding: 10px; flex:1;">
-                <div style="font-size:24px;">⛩️</div>
-                <div style="font-size:14px;">จัดเด็คจีน</div>
+    <div id="faction-selection" style="display:none; padding-top: 20px;">
+        <img src="./assets/images/logo_gods_war.png" alt="GODS WAR" style="width: 80%; max-width: 250px; max-height: 20vh; object-fit: contain; margin-bottom: 5px; mix-blend-mode: screen;">
+        <p style="margin: 5px 0 15px 0; font-size: 14px; color: #ccc;">เลือกฝ่ายที่คุณต้องการเล่น</p>
+        
+        <div style="display:flex; gap:15px; width: 95%; max-width: 500px; margin-bottom: 10px;">
+            <button class="faction-btn" onclick="selectFaction('china')" style="flex:1; padding: 10px;">
+                <img src="./assets/images/leader_jade_emperor.png" style="height: 100px; width: 100%; object-fit: cover;">
+                <div style="font-size: 14px;">⛩️ ฝ่ายจีน<br><span style="font-size:10px;color:#aaa">ควบคุมเง็กเซียน</span></div>
             </button>
-            <button class="faction-btn" onclick="openDeckBuilder('greek')" style="padding: 10px; flex:1;">
-                <div style="font-size:24px;">🔱</div>
-                <div style="font-size:14px;">จัดเด็คกรีก</div>
+            <button class="faction-btn" onclick="selectFaction('greek')" style="flex:1; padding: 10px;">
+                <img src="./assets/images/leader_zeus.png" style="height: 100px; width: 100%; object-fit: cover;">
+                <div style="font-size: 14px;">🔱 ฝ่ายกรีก<br><span style="font-size:10px;color:#aaa">ควบคุมซุส</span></div>
             </button>
         </div>
+
+        <div style="display:flex; gap:15px; width: 95%; max-width: 500px;">
+            <button class="faction-btn" onclick="openDeckBuilder('china')" style="padding: 10px; flex:1; background: #2a1111; border: 1px solid var(--red);">
+                <div style="font-size:16px;">⛩️ จัดเด็คจีน</div>
+            </button>
+            <button class="faction-btn" onclick="openDeckBuilder('greek')" style="padding: 10px; flex:1; background: #11112a; border: 1px solid var(--blue);">
+                <div style="font-size:16px;">🔱 จัดเด็คกรีก</div>
+            </button>
+        </div>
+
+        <button onclick="openProfile()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, var(--gold), #b8860b); color: black; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,215,0,0.3); font-size: 16px;">
+            👤 ข้อมูลผู้เล่น & คลังสมบัติ
+        </button>
     </div>
 
     <div id="deck-builder-screen">
