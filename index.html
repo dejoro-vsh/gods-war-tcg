@@ -80,6 +80,10 @@
         .free-card .badge { filter: grayscale(100%); }
         .free-card .cost-val { background: #444; border-color: #888; }
 
+        #defense-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .leader-card { width: 105px; height: 145px; border-width: 3px; }
+        .float-text { position: absolute; font-weight: bold; font-size: 24px; z-index: 1000; animation: floatUp 1s ease-out forwards; pointer-events: none; text-shadow: 2px 2px 4px #000; }
+
         #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 20px; overflow-y: auto; padding: 40px 20px 20px;}
         .faction-btn { width: 90%; max-width: 400px; padding: 15px; font-size: 16px; border-radius: 10px; border: none; background: #1a1a1a; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
         .faction-btn img { height: 80px; border-radius: 5px; }
@@ -220,6 +224,7 @@
                 <button id="btn-view-inventory" onclick="openInventory()" style="background: linear-gradient(90deg, #FFD700, #FFA500); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(255,215,0,0.4);">🔍 เปิดดูคลังสมบัติ</button>
             </div>
             
+            <button onclick="logout()" style="margin-top:5px; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid var(--red); cursor: pointer; font-weight: bold; width: 100%; background: rgba(255,0,0,0.1); color: var(--red);">🚪 ออกจากระบบ (Logout)</button>
             <button onclick="document.getElementById('profile-screen').style.display='none'" style="margin-top:5px; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid #555; cursor: pointer; font-weight: bold; width: 100%; background: rgba(255,255,255,0.05); color: white;">ปิดหน้าต่าง</button>
         </div>
     </div>
@@ -425,6 +430,31 @@
             el.style.color = isError ? 'var(--red)' : 'var(--green)';
             el.innerText = msg;
         }
+
+        async function handleGuest() {
+            if (!dbClient) {
+                playerId = "guest_" + generateSafeUUID();
+                safeSetLocal('godswar_player_id', playerId);
+            } else {
+                const { data, error } = await dbClient.auth.signInAnonymously();
+                if (error) return showAuthMsg("Guest Login Failed: " + error.message);
+                playerId = data.user.id;
+                safeSetLocal('godswar_player_id', playerId);
+            }
+            loadPlayerData("Guest");
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('faction-selection').style.display = 'flex';
+        }
+
+        async function logout() {
+            if (dbClient) {
+                await dbClient.auth.signOut();
+            }
+            localStorage.removeItem('godswar_player_id');
+            location.reload();
+        }
+
+        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", wallet_address: null, free_mint_claimed: false, nft_serial: null };
 
         async function handleLogin() {
             if (!dbClient) return showAuthMsg("เชื่อมต่อฐานข้อมูลไม่ได้");
