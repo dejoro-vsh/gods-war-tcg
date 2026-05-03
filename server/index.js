@@ -149,14 +149,22 @@ app.post('/api/mint', async (req, res) => {
         if (player.level < 2) return res.status(400).json({ error: "Must be Level 2 or higher" });
 
         // Gacha Logic: Roll Card, Grade, Style
-        const allCardsNames = [
-            "Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor",
-            "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court",
-            "Achilles", "Ares", "Hercules", "Valkyrie", "Spartan", "Poseidon", "Pegasus", "Medusa", "Zeus",
-            "Oracle's Vision", "Ambrosia", "Zeus's Wrath", "Mount Olympus"
-        ];
+        const chinaCards = ["Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor", "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court"];
+        const greekCards = ["Achilles", "Ares", "Hercules", "Valkyrie", "Spartan", "Poseidon", "Pegasus", "Medusa", "Zeus", "Oracle's Vision", "Ambrosia", "Zeus's Wrath", "Mount Olympus"];
+        const allCardsNames = [...chinaCards, ...greekCards];
         
         const cardName = allCardsNames[Math.floor(Math.random() * allCardsNames.length)];
+        const faction = chinaCards.includes(cardName) ? 'china' : 'greek';
+
+        // Check Inventory Limit for this faction
+        const { count: invCount, error: countErr } = await supabase
+            .from('player_inventory')
+            .select('*', { count: 'exact', head: true })
+            .eq('player_id', playerId)
+            .eq('faction', faction);
+
+        if (countErr) return res.status(500).json({ error: "Failed to check inventory limit." });
+        if (invCount >= 150) return res.status(400).json({ error: `ช่องเก็บของฝ่าย ${faction} ของคุณเต็มแล้ว (150/150)` });
         
         const rollGrade = Math.random();
         let grade = 'Normal';
@@ -182,7 +190,7 @@ app.post('/api/mint', async (req, res) => {
 
         // Insert into player_inventory FIRST
         const { error: invErr } = await supabase.from('player_inventory').insert([
-            { player_id: playerId, card_name: cardName, grade: grade, style: style }
+            { player_id: playerId, card_name: cardName, grade: grade, style: style, faction: faction, is_free: false }
         ]);
 
         if (invErr) {
@@ -214,6 +222,67 @@ app.post('/api/mint', async (req, res) => {
     } catch (err) {
         console.error("Minting Error:", err);
         res.status(500).json({ error: "Minting failed: " + err.message });
+    }
+});
+
+// API: Claim Starter Deck (70 China + 70 Greek)
+app.post('/api/claim-starter', async (req, res) => {
+    try {
+        const { playerId } = req.body;
+        if (!playerId) return res.status(400).json({ error: "Missing player ID." });
+
+        const { data: player, error: fetchErr } = await supabase.from('players').select('starter_claimed').eq('id', playerId).single();
+        if (fetchErr || !player) return res.status(404).json({ error: "Player not found." });
+        if (player.starter_claimed) return res.status(400).json({ error: "Starter deck already claimed." });
+
+        const chinaCards = ["Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor", "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court"];
+        const greekCards = ["Achilles", "Ares", "Hercules", "Valkyrie", "Spartan", "Poseidon", "Pegasus", "Medusa", "Zeus", "Oracle's Vision", "Ambrosia", "Zeus's Wrath", "Mount Olympus"];
+        const freeStyles = ['disney', 'pixar', 'anime', 'bishounen'];
+
+        let newCards = [];
+
+        // Function to distribute 70 cards evenly among available card names
+        const generateFactionCards = (factionNames, factionLabel) => {
+            let cards = [];
+            // Calculate base amount per card (70 / 13 = 5, remainder 5)
+            const baseAmount = Math.floor(70 / factionNames.length);
+            let remainder = 70 % factionNames.length;
+
+            for (const cName of factionNames) {
+                let amountToGive = baseAmount + (remainder > 0 ? 1 : 0);
+                if (remainder > 0) remainder--;
+
+                for (let i = 0; i < amountToGive; i++) {
+                    cards.push({
+                        player_id: playerId,
+                        card_name: cName,
+                        grade: 'Normal',
+                        style: freeStyles[Math.floor(Math.random() * freeStyles.length)],
+                        faction: factionLabel,
+                        is_free: true
+                    });
+                }
+            }
+            return cards;
+        };
+
+        newCards = newCards.concat(generateFactionCards(chinaCards, 'china'));
+        newCards = newCards.concat(generateFactionCards(greekCards, 'greek'));
+
+        // Insert 140 cards into inventory
+        const { error: invErr } = await supabase.from('player_inventory').insert(newCards);
+        if (invErr) {
+            console.error("Failed to insert starter cards:", invErr);
+            return res.status(500).json({ error: "Failed to generate starter cards." });
+        }
+
+        // Mark as claimed
+        await supabase.from('players').update({ starter_claimed: true }).eq('id', playerId);
+
+        res.json({ success: true, message: "Claimed 140 Starter Cards successfully!" });
+    } catch (err) {
+        console.error("Claim Starter Error:", err);
+        res.status(500).json({ error: "Claiming failed: " + err.message });
     }
 });
 

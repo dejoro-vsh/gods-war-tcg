@@ -75,8 +75,10 @@
         .controls { padding: 8px; background: #111; display: flex; justify-content: center; gap: 10px; flex-shrink: 0; }
         button { padding: 10px 15px; font-size: 13px; font-weight: bold; border-radius: 15px; border: none; cursor: pointer; }
 
-        #defense-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .leader-card { width: 105px; height: 145px; border-width: 3px; }
+        /* Starter Deck Grayscale */
+        .free-card { filter: grayscale(100%) brightness(0.8); border-color: #777 !important; }
+        .free-card .badge { filter: grayscale(100%); }
+        .free-card .cost-val { background: #444; border-color: #888; }
 
         #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 20px; overflow-y: auto; padding: 40px 20px 20px;}
         .faction-btn { width: 90%; max-width: 400px; padding: 15px; font-size: 16px; border-radius: 10px; border: none; background: #1a1a1a; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
@@ -208,10 +210,36 @@
                 <div id="web3-status" style="font-size:14px; margin-bottom:15px; color:#aaa;">Not Connected</div>
                 <button id="btn-connect-wallet" onclick="connectWallet()" style="background: linear-gradient(90deg, #f6851b, #e2761b); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(246,133,27,0.4);">🦊 Connect MetaMask</button>
                 <button id="btn-mint-nft" onclick="mintFreeNFT()" style="background: linear-gradient(90deg, var(--blue), #0056b3); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; display:none; box-shadow: 0 4px 15px rgba(0,123,255,0.4);">🎁 Mint Free NFT (สุ่มเลข)</button>
-                <button id="btn-view-nft" onclick="showcaseNFT()" style="background: linear-gradient(90deg, #FFD700, #FFA500); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; display:none; box-shadow: 0 4px 15px rgba(255,215,0,0.4);">🖼️ ดูการ์ด NFT ของฉัน</button>
+            </div>
+
+            <!-- STARTER & INVENTORY SECTION -->
+            <div style="background: linear-gradient(145deg, rgba(30,30,30,0.9), rgba(15,15,15,0.9)); padding:20px; border-radius:15px; text-align:center; margin-top:5px; border:1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+                <h3 style="margin:0 0 10px 0; color:var(--gold);">🎒 คลังสมบัติส่วนตัว</h3>
+                <div style="font-size:12px; color:#aaa; margin-bottom:10px;">ช่องเก็บการ์ดแยกตามฝ่าย (ฝ่ายละ 150 ช่อง)</div>
+                <button id="btn-claim-starter" onclick="claimStarterDeck()" style="background: linear-gradient(90deg, #2ecc71, #27ae60); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; margin-bottom:10px; display:none; box-shadow: 0 4px 15px rgba(46,204,113,0.4);">📦 รับไพ่ Starter Deck (140 ใบ)</button>
+                <button id="btn-view-inventory" onclick="openInventory()" style="background: linear-gradient(90deg, #FFD700, #FFA500); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(255,215,0,0.4);">🔍 เปิดดูคลังสมบัติ</button>
             </div>
             
             <button onclick="document.getElementById('profile-screen').style.display='none'" style="margin-top:5px; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid #555; cursor: pointer; font-weight: bold; width: 100%; background: rgba(255,255,255,0.05); color: white;">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <!-- INVENTORY SCREEN -->
+    <div id="inventory-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3500; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="width: 95%; max-width: 600px; height: 90vh; background: #111; padding: 20px; border-radius: 20px; border: 2px solid var(--gold); display: flex; flex-direction: column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <h2 style="margin:0; color:var(--gold);">🎒 คลังสมบัติ</h2>
+                <button onclick="document.getElementById('inventory-screen').style.display='none'" style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">❌</button>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                <button id="inv-tab-china" onclick="switchInventoryTab('china')" style="flex:1; padding:10px; font-weight:bold; background:var(--red); color:white; border:none; border-radius:8px;">ฝ่ายจีน (<span id="inv-count-china">0</span>/150)</button>
+                <button id="inv-tab-greek" onclick="switchInventoryTab('greek')" style="flex:1; padding:10px; font-weight:bold; background:#333; color:white; border:none; border-radius:8px;">ฝ่ายกรีก (<span id="inv-count-greek">0</span>/150)</button>
+            </div>
+
+            <div id="inv-grid" style="flex:1; overflow-y:auto; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; padding-bottom:20px; border:1px solid #333; border-radius:8px; padding:10px;">
+                <!-- Cards will render here -->
+            </div>
         </div>
     </div>
 
@@ -458,6 +486,7 @@
                     playerStats.wallet_address = pData.wallet_address || null;
                     playerStats.free_mint_claimed = pData.free_mint_claimed || false;
                     playerStats.nft_serial = pData.nft_serial || null;
+                    playerStats.starter_claimed = pData.starter_claimed || false;
                 }
 
                 // Load Inventory
@@ -530,7 +559,92 @@
                 btnView.style.display = "none";
             }
 
+            // Starter Claim Update
+            const btnClaimStarter = document.getElementById('btn-claim-starter');
+            if (playerStats.starter_claimed) {
+                btnClaimStarter.style.display = 'none';
+            } else {
+                btnClaimStarter.style.display = 'block';
+            }
+
             document.getElementById('profile-screen').style.display = 'flex';
+        }
+
+        async function claimStarterDeck() {
+            if (!playerId) return alert("โปรดรอข้อมูลโหลดสักครู่");
+            const btnClaim = document.getElementById('btn-claim-starter');
+            btnClaim.innerText = "⏳ กำลังเบิกของ (รอสักครู่)...";
+            btnClaim.disabled = true;
+
+            try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                
+                const res = await fetch(`${serverUrl}/api/claim-starter`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: playerId })
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    playerStats.starter_claimed = true;
+                    alert("🎉 คุณได้รับ Starter Deck ฝ่ายจีน 70 ใบ และกรีก 70 ใบ เรียบร้อยแล้ว!\nสามารถจัดเด็คเพื่อนำไปต่อสู้ได้เลย!");
+                    // Reload to fetch inventory
+                    location.reload();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + (result.error || "Unknown error"));
+                    btnClaim.innerText = "📦 รับไพ่ Starter Deck (140 ใบ)";
+                    btnClaim.disabled = false;
+                }
+            } catch (err) {
+                alert("เชื่อมต่อ Server ไม่ได้: " + err.message);
+                btnClaim.innerText = "📦 รับไพ่ Starter Deck (140 ใบ)";
+                btnClaim.disabled = false;
+            }
+        }
+
+        let currentInvTab = 'china';
+        function openInventory() {
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('inventory-screen').style.display = 'flex';
+            switchInventoryTab('china');
+        }
+
+        function switchInventoryTab(faction) {
+            currentInvTab = faction;
+            document.getElementById('inv-tab-china').style.background = faction === 'china' ? 'var(--red)' : '#333';
+            document.getElementById('inv-tab-greek').style.background = faction === 'greek' ? 'var(--blue)' : '#333';
+            
+            const inv = playerStats.inventory || [];
+            const chinaCardsInv = inv.filter(c => c.faction === 'china');
+            const greekCardsInv = inv.filter(c => c.faction === 'greek');
+            
+            document.getElementById('inv-count-china').innerText = chinaCardsInv.length;
+            document.getElementById('inv-count-greek').innerText = greekCardsInv.length;
+            
+            const grid = document.getElementById('inv-grid');
+            grid.innerHTML = '';
+            
+            const renderList = faction === 'china' ? chinaCardsInv : greekCardsInv;
+            const baseCards = faction === 'china' ? chinaCards : greekCards;
+            
+            renderList.forEach(invCard => {
+                let baseCard = baseCards.find(c => c.name === invCard.card_name);
+                if (!baseCard) return;
+                
+                let c = applyGradeModifiers(baseCard, invCard.grade, invCard.style, invCard.is_free);
+                
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
+                if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
+                
+                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+            });
+            
+            // Render Empty Slots
+            for(let i = renderList.length; i < 150; i++) {
+                grid.innerHTML += `<div style="width: 75px; height: 110px; border: 2px dashed #444; border-radius: 8px; display:flex; align-items:center; justify-content:center; color:#444; font-size:10px;">EMPTY</div>`;
+            }
         }
 
         function showcaseNFT() {
@@ -616,8 +730,8 @@
             return `./assets/images/${mapped}_${style.toLowerCase()}.png`;
         }
 
-        function applyGradeModifiers(card, grade, style) {
-            let mod = {...card, builderId: Math.random(), grade: grade || 'Normal', style: style || 'original'};
+        function applyGradeModifiers(card, grade, style, is_free) {
+            let mod = {...card, builderId: Math.random(), grade: grade || 'Normal', style: style || 'original', is_free: is_free || false};
             mod.img = getStyleImage(mod.name, mod.style, mod.img);
             if (mod.grade === 'Rare') {
                 mod.atk = (mod.atk || 0) + 500;
@@ -646,17 +760,12 @@
             
             const allCards = faction === 'china' ? chinaCards : greekCards;
             builderInventory = [];
-            
-            // 1. Add 10 Normal copies of each card by default
-            allCards.forEach(c => {
-                for(let i=0; i<10; i++) builderInventory.push(applyGradeModifiers(c, 'Normal', 'original'));
-            });
 
-            // 2. Add Minted/NFT cards from Inventory
+            // Add Minted/NFT and Free cards from Inventory belonging to this faction
             if (playerStats.inventory) {
                 playerStats.inventory.forEach(invCard => {
                     let baseCard = allCards.find(c => c.name === invCard.card_name);
-                    if (baseCard) builderInventory.push(applyGradeModifiers(baseCard, invCard.grade, invCard.style));
+                    if (baseCard) builderInventory.push(applyGradeModifiers(baseCard, invCard.grade, invCard.style, invCard.is_free));
                 });
             }
 
@@ -681,7 +790,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                invZone.innerHTML += `<div class="card" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                invZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             const deckZone = document.getElementById('db-deck');
@@ -690,7 +799,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                deckZone.innerHTML += `<div class="card" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                deckZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
         }
 
@@ -752,6 +861,13 @@
         });
 
         function selectFaction(faction) {
+            let activeDeck = faction === 'china' ? customDeckChina : customDeckGreek;
+            if (!activeDeck || activeDeck.length < 50) {
+                alert(`เด็คฝ่าย${faction === 'china' ? 'จีน' : 'กรีก'} ของคุณยังมีไพ่ไม่ครบ 50 ใบ (มี ${activeDeck ? activeDeck.length : 0}/50 ใบ)\nกรุณาจัดเด็คให้ครบก่อนเข้าเล่นครับ!`);
+                openDeckBuilder(faction);
+                return;
+            }
+
             document.getElementById('faction-selection').style.display = 'none';
             document.querySelectorAll('.game-ui').forEach(el => el.style.display = '');
             
@@ -1390,7 +1506,7 @@
                 let isSelectedAttack = selected && selected.idx === i;
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
-                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="${borderStyle}" onclick="onAttack('warrior', ${i})">
+                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="${borderStyle}" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}
                     ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
@@ -1400,7 +1516,7 @@
             eField.forEach((c, i) => {
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
-                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="${borderStyle}" onclick="onTarget('warrior', ${i})">
+                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="${borderStyle}" onclick="onTarget('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}
                     ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
