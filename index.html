@@ -26,13 +26,13 @@
         .field-zone { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; min-height: 140px; width: 100%; border: 1px solid rgba(255,215,0,0.05); border-radius: 12px; padding: 5px; }
 
         /* Card System - ปรับขนาดให้เหมาะกับจอเล็ก */
-        .card { width: 75px; height: 110px; border: 2px solid var(--gold); border-radius: 8px; background: #111; position: relative; cursor: pointer; transition: 0.1s; flex-shrink: 0; }
+        .card { width: 88px; height: 125px; border: 2px solid var(--gold); border-radius: 8px; background: #111; position: relative; cursor: pointer; transition: 0.1s; flex-shrink: 0; }
         .card img { width: 100%; height: 55%; object-fit: cover; border-radius: 6px 6px 0 0; }
         .rest { transform: rotate(90deg) scale(0.85) !important; filter: brightness(0.4); }
         
         /* Badges */
-        .badge { position: absolute; padding: 1px 3px; border-radius: 3px; font-size: 9px; font-weight: bold; border: 1px solid #000; }
-        .cost-val { top: -6px; left: -6px; background: var(--blue); width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid white; color: white; font-size: 10px; }
+        .badge { position: absolute; padding: 2px 4px; border-radius: 3px; font-size: 10px; font-weight: bold; border: 1px solid #000; }
+        .cost-val { top: -6px; left: -6px; background: var(--blue); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid white; color: white; font-size: 12px; }
         .atk-cost { bottom: 3px; left: 3px; background: var(--gold); color: #000; }
         .atk-val { bottom: 3px; right: 3px; background: var(--red); color: white; }
         .tag { position: absolute; top: 3px; right: 3px; font-size: 7px; padding: 1px 3px; border-radius: 2px; font-weight: bold; }
@@ -43,7 +43,7 @@
         .tag-rush { background: var(--red); color: white; left: 3px; top: 3px; right: auto; }
         
         /* Stage Zone */
-        .stage-zone { width: 65px; height: 95px; border: 2px dashed #555; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #555; border-radius: 5px; margin-right: 10px; flex-shrink: 0; }
+        .stage-zone { width: 75px; height: 105px; border: 2px dashed #555; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #555; border-radius: 5px; margin-right: 10px; flex-shrink: 0; }
         .stage-card { width: 100%; height: 100%; border-width: 2px; }
 
         /* Animations */
@@ -56,7 +56,7 @@
         @keyframes pulse-red { 50% { box-shadow: 0 0 15px var(--red); } }
 
         /* Hand Container - เลื่อนซ้ายขวาได้ */
-        .hand-container { background: rgba(0,0,0,0.7); padding: 10px; display: flex; gap: 10px; overflow-x: auto; min-height: 130px; border-top: 1px solid var(--gold); -webkit-overflow-scrolling: touch; flex-shrink: 0; }
+        .hand-container { background: rgba(0,0,0,0.7); padding: 10px; display: flex; gap: 10px; overflow-x: auto; min-height: 140px; border-top: 1px solid var(--gold); -webkit-overflow-scrolling: touch; flex-shrink: 0; }
         
         /* Log & Controls */
         #battle-log { background: #000; color: #0f0; padding: 8px; height: 60px; overflow-y: auto; font-family: monospace; font-size: 11px; flex-shrink: 0; }
@@ -64,7 +64,7 @@
         button { padding: 10px 15px; font-size: 13px; font-weight: bold; border-radius: 15px; border: none; cursor: pointer; }
 
         #defense-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .leader-card { width: 85px; height: 125px; border-width: 3px; }
+        .leader-card { width: 105px; height: 145px; border-width: 3px; }
 
         #faction-selection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 20px; overflow-y: auto; padding: 40px 20px 20px;}
         .faction-btn { width: 90%; max-width: 400px; padding: 15px; font-size: 16px; border-radius: 10px; border: none; background: #1a1a1a; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
@@ -247,15 +247,23 @@
         </div>
     </div>
 
-    <div class="header-stats game-ui" style="display:none;">
-        <div class="hp-box"><span id="e-leader-icon">🔱</span> <span id="e-leader-name-ui">ZEUS</span>: <span id="e-hp-num">5</span> HP <div class="hp-bar-bg"><div id="e-hp-bar" class="hp-bar-fill"></div></div></div>
-        <div class="hp-box"><span id="p-leader-icon">⛩️</span> <span id="p-leader-name-ui">YOU</span>: <span id="p-hp-num">5</span> HP <div class="hp-bar-bg"><div id="p-hp-bar" class="hp-bar-fill"></div></div></div>
-    </div>
-
-    <div class="info-bar game-ui" style="display:none;">
-        <div class="ess-monitor ess-e">AI: <span id="e-ess-ui">0/0</span></div>
-        <div style="font-size: 10px; opacity: 0.6;">D: <span id="e-deck-ui">50</span> | <span id="p-deck-ui">50</span></div>
-        <div class="ess-monitor ess-p">P: <span id="p-ess-ui">0/0</span></div>
+    <div class="header-stats game-ui" style="display:none; justify-content:space-between;">
+        <div class="hp-box" style="width:48%;">
+            <div style="display:flex; justify-content:space-between; font-size: 12px;">
+                <span><span id="e-leader-icon">🔱</span> <span id="e-leader-name-ui" style="font-weight:bold;">คู่ต่อสู้</span></span>
+                <span style="color:var(--gold);">Ess: <span id="e-ess-ui">0/0</span></span>
+            </div>
+            <div class="hp-bar-bg"><div id="e-hp-bar" class="hp-bar-fill"></div></div>
+            <div style="font-size: 10px; text-align:right; margin-top:2px; color:#aaa;">Deck: <span id="e-deck-ui">50</span> | HP: <span id="e-hp-num">5</span></div>
+        </div>
+        <div class="hp-box" style="width:48%;">
+            <div style="display:flex; justify-content:space-between; font-size: 12px;">
+                <span><span id="p-leader-icon">⛩️</span> <span id="p-leader-name-ui" style="font-weight:bold;">เรา</span></span>
+                <span style="color:var(--gold);">Ess: <span id="p-ess-ui">0/0</span></span>
+            </div>
+            <div class="hp-bar-bg"><div id="p-hp-bar" class="hp-bar-fill"></div></div>
+            <div style="font-size: 10px; text-align:right; margin-top:2px; color:#aaa;">Deck: <span id="p-deck-ui">50</span> | HP: <span id="p-hp-num">5</span></div>
+        </div>
     </div>
 
     <div class="battlefield game-ui" style="display:none;">
@@ -740,8 +748,6 @@
                 pLeaderName = "ซุส"; eLeaderName = "เง็กเซียน";
                 document.getElementById('p-leader-img').src = "./assets/images/leader_zeus.png";
                 document.getElementById('e-leader-img').src = "./assets/images/leader_jade_emperor.png";
-                document.getElementById('p-leader-name-ui').innerText = "ZEUS";
-                document.getElementById('e-leader-name-ui').innerText = "JADE EMPEROR";
                 document.getElementById('p-leader-icon').innerText = "🔱";
                 document.getElementById('e-leader-icon').innerText = "⛩️";
                 document.getElementById('p-leader').style.borderColor = "var(--blue)";
@@ -751,8 +757,6 @@
                 pLeaderName = "เง็กเซียน"; eLeaderName = "ซุส";
                 document.getElementById('p-leader-img').src = "./assets/images/leader_jade_emperor.png";
                 document.getElementById('e-leader-img').src = "./assets/images/leader_zeus.png";
-                document.getElementById('p-leader-name-ui').innerText = "JADE EMPEROR";
-                document.getElementById('e-leader-name-ui').innerText = "ZEUS";
                 document.getElementById('p-leader-icon').innerText = "⛩️";
                 document.getElementById('e-leader-icon').innerText = "🔱";
                 document.getElementById('p-leader').style.borderColor = "var(--red)";
@@ -914,7 +918,6 @@
             eFaction = opponent.faction;
             eLeaderName = eFaction === 'china' ? 'เง็กเซียน' : 'ซุส';
             document.getElementById('e-leader-img').src = eFaction === 'china' ? "./assets/images/leader_jade_emperor.png" : "./assets/images/leader_zeus.png";
-            document.getElementById('e-leader-name-ui').innerText = eFaction === 'china' ? "JADE EMPEROR" : "ZEUS";
             document.getElementById('e-leader-icon').innerText = eFaction === 'china' ? "⛩️" : "🔱";
             document.getElementById('e-leader').style.borderColor = eFaction === 'china' ? "var(--red)" : "var(--blue)";
 
