@@ -231,8 +231,15 @@ app.post('/api/claim-starter', async (req, res) => {
         const { playerId } = req.body;
         if (!playerId) return res.status(400).json({ error: "Missing player ID." });
 
-        const { data: player, error: fetchErr } = await supabase.from('players').select('starter_claimed').eq('id', playerId).single();
-        if (fetchErr || !player) return res.status(404).json({ error: "Player not found." });
+        let { data: player, error: fetchErr } = await supabase.from('players').select('starter_claimed').eq('id', playerId).single();
+        
+        if (fetchErr || !player) {
+            // Auto-create player record to prevent foreign key errors
+            const { data: newPlayer, error: insErr } = await supabase.from('players').upsert([{ id: playerId, username: 'Guest' }]).select('starter_claimed').single();
+            if (insErr) return res.status(500).json({ error: "Failed to initialize player profile in database." });
+            player = newPlayer;
+        }
+
         if (player.starter_claimed) return res.status(400).json({ error: "Starter deck already claimed." });
 
         const chinaCards = ["Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor", "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court"];
