@@ -1675,5 +1675,37 @@
             }
         }
     </script>
+    <!-- Card Detail Modal -->
+    <div id="card-detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:5000; justify-content:center; align-items:center; padding:20px;">
+        <div style="background:var(--bg); border:2px solid var(--gold); border-radius:15px; padding:20px; width:100%; max-width:350px; text-align:center; position:relative; box-shadow: 0 0 20px rgba(212,175,55,0.5);">
+            <button onclick="document.getElementById('card-detail-modal').style.display='none'" style="position:absolute; top:10px; right:15px; background:transparent; border:none; color:var(--red); font-size:24px; font-weight:bold; cursor:pointer;">&times;</button>
+            <h2 id="cd-name" style="margin-top:0; color:var(--gold);">Card Name</h2>
+            <div style="margin-bottom:15px; position:relative; display:inline-block;">
+                <img id="cd-img" src="" style="width:200px; height:290px; border-radius:10px; border:2px solid #555;">
+                <div id="cd-grade-badge" style="position:absolute; top:5px; right:5px; background:#000; color:#fff; font-size:12px; padding:3px 6px; border-radius:5px; font-weight:bold;">Grade</div>
+                <div id="cd-cost" style="position:absolute; top:5px; left:5px; background:rgba(0,0,0,0.8); color:var(--gold); font-size:14px; width:24px; height:24px; border-radius:50%; border:1px solid var(--gold); display:flex; justify-content:center; align-items:center; font-weight:bold;">1</div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; text-align:left; font-size:14px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="color:#aaa;">ประเภท:</span> <span id="cd-type" style="font-weight:bold; color:#fff;">Warrior</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="color:#aaa;">พลังโจมตี:</span> <span id="cd-atk" style="font-weight:bold; color:var(--red);">0</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="color:#aaa;">สไตล์ภาพ:</span> <span id="cd-style" style="font-weight:bold; color:var(--blue);">Anime</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="color:#aaa;">ซื้อขายได้:</span> <span id="cd-trade" style="font-weight:bold;">ได้</span>
+                </div>
+            </div>
+            
+            <div id="cd-effect-box" style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3); padding:10px; border-radius:10px; text-align:left; font-size:13px; color:#ddd; display:none;">
+                <strong style="color:var(--gold);">สกิล/เอฟเฟกต์:</strong><br>
+                <span id="cd-effect-desc">...</span>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
