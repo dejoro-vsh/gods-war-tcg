@@ -942,7 +942,7 @@
             
             setTimeout(() => {
                 let blockerIdx = eField.findIndex(c => c.type === 'blocker' && !c.isRest);
-                if(blockerIdx !== -1) { 
+                if(blockerIdx !== -1 && !(attacker.skills && attacker.skills.includes('snipe'))) { 
                     showFloatingText(`e-unit-${blockerIdx}`, "บล็อก!", "dmg");
                     eField.splice(blockerIdx, 1); 
                     addLog("🛡️ บล็อก!"); 
@@ -951,9 +951,15 @@
                         eHP--; 
                         showFloatingText('e-leader', "-1", "dmg");
                     } else { 
-                        showFloatingText(`e-unit-${idx}`, "DEAD", "dmg");
-                        eField.splice(idx, 1); 
-                        matchKills++;
+                        if (target.skills && target.skills.includes('evade')) {
+                            target.skills = target.skills.filter(s => s !== 'evade');
+                            addLog("💨 คู่แข่งหลบหลีกการโจมตีได้!");
+                            showFloatingText(`e-unit-${idx}`, "Evade!", "heal");
+                        } else {
+                            showFloatingText(`e-unit-${idx}`, "DEAD", "dmg");
+                            eField.splice(idx, 1); 
+                            matchKills++;
+                        }
                     } 
                 }
                 selected = null; updateUI(); checkWin();
@@ -986,9 +992,14 @@
                             showFloatingText('e-leader', "+1", "heal");
                             playSound('sfx-heal');
                             addLog(`💖 ${eLeaderName} ฟื้นฟู 1 HP!`);
+                        } else if (rCard.effect === 'heal_2') {
+                            eHP = Math.min(5, eHP + 2);
+                            showFloatingText('e-leader', "+2", "heal");
+                            playSound('sfx-heal');
+                            addLog(`💖 ${eLeaderName} ฟื้นฟู 2 HP!`);
                         } else if (rCard.effect === 'ai_summon') {
                             addLog(`✨ พลังนิมิต! AI เรียกทหาร 1 ตัว!`);
-                            let unit = eHand.find(c => c.type !== 'event'); // Pull from hand, if none, fail
+                            let unit = eHand.find(c => c.type !== 'event' && c.type !== 'stage'); // Pull from hand, if none, fail
                             if (unit) { 
                                 eHand.splice(eHand.indexOf(unit), 1);
                                 eField.push({...unit, isRest: true});
@@ -997,6 +1008,13 @@
                             showFloatingText('p-leader', "⚡ พิโรธ!", "dmg");
                             pField = [];
                             addLog(`⚡ ${rCard.name} กวาดล้างทหารของคุณทั้งหมด!!`);
+                        } else if (rCard.effect === 'destroy_weak') {
+                            let weakIdx = pField.findIndex(c => c.atk <= 4000);
+                            if (weakIdx !== -1) {
+                                showFloatingText(`p-unit-${weakIdx}`, "DEAD", "dmg");
+                                pField.splice(weakIdx, 1);
+                                addLog(`👁️ ทหารของคุณถูกสาปเป็นหิน!`);
+                            }
                         }
                     } else if (rCard.type === 'stage') {
                         eStage = rCard;
@@ -1007,6 +1025,21 @@
                         eField.push(rCard);
                         addLog(`🛡️ AI อัญเชิญ: ${rCard.name}`);
                         if (!rCard.isRest) reservedEssence += rCard.atkCost;
+                        
+                        if (rCard.skills && rCard.skills.includes('on_play:draw_1')) {
+                            if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
+                        }
+                        if (rCard.skills && rCard.skills.includes('on_play:buff_all')) {
+                            eField.forEach(c => { if(c.type !== 'event' && c.type !== 'stage') c.atk += 1000; });
+                            addLog(`🌟 AI บัฟพลังโจมตีทหารทั้งหมด +1000!`);
+                        }
+                        if (rCard.skills && rCard.skills.includes('on_play:stun')) {
+                            let targetIdx = pField.findIndex(c => !c.isRest);
+                            if (targetIdx !== -1) {
+                                pField[targetIdx].isRest = true;
+                                addLog(`❄️ AI แช่แข็งทหารของคุณ!`);
+                            }
+                        }
                     }
                 } else {
                     break;
@@ -1019,7 +1052,7 @@
             
             eField.forEach((c, idx) => {
                 if (!c.isRest) {
-                    aiAttackQueue.push({ type: 'warrior', idx: idx, cost: c.atkCost, atk: c.atk, name: c.name });
+                    aiAttackQueue.push({ type: 'warrior', idx: idx, cost: c.atkCost, atk: c.atk, name: c.name, skills: c.skills });
                 }
             });
             aiAttackQueue.sort((a, b) => b.atk - a.atk);
@@ -1045,14 +1078,14 @@
                         let targetIdx = validTargets[Math.floor(Math.random() * validTargets.length)];
                         addLog(`⚔️ [${attacker.name}] โจมตีทหารของคุณ: ${pField[targetIdx].name}!`);
                         playSound('sfx-attack');
-                        showDefenseOptions('warrior', targetIdx);
+                        showDefenseOptions('warrior', targetIdx, attacker.skills && attacker.skills.includes('snipe'));
                     } else if (attacker.atk >= 5000) {
                         eEss -= attacker.cost;
                         if (attacker.type === 'warrior') eField[attacker.idx].isRest = true;
                         updateUI();
                         addLog(`⚔️ [${attacker.name}] สั่งโจมตีผู้นำของคุณ!`);
                         playSound('sfx-attack');
-                        showDefenseOptions('leader', 0); 
+                        showDefenseOptions('leader', 0, attacker.skills && attacker.skills.includes('snipe')); 
                     } else {
                         addLog(`⚠️ [${attacker.name}] ATK ไม่พอโจมตีเป้าหมายใดๆ เลยผ่านเทิร์น!`);
                         processAIAttackQueue();
@@ -1067,16 +1100,20 @@
             }
         }
 
-        function showDefenseOptions(type = 'leader', idx = 0) {
+        function showDefenseOptions(type = 'leader', idx = 0, isSnipe = false) {
             currentDefenseTarget = { type, idx };
             const overlay = document.getElementById('defense-overlay');
             const options = document.getElementById('defense-options');
             overlay.style.display = 'flex'; options.innerHTML = '';
-            pField.forEach((c, i) => { if(c.type === 'blocker' && !c.isRest) {
-                let btn = document.createElement('button'); btn.style.background = 'var(--green)';
-                btn.innerText = `🛡️ ${c.name}`; btn.onclick = () => { pField.splice(i, 1); resolveDefense(true); };
-                options.appendChild(btn);
-            }});
+            
+            if (!isSnipe) {
+                pField.forEach((c, i) => { if(c.type === 'blocker' && !c.isRest) {
+                    let btn = document.createElement('button'); btn.style.background = 'var(--green)';
+                    btn.innerText = `🛡️ ${c.name}`; btn.onclick = () => { pField.splice(i, 1); resolveDefense(true); };
+                    options.appendChild(btn);
+                }});
+            }
+            
             pHand.forEach((c, i) => { if(c.counter) {
                 let btn = document.createElement('button'); btn.style.background = 'var(--orange)';
                 btn.innerText = `✨ C+${c.counter}`; btn.onclick = () => { pHand.splice(i, 1); resolveDefense(true); };
@@ -1095,9 +1132,16 @@
                     showFloatingText('p-leader', "-1", "dmg");
                     addLog(`💔 คุณรับความเสียหาย! (เหลือ HP: ${pHP})`);
                 } else {
-                    showFloatingText(`p-unit-${currentDefenseTarget.idx}`, "DEAD", "dmg");
-                    addLog(`☠️ ทหารของคุณถูกทำลาย!`);
-                    pField.splice(currentDefenseTarget.idx, 1);
+                    let target = pField[currentDefenseTarget.idx];
+                    if (target.skills && target.skills.includes('evade')) {
+                        target.skills = target.skills.filter(s => s !== 'evade');
+                        addLog(`💨 หลบหลีกการโจมตีได้!`);
+                        showFloatingText(`p-unit-${currentDefenseTarget.idx}`, "Evade!", "heal");
+                    } else {
+                        showFloatingText(`p-unit-${currentDefenseTarget.idx}`, "DEAD", "dmg");
+                        addLog(`☠️ ทหารของคุณถูกทำลาย!`);
+                        pField.splice(currentDefenseTarget.idx, 1);
+                    }
                 }
             } else {
                 addLog(`🛡️ คุณป้องกันการโจมตีสำเร็จ!`);
@@ -1166,6 +1210,17 @@
                     drawCards(1);
                     addLog(`✨ ${card.name} ทำงาน: จั่วการ์ด 1 ใบ!`);
                 }
+                if (card.skills && card.skills.includes('on_play:buff_all')) {
+                    pField.forEach(c => { if(c.type !== 'event' && c.type !== 'stage') c.atk += 1000; });
+                    addLog(`🌟 ${card.name} บัฟพลังโจมตี +1000 ให้ทหารทุกคน!`);
+                }
+                if (card.skills && card.skills.includes('on_play:stun')) {
+                    let targetIdx = eField.findIndex(c => !c.isRest);
+                    if (targetIdx !== -1) {
+                        eField[targetIdx].isRest = true;
+                        addLog(`❄️ ${card.name} แช่แข็งทหารศัตรู!`);
+                    }
+                }
             }
             updateUI();
         }
@@ -1181,10 +1236,25 @@
                 showFloatingText('p-leader', "+1", "heal");
                 playSound('sfx-heal');
                 addLog(`💖 ฟื้นฟู 1 HP!`);
+            } else if (card.effect === 'heal_2') {
+                pHP = Math.min(5, pHP + 2);
+                matchHeals += 2;
+                showFloatingText('p-leader', "+2", "heal");
+                playSound('sfx-heal');
+                addLog(`💖 ฟื้นฟู 2 HP!`);
             } else if (card.effect === 'board_wipe') {
                 showFloatingText('e-leader', "🌊 ล้างบาง!", "dmg");
                 eField = [];
                 addLog(`🌊 ${card.name} กวาดล้างทหารศัตรูทั้งหมด!!`);
+            } else if (card.effect === 'destroy_weak') {
+                let weakIdx = eField.findIndex(c => c.atk <= 4000);
+                if (weakIdx !== -1) {
+                    showFloatingText(`e-unit-${weakIdx}`, "DEAD", "dmg");
+                    eField.splice(weakIdx, 1);
+                    addLog(`👁️ ทหารศัตรูถูกสาปเป็นหินและถูกทำลาย!`);
+                } else {
+                    addLog(`⚠️ ไม่มีทหารศัตรูที่อ่อนแอพอจะสาปได้!`);
+                }
             } else if (card.effect === 'ai_summon') {
                 addLog(`✨ พลังนิมิต! เรียกทหาร 1 ตัวลงสนาม!`);
                 let unitIdx = pHand.findIndex(c => c.type !== 'event' && c.type !== 'stage');

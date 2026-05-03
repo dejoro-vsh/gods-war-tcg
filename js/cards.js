@@ -79,6 +79,34 @@ const CardDatabase = {
             cost: 2,
             faction: "china", 
             img: "./assets/images/stage_heavenly_court.png" 
+        },
+        { 
+            name: "Hou Yi", 
+            atk: 5000, 
+            cost: 4, 
+            atkCost: 1, 
+            skills: ["snipe"], 
+            type: "warrior",
+            faction: "china", 
+            img: "./assets/images/china_houyi.png" 
+        },
+        { 
+            name: "Qilin", 
+            atk: 3500, 
+            cost: 3, 
+            atkCost: 1, 
+            skills: ["on_play:buff_all"], 
+            type: "blocker",
+            faction: "china", 
+            img: "./assets/images/china_qilin.png" 
+        },
+        { 
+            name: "Mazu", 
+            type: "event", 
+            effect: "heal_2", 
+            cost: 3,
+            faction: "china", 
+            img: "./assets/images/china_mazu.png" 
         }
     ],
     greekCards: [
@@ -158,6 +186,34 @@ const CardDatabase = {
             cost: 2,
             faction: "greek", 
             img: "./assets/images/stage_mount_olympus.png" 
+        },
+        { 
+            name: "Poseidon", 
+            atk: 5500, 
+            cost: 4, 
+            atkCost: 2, 
+            skills: ["on_play:stun"], 
+            type: "warrior",
+            faction: "greek", 
+            img: "./assets/images/greek_poseidon.png" 
+        },
+        { 
+            name: "Medusa", 
+            type: "event", 
+            effect: "destroy_weak", 
+            cost: 4,
+            faction: "greek", 
+            img: "./assets/images/greek_medusa.png" 
+        },
+        { 
+            name: "Pegasus", 
+            atk: 4500, 
+            cost: 3, 
+            atkCost: 1, 
+            skills: ["evade"], 
+            type: "warrior",
+            faction: "greek", 
+            img: "./assets/images/greek_pegasus.png" 
         }
     ]
 };
