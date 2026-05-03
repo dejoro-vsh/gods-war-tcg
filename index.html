@@ -536,7 +536,7 @@
             try {
                 // Determine server URL (localhost vs production)
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://godswar-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
                 
                 const res = await fetch(`${serverUrl}/api/mint`, {
                     method: 'POST',
