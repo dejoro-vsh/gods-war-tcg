@@ -25,7 +25,7 @@
         .battlefield { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; background: radial-gradient(circle at center, #200 0%, #0a0a0a 100%); overflow: hidden; }
         .field-zone { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; min-height: 140px; width: 100%; border: 1px solid rgba(255,215,0,0.05); border-radius: 12px; padding: 5px; }
 
-        /* Card System - ปรับขนาดให้เหมาะกับจอเล็ก */
+        /* Card System - ปรับขนาดให้เหมาะกับจอเล็ก (ขนาดปกติสำหรับบนมือและเด็ค) */
         .card { width: 88px; height: 125px; border: 2px solid var(--gold); border-radius: 8px; background: #111; position: relative; cursor: pointer; transition: 0.1s; flex-shrink: 0; }
         .card img { width: 100%; height: 55%; object-fit: cover; border-radius: 6px 6px 0 0; }
         .rest { transform: rotate(90deg) scale(0.85) !important; filter: brightness(0.4); }
@@ -45,6 +45,18 @@
         /* Stage Zone */
         .stage-zone { width: 75px; height: 105px; border: 2px dashed #555; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #555; border-radius: 5px; margin-right: 10px; flex-shrink: 0; }
         .stage-card { width: 100%; height: 100%; border-width: 2px; }
+        
+        /* Micro Cards for Battlefield Only (Option 2) */
+        .field-zone { gap: 4px; min-height: 90px; }
+        .field-zone .card { width: 48px; height: 70px; border-width: 1px; border-radius: 4px; }
+        .field-zone .card img { border-radius: 3px 3px 0 0; }
+        .field-zone .badge { padding: 1px 2px; font-size: 7px; border-radius: 2px; }
+        .field-zone .cost-val { width: 14px; height: 14px; font-size: 8px; top: -4px; left: -4px; }
+        .field-zone .atk-cost { bottom: 2px; left: 2px; }
+        .field-zone .atk-val { bottom: 2px; right: 2px; }
+        .field-zone .tag { font-size: 5px; right: 2px; top: 2px; }
+        .field-zone .leader-card { width: 55px; height: 80px; border-width: 2px; }
+        .field-zone .stage-zone { width: 45px; height: 65px; font-size: 8px; border-radius: 4px; margin-right: 5px;}
 
         /* Animations */
         .float-text { position: absolute; font-weight: bold; font-size: 24px; z-index: 1000; animation: floatUp 1s ease-out forwards; pointer-events: none; text-shadow: 2px 2px 4px #000; }
