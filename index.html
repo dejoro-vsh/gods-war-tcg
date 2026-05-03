@@ -481,7 +481,7 @@
             const btnMint = document.getElementById('btn-mint-nft');
             const btnView = document.getElementById('btn-view-nft');
 
-            if (playerStats.free_mint_claimed && playerStats.nft_serial) {
+            if (playerStats.free_mint_claimed) {
                 web3Status.innerText = "✅ คุณครอบครองการ์ดรุ่น Limited Edition";
                 web3Status.style.color = "var(--green)";
                 btnConnect.style.display = "none";
@@ -505,7 +505,7 @@
         }
 
         function showcaseNFT() {
-            document.getElementById('nft-serial-display').innerText = playerStats.nft_serial;
+            document.getElementById('nft-serial-display').innerText = playerStats.nft_serial || "???";
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('nft-showcase-screen').style.display = 'flex';
         }
