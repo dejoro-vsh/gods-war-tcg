@@ -519,7 +519,7 @@
                     playerStats.wallet_address = account;
                     openProfile(); // Refresh UI
                 } catch (error) {
-                    alert("การเชื่อมต่อกระเป๋าล้มเหลว");
+                    alert("การเชื่อมต่อกระเป๋าล้มเหลว: " + (error.message || JSON.stringify(error)));
                 }
             } else {
                 alert("กรุณาติดตั้งส่วนขยาย MetaMask ก่อนครับ!");
