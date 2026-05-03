@@ -418,7 +418,7 @@
             document.getElementById('prof-name').innerText = playerStats.username;
             document.getElementById('prof-level').innerText = playerStats.level;
             
-            let maxExp = playerStats.level * 100;
+            let maxExp = Math.floor(100 * Math.pow(playerStats.level, 1.5));
             document.getElementById('prof-exp').innerText = playerStats.exp;
             document.getElementById('prof-exp-max').innerText = maxExp;
             document.getElementById('prof-exp-bar').style.width = (playerStats.exp / maxExp * 100) + '%';
@@ -591,7 +591,13 @@
                     
                     let xp = (data.exp || 0) + (win ? 100 : 25);
                     let lvl = data.level || 1;
-                    if (xp >= lvl * 100) { xp -= (lvl * 100); lvl++; }
+                    
+                    let maxExp = Math.floor(100 * Math.pow(lvl, 1.5));
+                    while (xp >= maxExp) {
+                        xp -= maxExp;
+                        lvl++;
+                        maxExp = Math.floor(100 * Math.pow(lvl, 1.5));
+                    }
 
                     if (win) w++; else l++;
                     await dbClient.from('players').update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl, gold: g }).eq('id', playerId);
