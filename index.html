@@ -483,18 +483,6 @@
             showAuthMsg("สมัครสำเร็จ! กรุณาเข้าสู่ระบบ", false);
         }
 
-        function handleGuest() {
-            playerId = safeGetLocal('godswar_player_id');
-            if (!playerId) {
-                playerId = generateSafeUUID();
-                safeSetLocal('godswar_player_id', playerId);
-            }
-            loadPlayerData("Guest");
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('faction-selection').style.display = 'flex';
-        }
-
-        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", wallet_address: null, free_mint_claimed: false, nft_serial: null };
 
         async function loadPlayerData(email) {
             try {
