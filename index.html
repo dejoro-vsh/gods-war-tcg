@@ -112,6 +112,40 @@
     </div>
 
     <!-- Profile Screen -->
+    <style>
+        .hologram-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(212,175,55,0.8);
+            border: 3px solid var(--gold);
+        }
+        .hologram-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-20deg);
+            animation: holoGlare 3s infinite;
+        }
+        @keyframes holoGlare {
+            0% { left: -100%; }
+            50% { left: 200%; }
+            100% { left: 200%; }
+        }
+    </style>
+    <div id="nft-showcase-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(10px); flex-direction: column;">
+        <h2 style="color:var(--gold); margin-bottom: 20px; text-shadow: 0 0 10px var(--gold);">✨ RARE NFT UNLOCKED ✨</h2>
+        <div class="hologram-card" style="width: 80%; max-width: 350px;">
+            <img src="./assets/images/leader_zeus.png" style="width:100%; display:block; background:#111;">
+        </div>
+        <div style="margin-top: 20px; background: linear-gradient(45deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; font-weight: bold; font-family: 'Courier New', monospace;">
+            SERIAL: #<span id="nft-serial-display">000</span> / 1000
+        </div>
+        <p style="color:#aaa; font-size:14px; text-align:center; max-width:80%; margin-top:10px;">การ์ดเทพเจ้าซุสระดับตำนานของคุณถูกบันทึกขึ้นบล็อกเชน Polygon เรียบร้อยแล้ว!</p>
+        <button onclick="document.getElementById('nft-showcase-screen').style.display='none'" style="margin-top:20px; padding: 12px 30px; font-size: 16px; border-radius: 20px; border: 2px solid #555; cursor: pointer; font-weight: bold; background: transparent; color: white;">ปิดหน้าต่าง</button>
+    </div>
+
     <div id="profile-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div style="width: 90%; max-width: 400px; background: #1a1a1a; padding: 25px; border-radius: 15px; border: 2px solid var(--gold); color: white; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 0 20px rgba(212,175,55,0.3);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -162,7 +196,8 @@
                 <h3 style="margin:0 0 10px 0; color:var(--gold);">💎 Web3 NFT</h3>
                 <div id="web3-status" style="font-size:14px; margin-bottom:10px; color:#aaa;">Not Connected</div>
                 <button id="btn-connect-wallet" onclick="connectWallet()" style="background:#f6851b; border:none; padding:10px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:white; margin-bottom:10px; width:100%;">🦊 Connect MetaMask</button>
-                <button id="btn-mint-nft" onclick="mintFreeNFT()" style="background:var(--blue); border:none; padding:10px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:white; width:100%; display:none;">🎁 Mint Free NFT</button>
+                <button id="btn-mint-nft" onclick="mintFreeNFT()" style="background:var(--blue); border:none; padding:10px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:white; width:100%; display:none;">🎁 Mint Free NFT (สุ่มเลข)</button>
+                <button id="btn-view-nft" onclick="showcaseNFT()" style="background:var(--gold); border:none; padding:10px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:black; width:100%; display:none;">🖼️ ดูการ์ด NFT ของฉัน</button>
             </div>
             
             <button onclick="document.getElementById('profile-screen').style.display='none'" style="margin-top:10px; padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: #444; color: white;">ปิดหน้าต่าง</button>
@@ -377,7 +412,7 @@
             document.getElementById('faction-selection').style.display = 'flex';
         }
 
-        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", wallet_address: null, free_mint_claimed: false };
+        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", wallet_address: null, free_mint_claimed: false, nft_serial: null };
 
         async function loadPlayerData(email) {
             try {
@@ -398,6 +433,7 @@
                     playerStats.time = pData.play_time_seconds || 0;
                     playerStats.wallet_address = pData.wallet_address || null;
                     playerStats.free_mint_claimed = pData.free_mint_claimed || false;
+                    playerStats.nft_serial = pData.nft_serial || null;
                 }
 
                 const { data: decks, error } = await dbClient.from('player_decks').select('*').eq('player_id', playerId);
@@ -444,25 +480,35 @@
             const web3Status = document.getElementById('web3-status');
             const btnConnect = document.getElementById('btn-connect-wallet');
             const btnMint = document.getElementById('btn-mint-nft');
+            const btnView = document.getElementById('btn-view-nft');
 
-            if (playerStats.free_mint_claimed) {
-                web3Status.innerText = "✅ คุณได้รับ Free NFT ไปแล้ว!";
+            if (playerStats.free_mint_claimed && playerStats.nft_serial) {
+                web3Status.innerText = "✅ คุณครอบครองการ์ดรุ่น Limited Edition";
                 web3Status.style.color = "var(--green)";
                 btnConnect.style.display = "none";
                 btnMint.style.display = "none";
+                btnView.style.display = "block";
             } else if (playerStats.level < 2) {
-                web3Status.innerText = "🔒 ต้องเล่นให้ถึง Level 2 ก่อนจึงจะ Mint ได้";
+                web3Status.innerText = "🔒 ต้องเล่นให้ถึง Level 2 ก่อนจึงจะสุ่ม Mint ได้";
                 web3Status.style.color = "var(--red)";
                 btnConnect.style.display = "block";
                 btnMint.style.display = "none";
+                btnView.style.display = "none";
             } else {
-                web3Status.innerText = playerStats.wallet_address ? `Connected: ${playerStats.wallet_address.substring(0,6)}...` : "พร้อมรับ NFT ฟรี! เชื่อมต่อกระเป๋าก่อน";
+                web3Status.innerText = playerStats.wallet_address ? `Connected: ${playerStats.wallet_address.substring(0,6)}...` : "พร้อมสุ่มรับ NFT ฟรี! เชื่อมต่อกระเป๋าก่อน";
                 web3Status.style.color = playerStats.wallet_address ? "var(--green)" : "#aaa";
                 btnConnect.style.display = playerStats.wallet_address ? "none" : "block";
                 btnMint.style.display = playerStats.wallet_address ? "block" : "none";
+                btnView.style.display = "none";
             }
 
             document.getElementById('profile-screen').style.display = 'flex';
+        }
+
+        function showcaseNFT() {
+            document.getElementById('nft-serial-display').innerText = playerStats.nft_serial;
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('nft-showcase-screen').style.display = 'flex';
         }
 
         // --- WEB3 LOGIC ---
@@ -502,8 +548,10 @@
                 const result = await res.json();
                 if (result.success) {
                     playerStats.free_mint_claimed = true;
-                    alert("🎉 ยินดีด้วย! ส่งการ์ด NFT เข้ากระเป๋าคุณเรียบร้อยแล้ว!\nTxHash: " + result.txHash);
+                    playerStats.nft_serial = result.serial;
+                    alert("🎉 ยินดีด้วย! คุณสุ่มได้หมายเลข #" + result.serial + " ส่งเข้ากระเป๋าเรียบร้อยแล้ว!\nTxHash: " + result.txHash);
                     openProfile();
+                    showcaseNFT();
                 } else {
                     alert("เกิดข้อผิดพลาด: " + (result.error || "Unknown error"));
                 }

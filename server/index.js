@@ -141,10 +141,30 @@ app.post('/api/mint', async (req, res) => {
         if (player.free_mint_claimed) return res.status(400).json({ error: "Already claimed" });
         if (player.level < 2) return res.status(400).json({ error: "Must be Level 2 or higher" });
 
-        // Prevent double minting by marking as claimed FIRST
-        await supabase.from('players').update({ free_mint_claimed: true, wallet_address: walletAddress }).eq('id', playerId);
+        // Random Gacha Serial Number Logic
+        const { data: issued } = await supabase.from('players').select('nft_serial').not('nft_serial', 'is', null);
+        const issuedSerials = issued ? issued.map(p => p.nft_serial) : [];
+        let availableSerials = [];
+        for (let i = 1; i <= 1000; i++) {
+            if (!issuedSerials.includes(i)) availableSerials.push(i);
+        }
 
-        console.log(`[MINT] Minting Rare Card to ${walletAddress} for player ${playerId}...`);
+        if (availableSerials.length === 0) return res.status(400).json({ error: "Sold out" });
+
+        const randIndex = Math.floor(Math.random() * availableSerials.length);
+        const selectedSerial = availableSerials[randIndex];
+
+        // Prevent double minting by marking as claimed FIRST and assigning the UNIQUE serial
+        const { error: updateErr } = await supabase.from('players')
+            .update({ free_mint_claimed: true, wallet_address: walletAddress, nft_serial: selectedSerial })
+            .eq('id', playerId);
+            
+        if (updateErr) {
+            console.error("DB Update Error (Possible Serial Collision):", updateErr);
+            return res.status(500).json({ error: "Collision occurred, please try again." });
+        }
+
+        console.log(`[MINT] Minting Rare Card (Serial #${selectedSerial}) to ${walletAddress} for player ${playerId}...`);
         
         // Execute Gasless Mint (Server pays Gas)
         const rareCardId = 1; // Example: 1 = Rare Zeus Card
@@ -154,7 +174,7 @@ app.post('/api/mint', async (req, res) => {
         await tx.wait(1);
         console.log(`[MINT] Success! TxHash: ${tx.hash}`);
 
-        res.json({ success: true, txHash: tx.hash });
+        res.json({ success: true, txHash: tx.hash, serial: selectedSerial });
     } catch (err) {
         console.error("Minting Error:", err);
         res.status(500).json({ error: "Minting failed: " + err.message });
