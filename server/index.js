@@ -12,6 +12,7 @@ app.use(express.json());
 // Setup Web3 & Supabase (from Environment Variables)
 const supabase = createClient(process.env.SUPABASE_URL || "https://dummy.supabase.co", process.env.SUPABASE_KEY || "dummy");
 let contract = null;
+let web3Error = "Unknown error";
 try {
     if (process.env.ALCHEMY_URL && process.env.PRIVATE_KEY) {
         const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_URL);
@@ -20,8 +21,14 @@ try {
         const CONTRACT_ABI = ["function serverMint(address to, uint256 id, uint256 amount) public"];
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
         console.log("Web3 Contract Initialized!");
+        web3Error = null;
+    } else {
+        web3Error = "Missing ALCHEMY_URL or PRIVATE_KEY in Render Environment Variables";
     }
-} catch(e) { console.warn("Web3 Init Failed:", e.message); }
+} catch(e) { 
+    console.warn("Web3 Init Failed:", e.message);
+    web3Error = e.message;
+}
 
 const server = http.createServer(app);
 
@@ -127,7 +134,7 @@ app.get('/', (req, res) => {
 
 // API for Gasless Minting
 app.post('/api/mint', async (req, res) => {
-    if (!contract) return res.status(500).json({ error: "Server Web3 not configured." });
+    if (!contract) return res.status(500).json({ error: `Server Web3 not configured. Reason: ${web3Error}` });
     
     try {
         const { playerId, walletAddress } = req.body;
