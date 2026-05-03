@@ -155,12 +155,12 @@
     <div id="nft-showcase-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(10px); flex-direction: column;">
         <h2 style="color:var(--gold); margin-bottom: 20px; text-shadow: 0 0 10px var(--gold);">✨ RARE NFT UNLOCKED ✨</h2>
         <div class="hologram-card" style="width: 80%; max-width: 350px;">
-            <img src="./assets/images/leader_zeus.png" style="width:100%; display:block; background:#111;">
+            <img id="nft-showcase-img" src="./assets/images/leader_zeus.png" style="width:100%; display:block; background:#111;">
         </div>
         <div style="margin-top: 20px; background: linear-gradient(45deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; font-weight: bold; font-family: 'Courier New', monospace;">
             SERIAL: #<span id="nft-serial-display">000</span> / 1000
         </div>
-        <p style="color:#aaa; font-size:14px; text-align:center; max-width:80%; margin-top:10px;">การ์ดเทพเจ้าซุสระดับตำนานของคุณถูกบันทึกขึ้นบล็อกเชน Polygon เรียบร้อยแล้ว!</p>
+        <p id="nft-showcase-desc" style="color:#aaa; font-size:14px; text-align:center; max-width:80%; margin-top:10px;">การ์ด NFT ของคุณถูกบันทึกขึ้นบล็อกเชน Polygon เรียบร้อยแล้ว!</p>
         <button onclick="document.getElementById('nft-showcase-screen').style.display='none'" style="margin-top:20px; padding: 12px 30px; font-size: 16px; border-radius: 20px; border: 2px solid #555; cursor: pointer; font-weight: bold; background: transparent; color: white;">ปิดหน้าต่าง</button>
     </div>
 
@@ -692,7 +692,26 @@
         }
 
         function showcaseNFT() {
-            document.getElementById('nft-serial-display').innerText = playerStats.nft_serial || "???";
+            let serial = playerStats.nft_serial || "???";
+            document.getElementById('nft-serial-display').innerText = serial;
+            
+            let nftCard = null;
+            if (playerStats.inventory) {
+                nftCard = playerStats.inventory.find(c => c.is_free === false);
+            }
+            
+            if (nftCard) {
+                let baseCards = [...chinaCards, ...greekCards];
+                let base = baseCards.find(c => c.name === nftCard.card_name);
+                if (base) {
+                    let c = applyGradeModifiers(base, nftCard.grade, nftCard.style, false);
+                    let imgEl = document.getElementById('nft-showcase-img');
+                    imgEl.onerror = function() { this.onerror = null; this.src = c.img_fallback; };
+                    imgEl.src = c.img;
+                    document.getElementById('nft-showcase-desc').innerText = `การ์ด ${c.name} ระดับ ${c.grade} ของคุณถูกบันทึกขึ้นบล็อกเชน Polygon เรียบร้อยแล้ว!`;
+                }
+            }
+            
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('nft-showcase-screen').style.display = 'flex';
         }
