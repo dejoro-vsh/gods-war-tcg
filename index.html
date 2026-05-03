@@ -699,47 +699,52 @@
 
         // --- MODAL LOGIC ---
         function showCardDetailModal(cardName, grade, style, isFree, imgSrc, imgFallback) {
-            let baseCards = [...chinaCards, ...greekCards];
-            let base = baseCards.find(c => c.name === cardName);
-            if (!base) return;
-            let c = applyGradeModifiers(base, grade, style, isFree);
-            
-            document.getElementById('cd-name').innerText = c.name;
-            let imgEl = document.getElementById('cd-img');
-            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = imgFallback; };
-            imgEl.src = imgSrc;
-            
-            document.getElementById('cd-grade-badge').innerText = c.grade;
-            document.getElementById('cd-grade-badge').style.color = c.gradeColor;
-            document.getElementById('cd-cost').innerText = c.cost !== undefined ? c.cost : '-';
-            
-            document.getElementById('cd-type').innerText = c.type === 'warrior' ? 'นักรบ' : (c.type === 'event' ? 'เวทมนตร์' : 'สนาม/สเตจ');
-            document.getElementById('cd-atk').innerText = c.atk || '-';
-            document.getElementById('cd-style').innerText = c.style.toUpperCase();
-            
-            let tradeEl = document.getElementById('cd-trade');
-            if (c.is_free) {
-                tradeEl.innerText = "❌ ไม่ได้ (แจกฟรี)";
-                tradeEl.style.color = "var(--red)";
-            } else {
-                tradeEl.innerText = "✅ ได้ (NFT)";
-                tradeEl.style.color = "var(--green)";
+            try {
+                let baseCards = [...chinaCards, ...greekCards];
+                let base = baseCards.find(c => c.name === cardName);
+                if (!base) return;
+                let c = applyGradeModifiers(base, grade, style, isFree);
+                
+                document.getElementById('cd-name').innerText = c.name;
+                let imgEl = document.getElementById('cd-img');
+                imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = imgFallback; };
+                imgEl.src = imgSrc;
+                
+                document.getElementById('cd-grade-badge').innerText = c.grade;
+                document.getElementById('cd-grade-badge').style.color = c.gradeColor;
+                document.getElementById('cd-cost').innerText = c.cost !== undefined ? c.cost : '-';
+                
+                document.getElementById('cd-type').innerText = c.type === 'warrior' ? 'นักรบ' : (c.type === 'event' ? 'เวทมนตร์' : 'สนาม/สเตจ');
+                document.getElementById('cd-atk').innerText = c.atk || '-';
+                document.getElementById('cd-style').innerText = c.style.toUpperCase();
+                
+                let tradeEl = document.getElementById('cd-trade');
+                if (c.is_free) {
+                    tradeEl.innerText = "❌ ไม่ได้ (แจกฟรี)";
+                    tradeEl.style.color = "var(--red)";
+                } else {
+                    tradeEl.innerText = "✅ ได้ (NFT)";
+                    tradeEl.style.color = "var(--green)";
+                }
+                
+                let effectBox = document.getElementById('cd-effect-box');
+                let effectDesc = document.getElementById('cd-effect-desc');
+                let skillsText = '';
+                if (c.skills && c.skills.length > 0) skillsText += c.skills.join(', ');
+                if (c.effect) skillsText += (skillsText ? ' | ' : '') + c.effect;
+                
+                if (skillsText) {
+                    effectDesc.innerText = skillsText;
+                    effectBox.style.display = 'block';
+                } else {
+                    effectBox.style.display = 'none';
+                }
+                
+                document.getElementById('card-detail-modal').style.display = 'flex';
+            } catch (err) {
+                alert("Modal Error: " + err.message);
+                console.error("Modal Error:", err);
             }
-            
-            let effectBox = document.getElementById('cd-effect-box');
-            let effectDesc = document.getElementById('cd-effect-desc');
-            let skillsText = '';
-            if (c.skills && c.skills.length > 0) skillsText += c.skills.join(', ');
-            if (c.effect) skillsText += (skillsText ? ' | ' : '') + c.effect;
-            
-            if (skillsText) {
-                effectDesc.innerText = skillsText;
-                effectBox.style.display = 'block';
-            } else {
-                effectBox.style.display = 'none';
-            }
-            
-            document.getElementById('card-detail-modal').style.display = 'flex';
         }
 
         // --- WEB3 LOGIC ---
@@ -780,6 +785,16 @@
                 if (result.success) {
                     playerStats.free_mint_claimed = true;
                     playerStats.nft_serial = result.serial;
+                    
+                    if (!playerStats.inventory) playerStats.inventory = [];
+                    playerStats.inventory.push({
+                        player_id: playerId,
+                        card_name: result.cardName,
+                        grade: result.grade,
+                        style: result.style,
+                        faction: chinaCards.find(c => c.name === result.cardName) ? 'china' : 'greek',
+                        is_free: false
+                    });
                     
                     let gradeColor = 'var(--text)';
                     if (result.grade === 'Rare') gradeColor = '#00ffff';
