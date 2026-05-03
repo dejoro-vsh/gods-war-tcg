@@ -656,6 +656,11 @@
             document.getElementById('inv-tab-greek').style.background = faction === 'greek' ? 'var(--blue)' : '#333';
             
             const inv = playerStats.inventory || [];
+            inv.forEach(c => {
+                if (!c.faction) {
+                    c.faction = chinaCards.find(cc => cc.name === c.card_name) ? 'china' : 'greek';
+                }
+            });
             const chinaCardsInv = inv.filter(c => c.faction === 'china');
             const greekCardsInv = inv.filter(c => c.faction === 'greek');
             
@@ -677,7 +682,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}" onclick="showCardDetailModal('${c.name.replace(/'/g, "\\'")}', '${c.grade}', '${c.style}', ${c.is_free}, '${c.img}', '${c.img_fallback}')"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
             
             // Render Empty Slots
@@ -690,6 +695,51 @@
             document.getElementById('nft-serial-display').innerText = playerStats.nft_serial || "???";
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('nft-showcase-screen').style.display = 'flex';
+        }
+
+        // --- MODAL LOGIC ---
+        function showCardDetailModal(cardName, grade, style, isFree, imgSrc, imgFallback) {
+            let baseCards = [...chinaCards, ...greekCards];
+            let base = baseCards.find(c => c.name === cardName);
+            if (!base) return;
+            let c = applyGradeModifiers(base, grade, style, isFree);
+            
+            document.getElementById('cd-name').innerText = c.name;
+            let imgEl = document.getElementById('cd-img');
+            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = imgFallback; };
+            imgEl.src = imgSrc;
+            
+            document.getElementById('cd-grade-badge').innerText = c.grade;
+            document.getElementById('cd-grade-badge').style.color = c.gradeColor;
+            document.getElementById('cd-cost').innerText = c.cost !== undefined ? c.cost : '-';
+            
+            document.getElementById('cd-type').innerText = c.type === 'warrior' ? 'นักรบ' : (c.type === 'event' ? 'เวทมนตร์' : 'สนาม/สเตจ');
+            document.getElementById('cd-atk').innerText = c.atk || '-';
+            document.getElementById('cd-style').innerText = c.style.toUpperCase();
+            
+            let tradeEl = document.getElementById('cd-trade');
+            if (c.is_free) {
+                tradeEl.innerText = "❌ ไม่ได้ (แจกฟรี)";
+                tradeEl.style.color = "var(--red)";
+            } else {
+                tradeEl.innerText = "✅ ได้ (NFT)";
+                tradeEl.style.color = "var(--green)";
+            }
+            
+            let effectBox = document.getElementById('cd-effect-box');
+            let effectDesc = document.getElementById('cd-effect-desc');
+            let skillsText = '';
+            if (c.skills && c.skills.length > 0) skillsText += c.skills.join(', ');
+            if (c.effect) skillsText += (skillsText ? ' | ' : '') + c.effect;
+            
+            if (skillsText) {
+                effectDesc.innerText = skillsText;
+                effectBox.style.display = 'block';
+            } else {
+                effectBox.style.display = 'none';
+            }
+            
+            document.getElementById('card-detail-modal').style.display = 'flex';
         }
 
         // --- WEB3 LOGIC ---
@@ -771,6 +821,7 @@
 
         function applyGradeModifiers(card, grade, style, is_free) {
             let mod = {...card, builderId: Math.random(), grade: grade || 'Normal', style: style || 'original', is_free: is_free || false};
+            mod.img_fallback = card.img;
             mod.img = getStyleImage(mod.name, mod.style, mod.img);
             if (mod.grade === 'Rare') {
                 mod.atk = (mod.atk || 0) + 500;
@@ -829,7 +880,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                invZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                invZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             const deckZone = document.getElementById('db-deck');
@@ -838,7 +889,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                deckZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                deckZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
         }
 
