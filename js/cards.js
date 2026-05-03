@@ -83,6 +83,15 @@ const CardDatabase = {
     ],
     greekCards: [
         { 
+            name: "Achilles", 
+            atk: 6500, 
+            cost: 4, 
+            atkCost: 1, 
+            type: "blocker",
+            faction: "greek",
+            img: "./assets/images/greek_achilles.png" 
+        },
+        { 
             name: "Hercules", 
             atk: 5500, 
             cost: 4, 

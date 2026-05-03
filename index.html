@@ -1185,6 +1185,16 @@
                 showFloatingText('e-leader', "🌊 ล้างบาง!", "dmg");
                 eField = [];
                 addLog(`🌊 ${card.name} กวาดล้างทหารศัตรูทั้งหมด!!`);
+            } else if (card.effect === 'ai_summon') {
+                addLog(`✨ พลังนิมิต! เรียกทหาร 1 ตัวลงสนาม!`);
+                let unitIdx = pHand.findIndex(c => c.type !== 'event' && c.type !== 'stage');
+                if (unitIdx !== -1) { 
+                    let unit = pHand.splice(unitIdx, 1)[0];
+                    unit.isRest = !(unit.skills && unit.skills.includes('rush'));
+                    pField.push(unit);
+                } else {
+                    addLog(`⚠️ ไม่มีทหารในมือให้อัญเชิญ!`);
+                }
             }
         }
 
