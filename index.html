@@ -590,34 +590,54 @@
         }
 
         async function claimStarterDeck() {
-            if (!playerId) return alert("โปรดรอข้อมูลโหลดสักครู่");
+            if (!playerId || !dbClient) return alert("โปรดรอข้อมูลโหลดสักครู่");
             const btnClaim = document.getElementById('btn-claim-starter');
             btnClaim.innerText = "⏳ กำลังเบิกของ (รอสักครู่)...";
             btnClaim.disabled = true;
 
             try {
-                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
-                
-                const res = await fetch(`${serverUrl}/api/claim-starter`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ playerId: playerId })
-                });
-                
-                const result = await res.json();
-                if (result.success) {
-                    playerStats.starter_claimed = true;
-                    alert("🎉 คุณได้รับ Starter Deck ฝ่ายจีน 70 ใบ และกรีก 70 ใบ เรียบร้อยแล้ว!\nสามารถจัดเด็คเพื่อนำไปต่อสู้ได้เลย!");
-                    // Reload to fetch inventory
-                    location.reload();
-                } else {
-                    alert("เกิดข้อผิดพลาด: " + (result.error || "Unknown error"));
-                    btnClaim.innerText = "📦 รับไพ่ Starter Deck (140 ใบ)";
-                    btnClaim.disabled = false;
-                }
+                if (playerStats.starter_claimed) throw new Error("คุณได้รับ Starter Deck ไปแล้ว");
+
+                const freeStyles = ['disney', 'pixar', 'anime', 'bishounen'];
+                let newCards = [];
+
+                const generateFactionCards = (factionNames, factionLabel) => {
+                    let cards = [];
+                    const baseAmount = Math.floor(70 / factionNames.length);
+                    let remainder = 70 % factionNames.length;
+
+                    for (const cName of factionNames) {
+                        let amountToGive = baseAmount + (remainder > 0 ? 1 : 0);
+                        if (remainder > 0) remainder--;
+
+                        for (let i = 0; i < amountToGive; i++) {
+                            cards.push({
+                                player_id: playerId,
+                                card_name: cName,
+                                grade: 'Normal',
+                                style: freeStyles[Math.floor(Math.random() * freeStyles.length)],
+                                faction: factionLabel,
+                                is_free: true
+                            });
+                        }
+                    }
+                    return cards;
+                };
+
+                newCards = newCards.concat(generateFactionCards(chinaCards.map(c => c.name), 'china'));
+                newCards = newCards.concat(generateFactionCards(greekCards.map(c => c.name), 'greek'));
+
+                const { error: invErr } = await dbClient.from('player_inventory').insert(newCards);
+                if (invErr) throw new Error("เพิ่มไพ่ลงคลังล้มเหลว: " + invErr.message);
+
+                const { error: updateErr } = await dbClient.from('players').update({ starter_claimed: true }).eq('id', playerId);
+                if (updateErr) throw new Error("อัปเดตสถานะผู้เล่นล้มเหลว: " + updateErr.message);
+
+                playerStats.starter_claimed = true;
+                alert("🎉 คุณได้รับ Starter Deck ฝ่ายจีน 70 ใบ และกรีก 70 ใบ เรียบร้อยแล้ว!\nสามารถจัดเด็คเพื่อนำไปต่อสู้ได้เลย!");
+                location.reload();
             } catch (err) {
-                alert("เชื่อมต่อ Server ไม่ได้: " + err.message);
+                alert("เกิดข้อผิดพลาด: " + err.message);
                 btnClaim.innerText = "📦 รับไพ่ Starter Deck (140 ใบ)";
                 btnClaim.disabled = false;
             }
