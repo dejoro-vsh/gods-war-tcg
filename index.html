@@ -1994,11 +1994,11 @@
     <!-- GACHA REVEAL SCREEN -->
     <div id="gacha-reveal-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222 0%, #000 100%); z-index: 5000; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; padding: 40px 0;">
         <h1 id="gacha-title" style="color:var(--gold); text-shadow:0 0 20px var(--gold); letter-spacing:5px; font-size:36px; animation: pulse 2s infinite; margin-top: 20px;">✨ UNBOXING ✨</h1>
-        <div id="gacha-cards-container" style="display:flex; flex-wrap:wrap; gap:15px; justify-content:center; align-items:center; max-width:100%; padding: 20px; min-height:300px; perspective:1000px;">
+        <div id="gacha-cards-container" style="display:flex; justify-content:center; align-items:center; max-width:100%; min-height:280px; padding: 20px 0; perspective:1000px;">
             <!-- Cards appended here via JS -->
         </div>
         <div id="gacha-action-btns" style="display:none; margin-top:30px; gap: 15px; flex-wrap: wrap; justify-content: center; padding-bottom: 50px;">
-            <button onclick="buyMockPack(lastGachaPackType)" style="padding:15px 30px; font-size:16px; font-weight:bold; background: linear-gradient(90deg, #6772E5, #0ff); color:black; border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 15px rgba(103,114,229,0.5);">🔄 สุ่มอีกครั้ง</button>
+            <button onclick="buyPackAgain()" style="padding:15px 30px; font-size:16px; font-weight:bold; background: linear-gradient(90deg, #6772E5, #0ff); color:black; border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 15px rgba(103,114,229,0.5);">🔄 สุ่มอีกครั้ง</button>
             <button onclick="closeGacha()" style="padding:15px 30px; font-size:16px; font-weight:bold; background:var(--gold); border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 20px rgba(255,215,0,0.5); color:black;">📥 เข้าคลังสมบัติ</button>
         </div>
     </div>
@@ -2101,12 +2101,32 @@
                             wrapper.innerHTML = cardHtml;
                             wrapper.className = "gacha-card-reveal";
                             wrapper.style.opacity = "0"; 
-                            wrapper.style.margin = "10px";
                             wrapper.style.width = "110px";
                             wrapper.style.height = "154px";
                             wrapper.style.display = "flex";
                             wrapper.style.alignItems = "center";
                             wrapper.style.justifyContent = "center";
+                            wrapper.style.cursor = "pointer";
+                            wrapper.style.position = "relative";
+                            wrapper.style.transition = "transform 0.3s ease, margin 0.3s ease";
+                            wrapper.style.zIndex = index + 1; // Natural stacking order
+                            wrapper.dataset.origZ = index + 1;
+                            
+                            // Fan spread overlap for multiple cards
+                            if (index > 0 && data.cards.length > 1) {
+                                wrapper.style.marginLeft = "-65px"; // Overlap tightly
+                            }
+
+                            // Click interaction to pop up
+                            wrapper.onclick = function() {
+                                let allCards = document.querySelectorAll('.gacha-card-reveal');
+                                allCards.forEach(c => {
+                                    c.style.transform = "scale(1) translateY(0)";
+                                    c.style.zIndex = c.dataset.origZ;
+                                });
+                                this.style.transform = "scale(1.25) translateY(-30px)";
+                                this.style.zIndex = "100";
+                            };
                             
                             let glowColor = "rgba(255,255,255,0.2)";
                             if(visualGrade === 'Rare') glowColor = "rgba(0,100,255,0.6)";
