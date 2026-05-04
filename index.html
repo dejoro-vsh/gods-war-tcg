@@ -562,7 +562,12 @@
                 playerStats.username = uname;
                 
                 // Ensure player exists and get stats
-                const { data: pData, error: pErr } = await dbClient.from('players').upsert([{ id: playerId, username: uname }], { onConflict: 'id' }).select().single();
+                let { data: pData, error: pErr } = await dbClient.from('players').select('*').eq('id', playerId).single();
+                
+                if (!pData) {
+                    const { data: newPData } = await dbClient.from('players').insert([{ id: playerId, username: uname }]).select().single();
+                    pData = newPData;
+                }
                 if (pData) {
                     playerStats.level = pData.level || 1;
                     playerStats.exp = pData.exp || 0;
