@@ -2328,7 +2328,8 @@
         }
 
         async function ascendCards() {
-            if(document.getElementById('btn-ascend').style.cursor === 'not-allowed') return;
+            const btn = document.getElementById('btn-ascend');
+            if(btn.style.cursor === 'not-allowed' || btn.innerText === 'กำลังหลอมรวม...') return;
             
             let reqCount = 4;
             let nextGrade = 'Rare';
@@ -2338,7 +2339,8 @@
             
             if(craftSelectedIds.length !== reqCount) return;
 
-            document.getElementById('btn-ascend').innerText = 'กำลังหลอมรวม...';
+            btn.innerText = 'กำลังหลอมรวม...';
+            btn.style.cursor = 'not-allowed';
             
             try {
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -2350,7 +2352,8 @@
                     body: JSON.stringify({ playerId, cardIds: craftSelectedIds, targetGrade: nextGrade })
                 });
                 const data = await res.json();
-                document.getElementById('btn-ascend').innerText = '✨ หลอมรวม!';
+                btn.innerText = '✨ หลอมรวม!';
+                btn.style.cursor = 'pointer';
                 
                 if(data.error) {
                     alert(data.error);
@@ -2391,7 +2394,8 @@
             } catch(e) {
                 console.error(e);
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-                document.getElementById('btn-ascend').innerText = '✨ หลอมรวม!';
+                btn.innerText = '✨ หลอมรวม!';
+                btn.style.cursor = 'pointer';
             }
         }
         async function mintToWeb3() {
