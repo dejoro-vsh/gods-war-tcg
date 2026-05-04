@@ -2095,13 +2095,18 @@
                             if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                             
                             // Scale down to 1.1 for mobile so 5 cards fit better
-                            let cardHtml = `<div class="card" style="${borderStyle} width:110px; height:154px; margin:10px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
+                            let cardHtml = `<div class="card" style="${borderStyle} width:110px; height:154px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
                             
                             let wrapper = document.createElement('div');
                             wrapper.innerHTML = cardHtml;
                             wrapper.className = "gacha-card-reveal";
                             wrapper.style.opacity = "0"; 
                             wrapper.style.margin = "10px";
+                            wrapper.style.width = "110px";
+                            wrapper.style.height = "154px";
+                            wrapper.style.display = "flex";
+                            wrapper.style.alignItems = "center";
+                            wrapper.style.justifyContent = "center";
                             
                             let glowColor = "rgba(255,255,255,0.2)";
                             if(visualGrade === 'Rare') glowColor = "rgba(0,100,255,0.6)";
@@ -2127,12 +2132,12 @@
         }
 
         function closeGacha() {
-            document.getElementById('gacha-result-screen').style.display = 'none';
+            document.getElementById('gacha-reveal-screen').style.display = 'none';
         }
 
         function buyPackAgain() {
             if (!lastGachaPackType) return;
-            document.getElementById('gacha-result-screen').style.display = 'none';
+            document.getElementById('gacha-reveal-screen').style.display = 'none';
             executeGacha(lastGachaPackType);
         }
         // CRAFTING & OVERFLOW LOGIC
