@@ -505,29 +505,37 @@
         async function handleGuest() {
             const btn = document.querySelector('button[onclick="handleGuest()"]');
             const originalText = btn.innerText;
-            btn.innerText = '⏳ กำลังเข้าสู่ระบบ...';
+            btn.innerText = '⏳ กำลังเข้าสู่ระบบ (กำลังโหลด)...';
             btn.disabled = true;
 
-            if (!dbClient) {
-                playerId = "guest_" + generateSafeUUID();
-                safeSetLocal('godswar_player_id', playerId);
-            } else {
-                const { data, error } = await dbClient.auth.signInAnonymously();
-                if (error) {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    return showAuthMsg("Guest Login Failed: " + error.message);
+            try {
+                if (!dbClient) {
+                    playerId = "guest_" + generateSafeUUID();
+                    safeSetLocal('godswar_player_id', playerId);
+                } else {
+                    const { data, error } = await dbClient.auth.signInAnonymously();
+                    if (error) {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                        alert("ล็อกอินล้มเหลว: " + error.message);
+                        return showAuthMsg("Guest Login Failed: " + error.message);
+                    }
+                    playerId = data.user.id;
+                    safeSetLocal('godswar_player_id', playerId);
                 }
-                playerId = data.user.id;
-                safeSetLocal('godswar_player_id', playerId);
+                await loadPlayerData("Guest");
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('faction-selection').style.display = 'flex';
+            } catch (err) {
+                console.error("handleGuest Error:", err);
+                alert("เกิดข้อผิดพลาดรุนแรง: " + err.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
-            await loadPlayerData("Guest");
-            
-            btn.innerText = originalText;
-            btn.disabled = false;
-            
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('faction-selection').style.display = 'flex';
         }
 
         async function logout() {
