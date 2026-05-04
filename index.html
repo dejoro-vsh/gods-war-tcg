@@ -558,7 +558,8 @@
             location.reload();
         }
 
-        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", wallet_address: null, free_mint_claimed: false, nft_serial: null };
+        let playerStats = { level: 1, exp: 0, gold: 0, win: 0, loss: 0, kills: 0, heals: 0, time: 0, username: "Player", avatar: null, wallet_address: null, free_mint_claimed: false, nft_serial: null };
+        let uname = "Player";
 
         async function handleLogin() {
             if (!dbClient) return showAuthMsg("เชื่อมต่อฐานข้อมูลไม่ได้");
@@ -592,14 +593,13 @@
             try {
                 if (!playerId || !dbClient) throw new Error("No DB");
                 
-                let uname = email === "Guest" ? "Guest_" + Math.floor(Math.random()*1000) : email.split('@')[0];
-                playerStats.username = uname;
+                let defaultUname = email === "Guest" ? "Guest_" + Math.floor(Math.random()*1000) : email.split('@')[0];
                 
                 // Ensure player exists and get stats
                 let { data: pData, error: pErr } = await dbClient.from('players').select('*').eq('id', playerId).single();
                 
                 if (!pData) {
-                    const { data: newPData, error: insErr } = await dbClient.from('players').upsert([{ id: playerId, username: uname }], { onConflict: 'id' }).select().single();
+                    const { data: newPData, error: insErr } = await dbClient.from('players').upsert([{ id: playerId, username: defaultUname }], { onConflict: 'id' }).select().single();
                     if (insErr) {
                         console.error("Insert Player Error:", insErr);
                         alert("Error inserting player: " + insErr.message);
@@ -607,6 +607,10 @@
                     pData = newPData;
                 }
                 if (pData) {
+                    playerStats.username = pData.username || defaultUname;
+                    playerStats.avatar = pData.avatar || null;
+                    uname = playerStats.username; // Set global uname
+                    
                     playerStats.level = pData.level || 1;
                     playerStats.exp = pData.exp || 0;
                     playerStats.gold = pData.gold || 0;
@@ -651,6 +655,11 @@
 
         function openProfile() {
             document.getElementById('prof-name').innerText = playerStats.username;
+            if (playerStats.avatar) {
+                document.getElementById('prof-avatar').src = playerStats.avatar;
+            } else {
+                document.getElementById('prof-avatar').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="%232980b9"/><text x="40" y="55" font-size="40" text-anchor="middle" fill="white">👑</text></svg>';
+            }
             document.getElementById('prof-level').innerText = playerStats.level;
             
             let maxExp = Math.floor(100 * Math.pow(playerStats.level, 1.5));
