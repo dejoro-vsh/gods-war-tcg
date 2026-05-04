@@ -1966,12 +1966,15 @@
     </div>
 
     <!-- GACHA REVEAL SCREEN -->
-    <div id="gacha-reveal-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222 0%, #000 100%); z-index: 5000; align-items: center; justify-content: center; flex-direction: column;">
-        <h1 id="gacha-title" style="color:var(--gold); text-shadow:0 0 20px var(--gold); letter-spacing:5px; font-size:36px; animation: pulse 2s infinite;">✨ UNBOXING ✨</h1>
-        <div id="gacha-cards-container" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; align-items:center; max-width:90%; min-height:400px; perspective:1000px;">
+    <div id="gacha-reveal-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222 0%, #000 100%); z-index: 5000; align-items: center; justify-content: flex-start; flex-direction: column; overflow-y: auto; padding: 40px 0;">
+        <h1 id="gacha-title" style="color:var(--gold); text-shadow:0 0 20px var(--gold); letter-spacing:5px; font-size:36px; animation: pulse 2s infinite; margin-top: 20px;">✨ UNBOXING ✨</h1>
+        <div id="gacha-cards-container" style="display:flex; flex-wrap:wrap; gap:15px; justify-content:center; align-items:center; max-width:100%; padding: 20px; min-height:300px; perspective:1000px;">
             <!-- Cards appended here via JS -->
         </div>
-        <button id="gacha-close-btn" onclick="closeGacha()" style="display:none; margin-top:40px; padding:15px 40px; font-size:18px; font-weight:bold; background:var(--gold); border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 20px rgba(255,215,0,0.5);">เข้าคลังสมบัติ</button>
+        <div id="gacha-action-btns" style="display:none; margin-top:30px; gap: 15px; flex-wrap: wrap; justify-content: center; padding-bottom: 50px;">
+            <button onclick="buyMockPack(lastGachaPackType)" style="padding:15px 30px; font-size:16px; font-weight:bold; background: linear-gradient(90deg, #6772E5, #0ff); color:black; border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 15px rgba(103,114,229,0.5);">🔄 สุ่มอีกครั้ง</button>
+            <button onclick="closeGacha()" style="padding:15px 30px; font-size:16px; font-weight:bold; background:var(--gold); border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 20px rgba(255,215,0,0.5); color:black;">📥 เข้าคลังสมบัติ</button>
+        </div>
     </div>
 
     <style>
@@ -2019,16 +2022,18 @@
             await executeGacha(packType);
         }
 
+        let lastGachaPackType = null;
         async function executeGacha(packType) {
+            lastGachaPackType = packType;
             document.getElementById('mock-payment-modal').style.display = 'none';
             document.getElementById('shop-screen').style.display = 'none';
             
             const revealScreen = document.getElementById('gacha-reveal-screen');
             const container = document.getElementById('gacha-cards-container');
-            const closeBtn = document.getElementById('gacha-close-btn');
+            const actionBtns = document.getElementById('gacha-action-btns');
             
             container.innerHTML = "<h2 style='color:#fff;'>กำลังสุ่ม...</h2>";
-            closeBtn.style.display = 'none';
+            actionBtns.style.display = 'none';
             revealScreen.style.display = 'flex';
 
             try {
@@ -2063,7 +2068,8 @@
                             let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                             if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                             
-                            let cardHtml = `<div class="card" style="${borderStyle} transform:scale(1.5); margin:20px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
+                            // Scale down to 1.1 for mobile so 5 cards fit better
+                            let cardHtml = `<div class="card" style="${borderStyle} transform:scale(1.1); margin:10px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
                             
                             let wrapper = document.createElement('div');
                             wrapper.innerHTML = cardHtml;
@@ -2085,12 +2091,12 @@
                 });
 
                 setTimeout(() => {
-                    closeBtn.style.display = 'block';
+                    actionBtns.style.display = 'flex';
                 }, data.cards.length * 800 + 500);
 
             } catch (err) {
                 container.innerHTML = `<h2 style='color:red;'>${err.message}</h2>`;
-                closeBtn.style.display = 'block';
+                actionBtns.style.display = 'flex';
             }
         }
 
