@@ -276,6 +276,9 @@
         <button onclick="openProfile()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, var(--gold), #b8860b); color: black; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,215,0,0.3); font-size: 16px;">
             👤 ข้อมูลผู้เล่น & คลังสมบัติ
         </button>
+        <button onclick="openShop()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, #00f2fe, #4facfe); color: white; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(0,242,254,0.3); font-size: 16px;">
+            🏪 ร้านค้าเปิดซอง (Gacha Shop)
+        </button>
     </div>
 
     <div id="deck-builder-screen">
@@ -1741,5 +1744,199 @@
             </div>
         </div>
     </div>
+
+    <!-- SHOP SCREEN (Style 3: Holo) -->
+    <div id="shop-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3600; align-items: center; justify-content: center; backdrop-filter: blur(15px);">
+        <div style="width: 95%; max-width: 900px; height: 85vh; background: rgba(20,20,30,0.6); padding: 30px; border-radius: 20px; border: 1px solid rgba(0, 255, 255, 0.3); box-shadow: 0 0 30px rgba(0, 255, 255, 0.1); display: flex; flex-direction: column; overflow-y:auto; backdrop-filter: blur(20px);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
+                <h2 style="margin:0; color:#0ff; text-shadow: 0 0 10px rgba(0,255,255,0.5); font-weight:900; letter-spacing:2px;">🏪 GODS WAR: SHOP</h2>
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <div style="background:rgba(0,0,0,0.5); padding:5px 15px; border-radius:15px; color:var(--gold); border:1px solid var(--gold);">💰 <span id="shop-gold-display">0</span></div>
+                    <button onclick="document.getElementById('shop-screen').style.display='none'" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer; text-shadow: 0 0 5px #f00;">❌</button>
+                </div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; flex:1;">
+                
+                <!-- Basic Pack -->
+                <div style="background: linear-gradient(135deg, rgba(40,40,40,0.8), rgba(20,20,20,0.9)); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 20px; text-align:center; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <h3 style="color:#aaa; margin-top:0;">Basic Pack</h3>
+                    <div style="height:150px; background:rgba(0,0,0,0.5); border-radius:10px; margin-bottom:15px; display:flex; justify-content:center; align-items:center; border:1px dashed #555;">
+                        <span style="font-size:50px;">📦</span>
+                    </div>
+                    <p style="font-size:14px; color:#ddd; min-height:40px;">สุ่มไพ่ 3 ใบ (เรทปกติ)<br><span style="color:#888; font-size:12px;">Normal - Epic</span></p>
+                    <button onclick="buyPackMock('basic', 1000)" style="width:100%; padding:12px; background:linear-gradient(90deg, #555, #333); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                        จ่าย 1,000 Gold
+                    </button>
+                </div>
+
+                <!-- Premium Pack -->
+                <div style="background: linear-gradient(135deg, rgba(60,20,80,0.8), rgba(30,10,50,0.9)); border: 1px solid rgba(180,50,255,0.5); border-radius: 15px; padding: 20px; text-align:center; box-shadow: 0 0 20px rgba(180,50,255,0.2); transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <h3 style="color:#d4aaff; margin-top:0; text-shadow:0 0 5px #d4aaff;">Premium Pack</h3>
+                    <div style="height:150px; background:rgba(0,0,0,0.5); border-radius:10px; margin-bottom:15px; display:flex; justify-content:center; align-items:center; border:1px solid #d4aaff; box-shadow: inset 0 0 20px rgba(180,50,255,0.3);">
+                        <span style="font-size:50px; filter: drop-shadow(0 0 10px #d4aaff);">🔮</span>
+                    </div>
+                    <p style="font-size:14px; color:#ddd; min-height:40px;">สุ่มไพ่ 5 ใบ<br><strong style="color:#d4aaff;">การันตี Rare 1 ใบ+</strong></p>
+                    <button onclick="showMockPayment('premium', '10 MATIC')" style="width:100%; padding:12px; background:linear-gradient(90deg, #8e44ad, #9b59b6); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(155,89,182,0.4);">
+                        จ่าย 10 MATIC (Crypto)
+                    </button>
+                </div>
+
+                <!-- God Pack -->
+                <div style="background: linear-gradient(135deg, rgba(80,60,10,0.8), rgba(40,30,5,0.9)); border: 1px solid rgba(255,215,0,0.6); border-radius: 15px; padding: 20px; text-align:center; box-shadow: 0 0 20px rgba(255,215,0,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="position:absolute; top:-10px; right:-10px; background:#f00; color:#fff; font-size:12px; font-weight:bold; padding:5px 10px; border-radius:10px; transform:rotate(15deg); box-shadow:0 0 10px #f00;">HOT!</div>
+                    <h3 style="color:var(--gold); margin-top:0; text-shadow:0 0 5px var(--gold);">God Pack</h3>
+                    <div style="height:150px; background:rgba(0,0,0,0.5); border-radius:10px; margin-bottom:15px; display:flex; justify-content:center; align-items:center; border:1px solid var(--gold); box-shadow: inset 0 0 20px rgba(255,215,0,0.4);">
+                        <span style="font-size:60px; filter: drop-shadow(0 0 15px var(--gold));">✨</span>
+                    </div>
+                    <p style="font-size:14px; color:#ddd; min-height:40px;">สุ่มไพ่ 5 ใบ<br><strong style="color:var(--gold);">การันตี Epic 1 ใบ+</strong></p>
+                    <button onclick="showMockPayment('god', '150 THB')" style="width:100%; padding:12px; background:linear-gradient(90deg, #d35400, #e67e22); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(230,126,34,0.4);">
+                        จ่าย 150 บาท (PromptPay/Card)
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- MOCK PAYMENT MODAL -->
+    <div id="mock-payment-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+        <div style="background:#fff; width:90%; max-width:400px; padding:30px; border-radius:15px; text-align:center; color:#000;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png" style="height:30px; margin-bottom:20px;">
+            <h3 style="margin-top:0;">ชำระเงินค่า <span id="mp-pack-name" style="color:#8e44ad;">...</span></h3>
+            <div style="font-size:32px; font-weight:bold; margin:20px 0;" id="mp-price">...</div>
+            
+            <div style="background:#f5f5f5; padding:15px; border-radius:10px; margin-bottom:20px; font-size:14px; color:#666;">
+                นี่คือหน้าจอจำลองการชำระเงิน<br>หากเชื่อมต่อจริง จะเป็นหน้าต่างกรอกบัตรเครดิต หรือโชว์ QR PromptPay ของ Stripe
+            </div>
+
+            <button onclick="executeGacha(document.getElementById('mp-pack-type').value)" style="width:100%; padding:15px; background:#6772E5; color:white; font-size:16px; font-weight:bold; border:none; border-radius:8px; cursor:pointer; box-shadow:0 4px 10px rgba(103,114,229,0.4); margin-bottom:10px;">
+                ✔️ ยืนยันการชำระเงิน (จำลอง)
+            </button>
+            <button onclick="document.getElementById('mock-payment-modal').style.display='none'" style="width:100%; padding:10px; background:none; color:#888; border:none; cursor:pointer; text-decoration:underline;">ยกเลิก</button>
+            <input type="hidden" id="mp-pack-type" value="">
+        </div>
+    </div>
+
+    <!-- GACHA REVEAL SCREEN -->
+    <div id="gacha-reveal-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222 0%, #000 100%); z-index: 5000; align-items: center; justify-content: center; flex-direction: column;">
+        <h1 id="gacha-title" style="color:var(--gold); text-shadow:0 0 20px var(--gold); letter-spacing:5px; font-size:36px; animation: pulse 2s infinite;">✨ UNBOXING ✨</h1>
+        <div id="gacha-cards-container" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; align-items:center; max-width:90%; min-height:400px; perspective:1000px;">
+            <!-- Cards appended here via JS -->
+        </div>
+        <button id="gacha-close-btn" onclick="closeGacha()" style="display:none; margin-top:40px; padding:15px 40px; font-size:18px; font-weight:bold; background:var(--gold); border:none; border-radius:30px; cursor:pointer; box-shadow:0 0 20px rgba(255,215,0,0.5);">เข้าคลังสมบัติ</button>
+    </div>
+
+    <style>
+        @keyframes gacha-pop {
+            0% { transform: scale(0) rotateY(-180deg); opacity:0; }
+            50% { transform: scale(1.2) rotateY(10deg); opacity:1; }
+            100% { transform: scale(1) rotateY(0deg); opacity:1; }
+        }
+        .gacha-card-reveal {
+            animation: gacha-pop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity:1; }
+            50% { transform: scale(1.05); opacity:0.8; }
+            100% { transform: scale(1); opacity:1; }
+        }
+    </style>
+
+    <script>
+        function openShop() {
+            document.getElementById('shop-gold-display').innerText = playerStats.gold || 0;
+            document.getElementById('shop-screen').style.display = 'flex';
+            document.getElementById('profile-screen').style.display = 'none'; // Close profile if open
+        }
+
+        function showMockPayment(packType, priceStr) {
+            let name = packType === 'premium' ? "Premium Pack" : "God Pack";
+            document.getElementById('mp-pack-name').innerText = name;
+            document.getElementById('mp-price').innerText = priceStr;
+            document.getElementById('mp-pack-type').value = packType;
+            document.getElementById('mock-payment-modal').style.display = 'flex';
+        }
+
+        async function buyPackMock(packType, goldCost) {
+            if(packType === 'basic' && (playerStats.gold || 0) < goldCost) {
+                alert("ทองไม่พอครับ!");
+                return;
+            }
+            document.getElementById('shop-screen').style.display = 'none';
+            document.getElementById('mock-payment-modal').style.display = 'none';
+            await executeGacha(packType);
+        }
+
+        async function executeGacha(packType) {
+            document.getElementById('mock-payment-modal').style.display = 'none';
+            document.getElementById('shop-screen').style.display = 'none';
+            
+            const revealScreen = document.getElementById('gacha-reveal-screen');
+            const container = document.getElementById('gacha-cards-container');
+            const closeBtn = document.getElementById('gacha-close-btn');
+            
+            container.innerHTML = "<h2 style='color:#fff;'>กำลังสุ่ม...</h2>";
+            closeBtn.style.display = 'none';
+            revealScreen.style.display = 'flex';
+
+            try {
+                const res = await fetch(`${serverUrl}/api/shop/buy-pack-mock`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId, packType })
+                });
+                const data = await res.json();
+                if(data.error) throw new Error(data.error);
+
+                if(data.newGold !== undefined) {
+                    playerStats.gold = data.newGold;
+                }
+
+                if(!playerStats.inventory) playerStats.inventory = [];
+                data.cards.forEach(c => playerStats.inventory.push(c));
+
+                container.innerHTML = "";
+                data.cards.forEach((cardData, index) => {
+                    setTimeout(() => {
+                        let baseCard = allCards.find(c => c.name === cardData.card_name);
+                        if(baseCard) {
+                            let visualGrade = cardData.grade;
+                            let visualStyle = cardData.style;
+                            let cardHtml = renderCardHTML(baseCard, visualGrade, visualStyle);
+                            
+                            let wrapper = document.createElement('div');
+                            wrapper.innerHTML = cardHtml;
+                            wrapper.className = "gacha-card-reveal";
+                            wrapper.style.opacity = "0"; 
+                            wrapper.style.margin = "10px";
+                            
+                            let glowColor = "rgba(255,255,255,0.2)";
+                            if(visualGrade === 'Rare') glowColor = "rgba(0,100,255,0.6)";
+                            if(visualGrade === 'Epic') glowColor = "rgba(150,0,255,0.6)";
+                            if(visualGrade === 'Legendary') glowColor = "rgba(255,100,0,0.8)";
+                            if(visualGrade === 'Mythic') glowColor = "rgba(255,0,0,1)";
+                            
+                            wrapper.firstElementChild.style.boxShadow = `0 0 30px ${glowColor}`;
+
+                            container.appendChild(wrapper);
+                        }
+                    }, index * 800);
+                });
+
+                setTimeout(() => {
+                    closeBtn.style.display = 'block';
+                }, data.cards.length * 800 + 500);
+
+            } catch (err) {
+                container.innerHTML = `<h2 style='color:red;'>${err.message}</h2>`;
+                closeBtn.style.display = 'block';
+            }
+        }
+
+        function closeGacha() {
+            document.getElementById('gacha-reveal-screen').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

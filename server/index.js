@@ -225,6 +225,85 @@ app.post('/api/mint', async (req, res) => {
     }
 });
 
+// API: Buy Gacha Pack (Mock Payment & RNG Engine)
+app.post('/api/shop/buy-pack-mock', async (req, res) => {
+    try {
+        const { playerId, packType } = req.body;
+        if (!playerId || !packType) return res.status(400).json({ error: "Missing parameters." });
+
+        let { data: player, error: fetchErr } = await supabase.from('players').select('gold').eq('id', playerId).single();
+        if (fetchErr || !player) return res.status(500).json({ error: "Player not found." });
+
+        let currentGold = player.gold || 0;
+        let numCards = 3;
+        let guaranteedRarity = 'Normal';
+
+        if (packType === 'basic') {
+            if (currentGold < 1000) return res.status(400).json({ error: "ทองไม่พอ (Need 1000 Gold)" });
+            currentGold -= 1000;
+            numCards = 3;
+        } else if (packType === 'premium') {
+            // Mock Crypto Payment
+            numCards = 5;
+            guaranteedRarity = 'Rare';
+        } else if (packType === 'god') {
+            // Mock Fiat Payment
+            numCards = 5;
+            guaranteedRarity = 'Epic';
+        } else {
+            return res.status(400).json({ error: "Invalid pack type." });
+        }
+
+        // Deduct Gold if Basic Pack
+        if (packType === 'basic') {
+            const { error: updErr } = await supabase.from('players').update({ gold: currentGold }).eq('id', playerId);
+            if (updErr) return res.status(500).json({ error: "Failed to deduct gold." });
+        }
+
+        // RNG Engine
+        const chinaCards = ["Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor", "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court"];
+        const greekCards = ["Achilles", "Ares", "Hercules", "Valkyrie", "Spartan", "Poseidon", "Pegasus", "Medusa", "Zeus", "Oracle's Vision", "Ambrosia", "Zeus's Wrath", "Mount Olympus"];
+        const allCardsNames = [...chinaCards, ...greekCards];
+        const styles = ['original', 'disney', 'pixar', 'anime', 'bishounen'];
+
+        let rolledCards = [];
+        for (let i = 0; i < numCards; i++) {
+            const cardName = allCardsNames[Math.floor(Math.random() * allCardsNames.length)];
+            const faction = chinaCards.includes(cardName) ? 'china' : 'greek';
+            const style = styles[Math.floor(Math.random() * styles.length)];
+
+            let rollGrade = Math.random();
+            let grade = 'Normal';
+
+            // Base Rates
+            if (rollGrade > 0.99) grade = 'Mythic';        // 1%
+            else if (rollGrade > 0.95) grade = 'Legendary'; // 4%
+            else if (rollGrade > 0.80) grade = 'Epic';      // 15%
+            else if (rollGrade > 0.50) grade = 'Rare';      // 30%
+
+            // Apply Guarantees for the very first card in the pack
+            if (i === 0) {
+                if (guaranteedRarity === 'Rare' && (grade === 'Normal')) grade = 'Rare';
+                if (guaranteedRarity === 'Epic' && (grade === 'Normal' || grade === 'Rare')) grade = 'Epic';
+            }
+
+            rolledCards.push({ player_id: playerId, card_name: cardName, grade: grade, style: style, faction: faction, is_free: false });
+        }
+
+        // Save to DB
+        const { error: insErr } = await supabase.from('player_inventory').insert(rolledCards);
+        if (insErr) {
+            console.error("Gacha Insert Error:", insErr);
+            return res.status(500).json({ error: "Failed to add cards to inventory." });
+        }
+
+        res.json({ success: true, newGold: packType === 'basic' ? currentGold : undefined, cards: rolledCards });
+    } catch (err) {
+        console.error("Gacha Error:", err);
+        res.status(500).json({ error: "Server error: " + err.message });
+    }
+});
+
 // API: Claim Starter Deck (70 China + 70 Greek)
 app.post('/api/claim-starter', async (req, res) => {
     try {
