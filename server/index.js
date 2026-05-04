@@ -250,7 +250,8 @@ app.post('/api/mint/signature', async (req, res) => {
 
         // Generate signature
         const nftId = 1; // Example standard ERC1155 ID
-        const nonce = card.id; // Use inventory ID as a unique nonce to prevent replay attacks
+        // Convert UUID to a uint256 compatible hex string
+        const nonce = "0x" + card.id.replace(/-/g, "");
 
         // Hash the message identically to Solidity: keccak256(abi.encodePacked(msg.sender, id, nonce))
         const messageHash = ethers.solidityPackedKeccak256(
