@@ -305,6 +305,7 @@
                         <span style="color:#555; font-size:24px;">?</span>
                     </div>
 
+                    <div id="craft-gold-cost" style="margin-bottom:10px; font-weight:bold; color:var(--gold); display:none;">💰 ค่าหลอมรวม: <span id="craft-gold-val">0</span> Gold</div>
                     <button id="btn-ascend" onclick="ascendCards()" style="background:linear-gradient(90deg, #9b59b6, #8e44ad); color:white; border:none; border-radius:8px; padding:12px 20px; font-weight:bold; font-size:16px; cursor:not-allowed; opacity:0.5; width:100%; box-shadow: 0 0 15px rgba(155,89,182,0.5);">✨ หลอมรวม!</button>
                 </div>
             </div>
@@ -2214,11 +2215,14 @@
             
             let reqCount = 4; // Default normal
             let nextGrade = 'Rare';
-            if(craftTargetGrade === 'Rare') { reqCount = 3; nextGrade = 'Epic'; }
-            else if(craftTargetGrade === 'Epic') { reqCount = 3; nextGrade = 'Legendary'; }
-            else if(craftTargetGrade === 'Legendary') { reqCount = 2; nextGrade = 'Mythic'; }
+            let cost = 100;
+            if(craftTargetGrade === 'Rare') { reqCount = 3; nextGrade = 'Epic'; cost = 500; }
+            else if(craftTargetGrade === 'Epic') { reqCount = 3; nextGrade = 'Legendary'; cost = 2000; }
+            else if(craftTargetGrade === 'Legendary') { reqCount = 2; nextGrade = 'Mythic'; cost = 10000; }
 
             const btn = document.getElementById('btn-ascend');
+            const costDiv = document.getElementById('craft-gold-cost');
+            const costVal = document.getElementById('craft-gold-val');
             
             if(craftSelectedIds.length === 0) {
                 slotContainer.innerHTML = `<div style="color:#888; font-size:12px; align-self:center;">คลิกเลือกการ์ดจากด้านซ้าย</div>`;
@@ -2226,8 +2230,13 @@
                 document.getElementById('craft-result-preview').style.borderColor = '#888';
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
+                btn.innerText = '✨ หลอมรวม!';
+                costDiv.style.display = 'none';
                 return;
             }
+
+            costDiv.style.display = 'block';
+            costVal.innerText = cost;
 
             const inv = playerStats.inventory || [];
             const fac = document.getElementById('craft-faction-filter').value;
@@ -2265,12 +2274,25 @@
             `;
             document.getElementById('craft-result-preview').style.border = 'none';
 
+            const currentGold = playerStats.gold || 0;
+
             if(craftSelectedIds.length === reqCount) {
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
+                if (currentGold < cost) {
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.innerText = 'ทองไม่พอ';
+                    btn.style.background = '#888';
+                } else {
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.innerText = '✨ หลอมรวม!';
+                    btn.style.background = 'linear-gradient(90deg, #9b59b6, #8e44ad)';
+                }
             } else {
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
+                btn.innerText = '✨ หลอมรวม!';
+                btn.style.background = 'linear-gradient(90deg, #9b59b6, #8e44ad)';
             }
         }
 
@@ -2303,6 +2325,12 @@
                     alert(data.error);
                 } else {
                     // Success!
+                    if (data.newGold !== undefined) {
+                        playerStats.gold = data.newGold;
+                        if (document.getElementById('header-gold')) document.getElementById('header-gold').innerText = playerStats.gold;
+                        if (document.getElementById('prof-gold')) document.getElementById('prof-gold').innerText = playerStats.gold;
+                    }
+
                     // Refresh inventory
                     const invRes = await dbClient.from('player_inventory').select('*').eq('player_id', playerId);
                     if(invRes.data) {

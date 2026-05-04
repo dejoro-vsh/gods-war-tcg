@@ -471,13 +471,21 @@ app.post('/api/craft/ascend', async (req, res) => {
         // Rules: 4 Normal -> 1 Rare | 3 Rare -> 1 Epic | 3 Epic -> 1 Legendary | 2 Legendary -> 1 Mythic
         let requiredCount = 0;
         let sourceGrade = '';
-        if (targetGrade === 'Rare') { sourceGrade = 'Normal'; requiredCount = 4; }
-        else if (targetGrade === 'Epic') { sourceGrade = 'Rare'; requiredCount = 3; }
-        else if (targetGrade === 'Legendary') { sourceGrade = 'Epic'; requiredCount = 3; }
-        else if (targetGrade === 'Mythic') { sourceGrade = 'Legendary'; requiredCount = 2; }
+        let goldCost = 0;
+        if (targetGrade === 'Rare') { sourceGrade = 'Normal'; requiredCount = 4; goldCost = 100; }
+        else if (targetGrade === 'Epic') { sourceGrade = 'Rare'; requiredCount = 3; goldCost = 500; }
+        else if (targetGrade === 'Legendary') { sourceGrade = 'Epic'; requiredCount = 3; goldCost = 2000; }
+        else if (targetGrade === 'Mythic') { sourceGrade = 'Legendary'; requiredCount = 2; goldCost = 10000; }
         else return res.status(400).json({ error: "Invalid target grade." });
         
         if (cardIds.length !== requiredCount) return res.status(400).json({ error: `ต้องใช้การ์ดระดับ ${sourceGrade} จำนวน ${requiredCount} ใบ` });
+
+        // Check gold
+        let { data: player, error: fetchErr } = await supabase.from('players').select('gold').eq('id', playerId).single();
+        if (fetchErr || !player) return res.status(500).json({ error: "Player not found." });
+        
+        let currentGold = player.gold || 0;
+        if (currentGold < goldCost) return res.status(400).json({ error: `ทองไม่พอ! การหลอมรวมนี้ต้องใช้ ${goldCost} ทอง` });
         
         // Verify ownership and identical cards
         const { data: cards, error: getErr } = await supabase.from('player_inventory').select('*').in('id', cardIds).eq('player_id', playerId).eq('is_overflow', false);
@@ -507,7 +515,12 @@ app.post('/api/craft/ascend', async (req, res) => {
         const { data: insData, error: insErr } = await supabase.from('player_inventory').insert([newCard]).select().single();
         if (insErr) return res.status(500).json({ error: "Failed to create ascended card." });
         
-        res.json({ success: true, message: "อัปเกรดการ์ดสำเร็จ!", newCard: insData });
+        // Deduct Gold
+        const newGold = currentGold - goldCost;
+        const { error: updErr } = await supabase.from('players').update({ gold: newGold }).eq('id', playerId);
+        if (updErr) return res.status(500).json({ error: "Failed to deduct gold." });
+        
+        res.json({ success: true, message: "อัปเกรดการ์ดสำเร็จ!", newCard: insData, newGold: newGold });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
