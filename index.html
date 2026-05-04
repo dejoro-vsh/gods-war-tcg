@@ -238,13 +238,75 @@
                 <button onclick="document.getElementById('inventory-screen').style.display='none'" style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">❌</button>
             </div>
             
-            <div style="display:flex; gap:10px; margin-bottom: 10px;">
-                <button id="inv-tab-china" onclick="switchInventoryTab('china')" style="flex:1; padding:10px; font-weight:bold; background:var(--red); color:white; border:none; border-radius:8px;">ฝ่ายจีน (<span id="inv-count-china">0</span>/150)</button>
-                <button id="inv-tab-greek" onclick="switchInventoryTab('greek')" style="flex:1; padding:10px; font-weight:bold; background:#333; color:white; border:none; border-radius:8px;">ฝ่ายกรีก (<span id="inv-count-greek">0</span>/150)</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
+                <div style="display:flex; gap:10px; flex:1;">
+                    <button id="inv-tab-china" onclick="switchInventoryTab('china')" style="flex:1; padding:10px; font-weight:bold; background:var(--red); color:white; border:none; border-radius:8px;">ฝ่ายจีน (<span id="inv-count-china">0</span>/150)</button>
+                    <button id="inv-tab-greek" onclick="switchInventoryTab('greek')" style="flex:1; padding:10px; font-weight:bold; background:#333; color:white; border:none; border-radius:8px;">ฝ่ายกรีก (<span id="inv-count-greek">0</span>/150)</button>
+                </div>
+                <button onclick="openCraftingModal()" style="margin-left:10px; padding:10px 15px; font-weight:bold; background:linear-gradient(90deg, #9b59b6, #8e44ad); color:white; border:none; border-radius:8px; cursor:pointer; box-shadow: 0 0 10px rgba(155,89,182,0.5);">🛠️ หลอมรวมการ์ด</button>
+            </div>
+            
+            <div id="overflow-alert" style="display:none; background:rgba(255,50,50,0.2); border:1px solid var(--red); border-radius:8px; padding:10px; margin-bottom:10px; text-align:center; color:white;">
+                ⚠️ คุณมีการ์ดส่วนเกิน <span id="overflow-count" style="font-weight:bold;color:var(--gold);">0</span> ใบ (ล่องลอยอยู่) 
+                <button id="btn-claim-overflow" onclick="claimOverflowCards()" style="background:var(--gold); color:black; border:none; border-radius:5px; padding:5px 10px; font-weight:bold; margin-left:10px; cursor:pointer;">ดึงเข้ากระเป๋า</button>
             </div>
 
             <div id="inv-grid" style="flex:1; overflow-y:auto; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; padding-bottom:20px; border:1px solid #333; border-radius:8px; padding:10px;">
                 <!-- Cards will render here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- CRAFTING MODAL -->
+    <div id="crafting-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="width: 95%; max-width: 800px; height: 90vh; background: #1a0b2e; padding: 20px; border-radius: 20px; border: 2px solid #9b59b6; display: flex; flex-direction: column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <h2 style="margin:0; color:#e056fd; text-shadow: 0 0 10px #e056fd;">🛠️ แท่นหลอมรวมการ์ด (Ascension)</h2>
+                <button onclick="closeCraftingModal()" style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">❌</button>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.5); border-radius: 10px; padding: 10px; margin-bottom: 15px; font-size: 14px; color: #ccc;">
+                <strong>สูตรการเลื่อนขั้น:</strong><br>
+                🟢 4 Normal ➔ 🔵 1 Rare &nbsp;|&nbsp; 🔵 3 Rare ➔ 🟣 1 Epic &nbsp;|&nbsp; 🟣 3 Epic ➔ 🟠 1 Legendary &nbsp;|&nbsp; 🟠 2 Legendary ➔ 🔴 1 Mythic<br>
+                <span style="color:#ff6b81; font-size:12px;">* ต้องใช้การ์ดหน้าเดียวกันเท่านั้น</span>
+            </div>
+
+            <div style="display:flex; flex:1; gap:15px; overflow:hidden;">
+                <!-- Left: Inventory to select from -->
+                <div style="flex:2; border: 1px solid #444; border-radius: 10px; padding: 10px; display:flex; flex-direction:column;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <select id="craft-faction-filter" onchange="renderCraftingInventory()" style="background:#333; color:white; border:none; padding:5px; border-radius:5px;">
+                            <option value="china">ฝ่ายจีน</option>
+                            <option value="greek">ฝ่ายกรีก</option>
+                        </select>
+                        <select id="craft-grade-filter" onchange="renderCraftingInventory()" style="background:#333; color:white; border:none; padding:5px; border-radius:5px;">
+                            <option value="Normal">Normal</option>
+                            <option value="Rare">Rare</option>
+                            <option value="Epic">Epic</option>
+                            <option value="Legendary">Legendary</option>
+                        </select>
+                    </div>
+                    <div id="craft-inv-grid" style="flex:1; overflow-y:auto; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start;">
+                        <!-- Craftable cards here -->
+                    </div>
+                </div>
+
+                <!-- Right: Ascension Altar -->
+                <div style="flex:1; border: 1px dashed #e056fd; border-radius: 10px; padding: 10px; display:flex; flex-direction:column; align-items:center; background: radial-gradient(circle at center, rgba(155,89,182,0.2) 0%, transparent 70%);">
+                    <h3 style="color:#e056fd; margin-top:0;">แท่นบูชายัญ</h3>
+                    <div id="craft-slots" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:20px; min-height: 120px;">
+                        <!-- Selected cards go here -->
+                        <div style="color:#888; font-size:12px; align-self:center;">คลิกเลือกการ์ดจากด้านซ้าย</div>
+                    </div>
+                    
+                    <div style="text-align:center; font-size:24px; color:#e056fd; margin-bottom:10px;">⬇️</div>
+                    
+                    <div id="craft-result-preview" style="width:75px; height:110px; border:2px dashed #888; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
+                        <span style="color:#555; font-size:24px;">?</span>
+                    </div>
+
+                    <button id="btn-ascend" onclick="ascendCards()" style="background:linear-gradient(90deg, #9b59b6, #8e44ad); color:white; border:none; border-radius:8px; padding:12px 20px; font-weight:bold; font-size:16px; cursor:not-allowed; opacity:0.5; width:100%; box-shadow: 0 0 15px rgba(155,89,182,0.5);">✨ หลอมรวม!</button>
+                </div>
             </div>
         </div>
     </div>
@@ -664,11 +726,27 @@
                     c.faction = chinaCards.find(cc => cc.name === c.card_name) ? 'china' : 'greek';
                 }
             });
-            const chinaCardsInv = inv.filter(c => c.faction === 'china');
-            const greekCardsInv = inv.filter(c => c.faction === 'greek');
+            const activeInv = inv.filter(c => !c.is_overflow);
+            const overflowInv = inv.filter(c => c.is_overflow);
+            
+            const chinaCardsInv = activeInv.filter(c => c.faction === 'china');
+            const greekCardsInv = activeInv.filter(c => c.faction === 'greek');
+            const chinaOverflow = overflowInv.filter(c => c.faction === 'china');
+            const greekOverflow = overflowInv.filter(c => c.faction === 'greek');
             
             document.getElementById('inv-count-china').innerText = chinaCardsInv.length;
             document.getElementById('inv-count-greek').innerText = greekCardsInv.length;
+            
+            const currentOverflowCount = faction === 'china' ? chinaOverflow.length : greekOverflow.length;
+            const overflowAlert = document.getElementById('overflow-alert');
+            if (currentOverflowCount > 0) {
+                overflowAlert.style.display = 'block';
+                document.getElementById('overflow-count').innerText = currentOverflowCount;
+                const renderListLength = faction === 'china' ? chinaCardsInv.length : greekCardsInv.length;
+                document.getElementById('btn-claim-overflow').style.display = renderListLength < 150 ? 'inline-block' : 'none';
+            } else {
+                overflowAlert.style.display = 'none';
+            }
             
             const grid = document.getElementById('inv-grid');
             grid.innerHTML = '';
@@ -1992,6 +2070,264 @@
 
         function closeGacha() {
             document.getElementById('gacha-reveal-screen').style.display = 'none';
+        }
+        // CRAFTING & OVERFLOW LOGIC
+        let craftSelectedIds = [];
+        let craftTargetCardName = null;
+        let craftTargetGrade = null;
+
+        async function claimOverflowCards() {
+            try {
+                const res = await fetch(`${serverUrl}/api/inventory/claim-overflow`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId, faction: currentInvTab })
+                });
+                const data = await res.json();
+                if(data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    // Refresh inventory
+                    const invRes = await dbClient.from('player_inventory').select('*').eq('player_id', playerId);
+                    if(invRes.data) {
+                        playerStats.inventory = invRes.data;
+                        switchInventoryTab(currentInvTab);
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+            }
+        }
+
+        function openCraftingModal() {
+            document.getElementById('crafting-modal').style.display = 'flex';
+            craftSelectedIds = [];
+            craftTargetCardName = null;
+            craftTargetGrade = null;
+            document.getElementById('craft-faction-filter').value = currentInvTab;
+            document.getElementById('craft-grade-filter').value = 'Normal';
+            renderCraftingInventory();
+            updateCraftingAltar();
+        }
+
+        function closeCraftingModal() {
+            document.getElementById('crafting-modal').style.display = 'none';
+            // refresh inventory just in case
+            if(document.getElementById('inventory-screen').style.display === 'flex') {
+                switchInventoryTab(currentInvTab);
+            }
+        }
+
+        function renderCraftingInventory() {
+            const fac = document.getElementById('craft-faction-filter').value;
+            const gr = document.getElementById('craft-grade-filter').value;
+            const grid = document.getElementById('craft-inv-grid');
+            grid.innerHTML = '';
+
+            const inv = playerStats.inventory || [];
+            const activeInv = inv.filter(c => !c.is_overflow && c.faction === fac && c.grade === gr);
+            
+            // Group by card name to easily see duplicates
+            const grouped = {};
+            activeInv.forEach(c => {
+                if(!grouped[c.card_name]) grouped[c.card_name] = [];
+                grouped[c.card_name].push(c);
+            });
+
+            const baseCards = fac === 'china' ? chinaCards : greekCards;
+
+            for (const [cardName, cards] of Object.entries(grouped)) {
+                let baseCard = baseCards.find(c => c.name === cardName);
+                if (!baseCard) continue;
+                
+                // Represent a stack
+                let cInfo = cards[0];
+                let c = applyGradeModifiers(baseCard, cInfo.grade, cInfo.style, cInfo.is_free);
+                
+                let borderStyle = `border-color:${c.gradeColor};`;
+                
+                // Render one card but with a badge showing count
+                let isSelectable = craftSelectedIds.length === 0 || craftTargetCardName === cardName;
+                let opacity = isSelectable ? 1 : 0.3;
+                let cursor = isSelectable ? 'pointer' : 'not-allowed';
+
+                grid.innerHTML += `
+                    <div style="position:relative; width: 75px; height: 110px; cursor:${cursor}; opacity:${opacity}; transition:0.2s;" onclick="selectCardForCrafting('${cardName}', '${gr}')">
+                        <div class="card" style="width: 100%; height: 100%; ${borderStyle}">
+                            <div class="cost-val">${c.cost}</div>
+                            <img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'">
+                            <div class="badge atk-val">${c.atk || ''}</div>
+                        </div>
+                        <div style="position:absolute; bottom:-10px; right:-10px; background:var(--gold); color:black; font-weight:bold; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:2px solid black;">x${cards.length}</div>
+                    </div>
+                `;
+            }
+            
+            if(Object.keys(grouped).length === 0) {
+                grid.innerHTML = `<div style="color:#888; width:100%; text-align:center; padding-top:20px;">ไม่มีการ์ดระดับนี้ให้หลอมรวม</div>`;
+            }
+        }
+
+        function selectCardForCrafting(cardName, grade) {
+            if(craftTargetCardName && craftTargetCardName !== cardName) return; // Cannot mix different cards
+            
+            const fac = document.getElementById('craft-faction-filter').value;
+            const inv = playerStats.inventory || [];
+            const availableCards = inv.filter(c => !c.is_overflow && c.faction === fac && c.grade === grade && c.card_name === cardName && !craftSelectedIds.includes(c.id));
+            
+            if(availableCards.length === 0) return; // No more cards of this type to select
+
+            let reqCount = 0;
+            let nextGrade = '';
+            if(grade === 'Normal') { reqCount = 4; nextGrade = 'Rare'; }
+            else if(grade === 'Rare') { reqCount = 3; nextGrade = 'Epic'; }
+            else if(grade === 'Epic') { reqCount = 3; nextGrade = 'Legendary'; }
+            else if(grade === 'Legendary') { reqCount = 2; nextGrade = 'Mythic'; }
+            
+            if(craftSelectedIds.length >= reqCount) return; // Already maxed out
+            
+            craftTargetCardName = cardName;
+            craftTargetGrade = grade;
+            craftSelectedIds.push(availableCards[0].id);
+            
+            updateCraftingAltar();
+        }
+
+        function deselectCard(id) {
+            craftSelectedIds = craftSelectedIds.filter(i => i !== id);
+            if(craftSelectedIds.length === 0) {
+                craftTargetCardName = null;
+                craftTargetGrade = null;
+            }
+            updateCraftingAltar();
+        }
+
+        function updateCraftingAltar() {
+            renderCraftingInventory(); // Update opacity of left panel
+            const slotContainer = document.getElementById('craft-slots');
+            slotContainer.innerHTML = '';
+            
+            let reqCount = 4; // Default normal
+            let nextGrade = 'Rare';
+            if(craftTargetGrade === 'Rare') { reqCount = 3; nextGrade = 'Epic'; }
+            else if(craftTargetGrade === 'Epic') { reqCount = 3; nextGrade = 'Legendary'; }
+            else if(craftTargetGrade === 'Legendary') { reqCount = 2; nextGrade = 'Mythic'; }
+
+            const btn = document.getElementById('btn-ascend');
+            
+            if(craftSelectedIds.length === 0) {
+                slotContainer.innerHTML = `<div style="color:#888; font-size:12px; align-self:center;">คลิกเลือกการ์ดจากด้านซ้าย</div>`;
+                document.getElementById('craft-result-preview').innerHTML = `<span style="color:#555; font-size:24px;">?</span>`;
+                document.getElementById('craft-result-preview').style.borderColor = '#888';
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                return;
+            }
+
+            const inv = playerStats.inventory || [];
+            const fac = document.getElementById('craft-faction-filter').value;
+            const baseCards = fac === 'china' ? chinaCards : greekCards;
+            let baseCard = baseCards.find(c => c.name === craftTargetCardName);
+            
+            // Draw selected cards
+            craftSelectedIds.forEach(id => {
+                let cInfo = inv.find(i => i.id === id);
+                let c = applyGradeModifiers(baseCard, cInfo.grade, cInfo.style, cInfo.is_free);
+                slotContainer.innerHTML += `
+                    <div class="card" style="width: 50px; height: 75px; border-color:${c.gradeColor}; transform:scale(0.9); cursor:pointer;" onclick="deselectCard('${id}')">
+                        <img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'">
+                    </div>
+                `;
+            });
+            
+            // Draw empty required slots
+            for(let i = craftSelectedIds.length; i < reqCount; i++) {
+                slotContainer.innerHTML += `<div style="width: 50px; height: 75px; border: 2px dashed #e056fd; border-radius: 8px; opacity:0.3; transform:scale(0.9);"></div>`;
+            }
+
+            // Draw Preview
+            let previewC = applyGradeModifiers(baseCard, nextGrade, 'original', false);
+            let borderStyle = `border-color:${previewC.gradeColor}; box-shadow: 0 0 10px ${previewC.gradeColor};`;
+            if(nextGrade === 'Mythic') {
+                borderStyle = `border: 2px solid transparent; background: ${previewC.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 15px rgba(255,255,255,0.8);`;
+            }
+            
+            document.getElementById('craft-result-preview').innerHTML = `
+                <div class="card" style="width: 100%; height: 100%; ${borderStyle}">
+                    <img src="${previewC.img}" style="filter: brightness(0.5) sepia(1) hue-rotate(250deg) saturate(3);">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:white; font-size:24px; font-weight:bold; text-shadow:0 0 5px #e056fd;">?</div>
+                </div>
+            `;
+            document.getElementById('craft-result-preview').style.border = 'none';
+
+            if(craftSelectedIds.length === reqCount) {
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+
+        async function ascendCards() {
+            if(document.getElementById('btn-ascend').style.cursor === 'not-allowed') return;
+            
+            let reqCount = 4;
+            let nextGrade = 'Rare';
+            if(craftTargetGrade === 'Rare') { reqCount = 3; nextGrade = 'Epic'; }
+            else if(craftTargetGrade === 'Epic') { reqCount = 3; nextGrade = 'Legendary'; }
+            else if(craftTargetGrade === 'Legendary') { reqCount = 2; nextGrade = 'Mythic'; }
+            
+            if(craftSelectedIds.length !== reqCount) return;
+
+            document.getElementById('btn-ascend').innerText = 'กำลังหลอมรวม...';
+            
+            try {
+                const res = await fetch(`${serverUrl}/api/craft/ascend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId, cardIds: craftSelectedIds, targetGrade: nextGrade })
+                });
+                const data = await res.json();
+                document.getElementById('btn-ascend').innerText = '✨ หลอมรวม!';
+                
+                if(data.error) {
+                    alert(data.error);
+                } else {
+                    // Success!
+                    // Refresh inventory
+                    const invRes = await dbClient.from('player_inventory').select('*').eq('player_id', playerId);
+                    if(invRes.data) {
+                        playerStats.inventory = invRes.data;
+                        
+                        // Show celebration
+                        let c = applyGradeModifiers(
+                            (document.getElementById('craft-faction-filter').value === 'china' ? chinaCards : greekCards).find(x => x.name === data.newCard.card_name), 
+                            data.newCard.grade, data.newCard.style, false
+                        );
+                        
+                        document.getElementById('craft-result-preview').innerHTML = `
+                            <div class="card" style="width: 100%; height: 100%; border-color:${c.gradeColor}; box-shadow: 0 0 20px ${c.gradeColor}; animation: pulseNeon 1s infinite alternate;">
+                                <img src="${c.img}">
+                                <div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>
+                            </div>
+                        `;
+                        
+                        alert(`หลอมรวมสำเร็จ! คุณได้รับ ${data.newCard.card_name} ระดับ ${data.newCard.grade}`);
+                        
+                        craftSelectedIds = [];
+                        craftTargetCardName = null;
+                        craftTargetGrade = null;
+                        updateCraftingAltar();
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+                document.getElementById('btn-ascend').innerText = '✨ หลอมรวม!';
+            }
         }
     </script>
 </body>

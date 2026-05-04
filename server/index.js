@@ -254,6 +254,23 @@ app.post('/api/shop/buy-pack-mock', async (req, res) => {
             return res.status(400).json({ error: "Invalid pack type." });
         }
 
+        // Check Inventory Capacity
+        let { data: invCounts, error: invErr } = await supabase.from('player_inventory').select('faction').eq('player_id', playerId).eq('is_overflow', false);
+        if (invErr) return res.status(500).json({ error: "Failed to check inventory." });
+
+        let currentChina = 0;
+        let currentGreek = 0;
+        if (invCounts) {
+            invCounts.forEach(c => {
+                if (c.faction === 'china') currentChina++;
+                if (c.faction === 'greek') currentGreek++;
+            });
+        }
+
+        if (currentChina >= 150 && currentGreek >= 150) {
+            return res.status(400).json({ error: "กระเป๋าเต็มทั้ง 2 ฝ่าย! (150/150) กรุณาไปรวมการ์ดเพื่อเพิ่มพื้นที่ว่าง" });
+        }
+
         // Deduct Gold if Basic Pack
         if (packType === 'basic') {
             const { error: updErr } = await supabase.from('players').update({ gold: currentGold }).eq('id', playerId);
@@ -287,7 +304,16 @@ app.post('/api/shop/buy-pack-mock', async (req, res) => {
                 if (guaranteedRarity === 'Epic' && (grade === 'Normal' || grade === 'Rare')) grade = 'Epic';
             }
 
-            rolledCards.push({ player_id: playerId, card_name: cardName, grade: grade, style: style, faction: faction, is_free: false });
+            let is_overflow = false;
+            if (faction === 'china') {
+                if (currentChina >= 150) is_overflow = true;
+                else currentChina++;
+            } else {
+                if (currentGreek >= 150) is_overflow = true;
+                else currentGreek++;
+            }
+
+            rolledCards.push({ player_id: playerId, card_name: cardName, grade: grade, style: style, faction: faction, is_free: false, is_overflow: is_overflow });
         }
 
         // Save to DB
@@ -369,6 +395,121 @@ app.post('/api/claim-starter', async (req, res) => {
     } catch (err) {
         console.error("Claim Starter Error:", err);
         res.status(500).json({ error: "Claiming failed: " + err.message });
+    }
+});
+
+// API: Admin Fix Inventory (Retroactively apply overflow rules)
+app.post('/api/admin/fix-inventory', async (req, res) => {
+    try {
+        const { data: inv, error } = await supabase.from('player_inventory').select('id, player_id, faction').eq('is_overflow', false);
+        if (error) return res.status(500).json({ error: error.message });
+        
+        let playerStats = {};
+        let overflowIds = [];
+        
+        inv.forEach(c => {
+            if (!playerStats[c.player_id]) playerStats[c.player_id] = { china: 0, greek: 0 };
+            
+            if (c.faction === 'china') {
+                if (playerStats[c.player_id].china >= 150) overflowIds.push(c.id);
+                else playerStats[c.player_id].china++;
+            } else if (c.faction === 'greek') {
+                if (playerStats[c.player_id].greek >= 150) overflowIds.push(c.id);
+                else playerStats[c.player_id].greek++;
+            }
+        });
+        
+        if (overflowIds.length > 0) {
+            // Update in chunks to avoid URL too long or payload too large
+            const chunkSize = 100;
+            for (let i = 0; i < overflowIds.length; i += chunkSize) {
+                const chunk = overflowIds.slice(i, i + chunkSize);
+                await supabase.from('player_inventory').update({ is_overflow: true }).in('id', chunk);
+            }
+        }
+        res.json({ success: true, message: `Fixed inventory. Moved ${overflowIds.length} cards to overflow.` });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// API: Claim Overflow Cards
+app.post('/api/inventory/claim-overflow', async (req, res) => {
+    try {
+        const { playerId, faction } = req.body;
+        if (!playerId || !faction) return res.status(400).json({ error: "Missing parameters" });
+        
+        // Check current space
+        const { data: active, error: countErr } = await supabase.from('player_inventory').select('id').eq('player_id', playerId).eq('faction', faction).eq('is_overflow', false);
+        if (countErr) return res.status(500).json({ error: "Failed to check space." });
+        
+        const spaceLeft = 150 - (active ? active.length : 0);
+        if (spaceLeft <= 0) return res.status(400).json({ error: `กระเป๋าฝ่าย ${faction} เต็มแล้ว ไม่สามารถดึงการ์ดล่องลอยได้` });
+        
+        // Get overflow cards
+        const { data: overflowCards, error: getErr } = await supabase.from('player_inventory').select('id').eq('player_id', playerId).eq('faction', faction).eq('is_overflow', true).limit(spaceLeft);
+        if (getErr || !overflowCards || overflowCards.length === 0) return res.status(400).json({ error: "ไม่มีการ์ดล่องลอยให้ดึง" });
+        
+        const idsToClaim = overflowCards.map(c => c.id);
+        const { error: updErr } = await supabase.from('player_inventory').update({ is_overflow: false }).in('id', idsToClaim);
+        if (updErr) return res.status(500).json({ error: "Failed to claim cards." });
+        
+        res.json({ success: true, message: `ดึงการ์ดล่องลอยกลับมา ${idsToClaim.length} ใบเรียบร้อยแล้ว` });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// API: Craft / Ascend Cards
+app.post('/api/craft/ascend', async (req, res) => {
+    try {
+        const { playerId, cardIds, targetGrade } = req.body;
+        if (!playerId || !cardIds || !Array.isArray(cardIds) || cardIds.length === 0 || !targetGrade) {
+            return res.status(400).json({ error: "Missing parameters." });
+        }
+        
+        // Rules: 4 Normal -> 1 Rare | 3 Rare -> 1 Epic | 3 Epic -> 1 Legendary | 2 Legendary -> 1 Mythic
+        let requiredCount = 0;
+        let sourceGrade = '';
+        if (targetGrade === 'Rare') { sourceGrade = 'Normal'; requiredCount = 4; }
+        else if (targetGrade === 'Epic') { sourceGrade = 'Rare'; requiredCount = 3; }
+        else if (targetGrade === 'Legendary') { sourceGrade = 'Epic'; requiredCount = 3; }
+        else if (targetGrade === 'Mythic') { sourceGrade = 'Legendary'; requiredCount = 2; }
+        else return res.status(400).json({ error: "Invalid target grade." });
+        
+        if (cardIds.length !== requiredCount) return res.status(400).json({ error: `ต้องใช้การ์ดระดับ ${sourceGrade} จำนวน ${requiredCount} ใบ` });
+        
+        // Verify ownership and identical cards
+        const { data: cards, error: getErr } = await supabase.from('player_inventory').select('*').in('id', cardIds).eq('player_id', playerId).eq('is_overflow', false);
+        if (getErr || !cards || cards.length !== requiredCount) return res.status(400).json({ error: "หาการ์ดไม่ครบ หรือการ์ดไม่ได้อยู่ในกระเป๋าหลัก" });
+        
+        // Verify identical name and grade
+        const firstCard = cards[0];
+        const allSame = cards.every(c => c.card_name === firstCard.card_name && c.grade === sourceGrade);
+        if (!allSame) return res.status(400).json({ error: `การ์ดที่นำมารวมต้องเป็นการ์ดเดียวกัน และต้องเป็นระดับ ${sourceGrade} ทั้งหมด` });
+        
+        // Delete consumed cards
+        const { error: delErr } = await supabase.from('player_inventory').delete().in('id', cardIds);
+        if (delErr) return res.status(500).json({ error: "Failed to consume cards." });
+        
+        // Create new ascended card (keep the original style if possible, or random style? Let's keep original 'original' or first card's style)
+        // Wait, if merging, the resulting style can just be the first card's style.
+        const newCard = {
+            player_id: playerId,
+            card_name: firstCard.card_name,
+            faction: firstCard.faction,
+            style: firstCard.style,
+            grade: targetGrade,
+            is_free: false,
+            is_overflow: false
+        };
+        
+        const { data: insData, error: insErr } = await supabase.from('player_inventory').insert([newCard]).select().single();
+        if (insErr) return res.status(500).json({ error: "Failed to create ascended card." });
+        
+        res.json({ success: true, message: "อัปเกรดการ์ดสำเร็จ!", newCard: insData });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
     }
 });
 

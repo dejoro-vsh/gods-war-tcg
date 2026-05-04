@@ -7,3 +7,6 @@ ALTER TABLE public.player_inventory ADD COLUMN IF NOT EXISTS faction TEXT;
 
 -- 3. ปิดระบบความปลอดภัย RLS ชั่วคราว (เพื่อให้หน้าเว็บสามารถแจกไพ่เข้ากระเป๋าได้เลย)
 ALTER TABLE public.player_inventory DISABLE ROW LEVEL SECURITY;
+
+-- 4. ???????????? is_overflow ????????????????? (??????????)
+ALTER TABLE public.player_inventory ADD COLUMN IF NOT EXISTS is_overflow BOOLEAN DEFAULT FALSE;
