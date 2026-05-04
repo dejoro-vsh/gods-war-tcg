@@ -9,7 +9,7 @@ const CardDatabase = {
             skills: ["rush"], 
             type: "warrior",
             faction: "china",
-            img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777467648/Gemini_Generated_Image_4wo9z44wo9z44wo9_ry0w3f.jpg" 
+            img: "./assets/images/china_wukong.png" 
         },
         { 
             name: "Guan Yu", 
@@ -27,7 +27,7 @@ const CardDatabase = {
             atkCost: 1, 
             type: "blocker",
             faction: "china", 
-            img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472457/Gemini_Generated_Image_s7osias7osias7os_fabxbv.jpg" 
+            img: "./assets/images/china_erlang.png" 
         },
         { 
             name: "Nezha", 
@@ -38,7 +38,7 @@ const CardDatabase = {
             counter: 2000, 
             skills: ["on_play:draw_1"],
             faction: "china",
-            img: "https://res.cloudinary.com/dju44op8w/image/upload/v1777472501/Gemini_Generated_Image_m8c3vam8c3vam8c3_pqnpqt.jpg" 
+            img: "./assets/images/china_nezha.png" 
         },
         { 
             name: "Meditation", 
