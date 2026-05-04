@@ -1745,53 +1745,104 @@
         </div>
     </div>
 
-    <!-- SHOP SCREEN (Style 3: Holo) -->
-    <div id="shop-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3600; align-items: center; justify-content: center; backdrop-filter: blur(15px);">
-        <div style="width: 95%; max-width: 900px; height: 85vh; background: rgba(20,20,30,0.6); padding: 30px; border-radius: 20px; border: 1px solid rgba(0, 255, 255, 0.3); box-shadow: 0 0 30px rgba(0, 255, 255, 0.1); display: flex; flex-direction: column; overflow-y:auto; backdrop-filter: blur(20px);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
-                <h2 style="margin:0; color:#0ff; text-shadow: 0 0 10px rgba(0,255,255,0.5); font-weight:900; letter-spacing:2px;">🏪 GODS WAR: SHOP</h2>
+    <!-- SHOP SCREEN (Style 3: Holo Refined) -->
+    <div id="shop-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3600; align-items: center; justify-content: center; backdrop-filter: blur(20px);">
+        <div style="width: 100%; max-width: 1000px; height: 100vh; background: transparent; display: flex; flex-direction: column; overflow-y:auto; padding-bottom: 50px;">
+            
+            <!-- Sleek Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 20px; background: linear-gradient(180deg, rgba(10,20,40,0.9) 0%, transparent 100%); position:sticky; top:0; z-index:10;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="background:var(--blue); width:40px; height:40px; border-radius:10px; display:flex; justify-content:center; align-items:center; box-shadow:0 0 15px var(--blue);">
+                        <span style="font-size:24px;">🏪</span>
+                    </div>
+                    <div>
+                        <h2 style="margin:0; color:#fff; font-size:18px; letter-spacing:1px; text-shadow: 0 0 10px rgba(255,255,255,0.5);">GODS WAR</h2>
+                        <div style="color:#0ff; font-size:12px; font-weight:bold; letter-spacing:3px;">STORE</div>
+                    </div>
+                </div>
+                
                 <div style="display:flex; gap:15px; align-items:center;">
-                    <div style="background:rgba(0,0,0,0.5); padding:5px 15px; border-radius:15px; color:var(--gold); border:1px solid var(--gold);">💰 <span id="shop-gold-display">0</span></div>
-                    <button onclick="document.getElementById('shop-screen').style.display='none'" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer; text-shadow: 0 0 5px #f00;">❌</button>
+                    <div style="background:rgba(0,0,0,0.6); padding:8px 15px; border-radius:20px; color:var(--gold); border:1px solid rgba(212,175,55,0.5); display:flex; align-items:center; gap:5px; box-shadow: 0 0 10px rgba(212,175,55,0.2);">
+                        <span style="font-size:16px;">💰</span> <span id="shop-gold-display" style="font-weight:bold;">0</span>
+                    </div>
+                    <button onclick="document.getElementById('shop-screen').style.display='none'" style="background:rgba(255,0,0,0.2); border:1px solid rgba(255,0,0,0.5); width:40px; height:40px; border-radius:50%; color:#fff; font-size:16px; cursor:pointer; display:flex; justify-content:center; align-items:center; transition:0.3s;" onmouseover="this.style.background='rgba(255,0,0,0.5)'" onmouseout="this.style.background='rgba(255,0,0,0.2)'">❌</button>
                 </div>
             </div>
             
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; flex:1;">
+            <div style="padding: 0 20px; display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:25px; margin-top:20px;">
                 
                 <!-- Basic Pack -->
-                <div style="background: linear-gradient(135deg, rgba(40,40,40,0.8), rgba(20,20,20,0.9)); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 20px; text-align:center; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <h3 style="color:#aaa; margin-top:0;">Basic Pack</h3>
-                    <div style="height:150px; background:rgba(0,0,0,0.5); border-radius:10px; margin-bottom:15px; display:flex; justify-content:center; align-items:center; border:1px dashed #555;">
-                        <span style="font-size:50px;">📦</span>
+                <div style="background: linear-gradient(180deg, rgba(40,40,45,0.9) 0%, rgba(20,20,25,0.95) 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; text-align:center; position:relative; overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="position:absolute; top:0; left:0; width:100%; height:4px; background:linear-gradient(90deg, #555, #999);"></div>
+                    <h3 style="color:#fff; margin-top:0; font-size:22px; letter-spacing:1px;">BASIC PACK</h3>
+                    <p style="font-size:13px; color:#888; margin-top:-10px; margin-bottom:20px;">Starter Collection</p>
+                    
+                    <div style="height:180px; display:flex; justify-content:center; align-items:center; margin-bottom:20px; perspective: 500px;">
+                        <div style="width:120px; height:160px; background:linear-gradient(135deg, #8b5a2b, #cd853f); border-radius:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(255,255,255,0.2); position:relative; display:flex; justify-content:center; align-items:center; transform: rotateY(-15deg); border: 2px solid #deb887;">
+                            <div style="width:80%; height:80%; border: 1px dashed rgba(255,255,255,0.3); border-radius:5px; display:flex; justify-content:center; align-items:center;">
+                                <span style="font-size:40px;">🔰</span>
+                            </div>
+                        </div>
                     </div>
-                    <p style="font-size:14px; color:#ddd; min-height:40px;">สุ่มไพ่ 3 ใบ (เรทปกติ)<br><span style="color:#888; font-size:12px;">Normal - Epic</span></p>
-                    <button onclick="buyPackMock('basic', 1000)" style="width:100%; padding:12px; background:linear-gradient(90deg, #555, #333); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                        จ่าย 1,000 Gold
+                    
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; margin-bottom:20px;">
+                        <div style="font-size:14px; color:#ddd;">สุ่มไพ่จำนวน <b style="color:#fff;">3 ใบ</b></div>
+                        <div style="font-size:12px; color:#aaa; margin-top:5px;">เรทความหายาก: Normal - Epic</div>
+                    </div>
+                    
+                    <button onclick="buyPackMock('basic', 1000)" style="width:100%; padding:15px; background:linear-gradient(90deg, #444, #666); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        🪙 จ่าย 1,000 Gold
                     </button>
                 </div>
 
                 <!-- Premium Pack -->
-                <div style="background: linear-gradient(135deg, rgba(60,20,80,0.8), rgba(30,10,50,0.9)); border: 1px solid rgba(180,50,255,0.5); border-radius: 15px; padding: 20px; text-align:center; box-shadow: 0 0 20px rgba(180,50,255,0.2); transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <h3 style="color:#d4aaff; margin-top:0; text-shadow:0 0 5px #d4aaff;">Premium Pack</h3>
-                    <div style="height:150px; background:rgba(0,0,0,0.5); border-radius:10px; margin-bottom:15px; display:flex; justify-content:center; align-items:center; border:1px solid #d4aaff; box-shadow: inset 0 0 20px rgba(180,50,255,0.3);">
-                        <span style="font-size:50px; filter: drop-shadow(0 0 10px #d4aaff);">🔮</span>
+                <div style="background: linear-gradient(180deg, rgba(60,20,80,0.9) 0%, rgba(30,10,40,0.95) 100%); border: 1px solid rgba(180,50,255,0.4); border-radius: 20px; padding: 25px; text-align:center; position:relative; overflow:hidden; box-shadow: 0 10px 40px rgba(180,50,255,0.2);">
+                    <div style="position:absolute; top:0; left:0; width:100%; height:4px; background:linear-gradient(90deg, #8e44ad, #e056fd);"></div>
+                    <h3 style="color:#e056fd; margin-top:0; font-size:22px; letter-spacing:1px; text-shadow:0 0 10px rgba(224,86,253,0.5);">PREMIUM PACK</h3>
+                    <p style="font-size:13px; color:#d4aaff; margin-top:-10px; margin-bottom:20px;">Web3 Exclusive Collection</p>
+                    
+                    <div style="height:180px; display:flex; justify-content:center; align-items:center; margin-bottom:20px; perspective: 500px;">
+                        <div style="width:120px; height:160px; background:linear-gradient(135deg, #4b0082, #8a2be2); border-radius:10px; box-shadow: 0 0 30px rgba(138,43,226,0.6), inset 0 0 20px rgba(255,255,255,0.3); position:relative; display:flex; justify-content:center; align-items:center; transform: rotateY(10deg); border: 2px solid #e056fd;">
+                            <div style="position:absolute; width:100%; height:100%; background: url('data:image/svg+xml;utf8,<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"2\" cy=\"2\" r=\"1\" fill=\"rgba(255,255,255,0.2)\"/></svg>'); opacity:0.5;"></div>
+                            <div style="width:80%; height:80%; border: 1px solid rgba(255,255,255,0.5); border-radius:5px; display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,0.2); z-index:2;">
+                                <span style="font-size:45px; filter: drop-shadow(0 0 10px #fff);">🔮</span>
+                            </div>
+                        </div>
                     </div>
-                    <p style="font-size:14px; color:#ddd; min-height:40px;">สุ่มไพ่ 5 ใบ<br><strong style="color:#d4aaff;">การันตี Rare 1 ใบ+</strong></p>
-                    <button onclick="showMockPayment('premium', '10 MATIC')" style="width:100%; padding:12px; background:linear-gradient(90deg, #8e44ad, #9b59b6); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(155,89,182,0.4);">
-                        จ่าย 10 MATIC (Crypto)
+                    
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; margin-bottom:20px; border:1px solid rgba(180,50,255,0.2);">
+                        <div style="font-size:14px; color:#ddd;">สุ่มไพ่จำนวน <b style="color:#e056fd;">5 ใบ</b></div>
+                        <div style="font-size:12px; color:#d4aaff; margin-top:5px; font-weight:bold;">⭐ การันตีระดับ Rare 1 ใบขึ้นไป</div>
+                    </div>
+                    
+                    <button onclick="showMockPayment('premium', '10 MATIC')" style="width:100%; padding:15px; background:linear-gradient(90deg, #8e44ad, #e056fd); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 20px rgba(224,86,253,0.4); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        🦊 จ่าย 10 MATIC (Crypto)
                     </button>
                 </div>
 
                 <!-- God Pack -->
-                <div style="background: linear-gradient(135deg, rgba(80,60,10,0.8), rgba(40,30,5,0.9)); border: 1px solid rgba(255,215,0,0.6); border-radius: 15px; padding: 20px; text-align:center; box-shadow: 0 0 20px rgba(255,215,0,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <div style="position:absolute; top:-10px; right:-10px; background:#f00; color:#fff; font-size:12px; font-weight:bold; padding:5px 10px; border-radius:10px; transform:rotate(15deg); box-shadow:0 0 10px #f00;">HOT!</div>
-                    <h3 style="color:var(--gold); margin-top:0; text-shadow:0 0 5px var(--gold);">God Pack</h3>
-                    <div style="height:150px; background:rgba(0,0,0,0.5); border-radius:10px; margin-bottom:15px; display:flex; justify-content:center; align-items:center; border:1px solid var(--gold); box-shadow: inset 0 0 20px rgba(255,215,0,0.4);">
-                        <span style="font-size:60px; filter: drop-shadow(0 0 15px var(--gold));">✨</span>
+                <div style="background: linear-gradient(180deg, rgba(80,60,10,0.9) 0%, rgba(40,30,5,0.95) 100%); border: 1px solid rgba(255,215,0,0.5); border-radius: 20px; padding: 25px; text-align:center; position:relative; overflow:hidden; box-shadow: 0 10px 40px rgba(255,215,0,0.2);">
+                    <div style="position:absolute; top:20px; right:-30px; background:#ff0000; color:#fff; font-size:12px; font-weight:bold; padding:5px 40px; transform:rotate(45deg); box-shadow:0 0 15px #ff0000; letter-spacing:2px; z-index:5;">BEST VALUE</div>
+                    <div style="position:absolute; top:0; left:0; width:100%; height:4px; background:linear-gradient(90deg, #f1c40f, #f39c12);"></div>
+                    <h3 style="color:var(--gold); margin-top:0; font-size:22px; letter-spacing:1px; text-shadow:0 0 10px rgba(255,215,0,0.5);">GOD PACK</h3>
+                    <p style="font-size:13px; color:#f1c40f; margin-top:-10px; margin-bottom:20px;">Divine Collection</p>
+                    
+                    <div style="height:180px; display:flex; justify-content:center; align-items:center; margin-bottom:20px; perspective: 500px;">
+                        <div style="width:120px; height:160px; background:linear-gradient(135deg, #b8860b, #ffd700); border-radius:10px; box-shadow: 0 0 40px rgba(255,215,0,0.6), inset 0 0 20px rgba(255,255,255,0.5); position:relative; display:flex; justify-content:center; align-items:center; transform: rotateY(-5deg) scale(1.05); border: 2px solid #fff;">
+                            <div style="position:absolute; width:100%; height:100%; background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.8) 50%, transparent 60%); background-size: 200% 200%; animation: shine 3s infinite;"></div>
+                            <div style="width:80%; height:80%; border: 2px solid rgba(255,255,255,0.8); border-radius:5px; display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,0.1); z-index:2;">
+                                <span style="font-size:50px; filter: drop-shadow(0 0 15px #fff);">⚡</span>
+                            </div>
+                        </div>
                     </div>
-                    <p style="font-size:14px; color:#ddd; min-height:40px;">สุ่มไพ่ 5 ใบ<br><strong style="color:var(--gold);">การันตี Epic 1 ใบ+</strong></p>
-                    <button onclick="showMockPayment('god', '150 THB')" style="width:100%; padding:12px; background:linear-gradient(90deg, #d35400, #e67e22); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(230,126,34,0.4);">
-                        จ่าย 150 บาท (PromptPay/Card)
+                    
+                    <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:10px; margin-bottom:20px; border:1px solid rgba(255,215,0,0.3);">
+                        <div style="font-size:14px; color:#ddd;">สุ่มไพ่จำนวน <b style="color:var(--gold);">5 ใบ</b></div>
+                        <div style="font-size:12px; color:var(--gold); margin-top:5px; font-weight:bold;">🌟 การันตีระดับ Epic 1 ใบขึ้นไป</div>
+                    </div>
+                    
+                    <button onclick="showMockPayment('god', '150 THB')" style="width:100%; padding:15px; background:linear-gradient(90deg, #d35400, #f39c12); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 20px rgba(243,156,18,0.5); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        💳 จ่าย 150 บาท (พร้อมเพย์/บัตร)
                     </button>
                 </div>
                 
@@ -1828,6 +1879,10 @@
     </div>
 
     <style>
+        @keyframes shine {
+            0% { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
         @keyframes gacha-pop {
             0% { transform: scale(0) rotateY(-180deg); opacity:0; }
             50% { transform: scale(1.2) rotateY(10deg); opacity:1; }
