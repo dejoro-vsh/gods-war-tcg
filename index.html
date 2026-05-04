@@ -225,7 +225,8 @@
                 <h3 style="margin:0 0 10px 0; color:var(--gold);">🎒 คลังสมบัติส่วนตัว</h3>
                 <div style="font-size:12px; color:#aaa; margin-bottom:10px;">ช่องเก็บการ์ดแยกตามฝ่าย (ฝ่ายละ 150 ช่อง)</div>
                 <button id="btn-claim-starter" onclick="claimStarterDeck()" style="background: linear-gradient(90deg, #2ecc71, #27ae60); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; margin-bottom:10px; display:none; box-shadow: 0 4px 15px rgba(46,204,113,0.4);">📦 รับไพ่ Starter Deck (140 ใบ)</button>
-                <button id="btn-view-inventory" onclick="openInventory()" style="background: linear-gradient(90deg, #FFD700, #FFA500); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(255,215,0,0.4);">🔍 เปิดดูคลังสมบัติ</button>
+                <button id="btn-view-inventory" onclick="openInventory()" style="background: linear-gradient(90deg, #FFD700, #FFA500); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(255,215,0,0.4); margin-bottom:10px;">🔍 เปิดดูคลังสมบัติ</button>
+                <button id="btn-view-codex" onclick="openCodex()" style="background: linear-gradient(90deg, #3498db, #2980b9); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(52,152,219,0.4);">📖 คลังความรู้ (สารานุกรมเกม)</button>
             </div>
             
             <button onclick="logout()" style="margin-top:5px; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid var(--red); cursor: pointer; font-weight: bold; width: 100%; background: rgba(255,0,0,0.1); color: var(--red);">🚪 ออกจากระบบ (Logout)</button>
@@ -1911,6 +1912,70 @@
         }
     </script>
     
+    <!-- Codex Modal -->
+    <div id="codex-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9000;flex-direction:column;align-items:center;padding-top:50px;color:white;overflow-y:auto;">
+        <h1 style="color:var(--gold);text-shadow:0 0 15px var(--gold);margin-bottom:20px;">📖 คลังความรู้แห่งทวยเทพ</h1>
+        
+        <div style="display:flex;gap:10px;margin-bottom:20px;">
+            <button onclick="showCodexTab('rules')" style="padding:10px 20px;background:var(--blue);color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">📜 กติกาการเล่น</button>
+            <button onclick="showCodexTab('skills')" style="padding:10px 20px;background:var(--purple);color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">⚡ คำศัพท์ / สกิล</button>
+            <button onclick="showCodexTab('web3')" style="padding:10px 20px;background:var(--gold);color:black;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">💎 ระบบ Web3 & NFT</button>
+        </div>
+
+        <div id="codex-content" style="background:#222;border:1px solid #444;border-radius:10px;padding:30px;width:90%;max-width:800px;text-align:left;line-height:1.6;font-size:16px;box-shadow:0 0 20px rgba(0,0,0,0.5);margin-bottom:30px;">
+            <!-- Content injected via JS -->
+        </div>
+        
+        <button onclick="closeCodex()" style="margin-bottom:50px;padding:12px 30px;font-size:18px;background:#555;color:white;border:none;border-radius:30px;cursor:pointer;">❌ ปิดหน้าต่าง</button>
+    </div>
+
+    <script>
+        function openCodex() {
+            document.getElementById('codex-modal').style.display = 'flex';
+            showCodexTab('rules');
+        }
+        function closeCodex() {
+            document.getElementById('codex-modal').style.display = 'none';
+        }
+        function showCodexTab(tab) {
+            const content = document.getElementById('codex-content');
+            if (tab === 'rules') {
+                content.innerHTML = `
+                    <h2 style="color:var(--gold);border-bottom:1px solid #444;padding-bottom:10px;">กติกาพื้นฐาน (Basic Rules)</h2>
+                    <p><strong>เป้าหมายของเกม:</strong> โจมตีผู้นำ (Leader) ของศัตรูให้พลังชีวิต (HP) ลดเหลือ 0 เพื่อเป็นผู้ชนะ</p>
+                    <ul style="margin-left:20px;color:#ccc;">
+                        <li><strong>เริ่มต้นเกม:</strong> ผู้เล่นจะได้รับ Essence (มานา) ตามเทิร์น เช่น เทิร์นแรกได้ 1 แต้ม, เทิร์นที่สองได้ 3 แต้ม, สูงสุดที่ 10 แต้ม</li>
+                        <li><strong>การลงการ์ด:</strong> คุณต้องจ่าย Essence เท่ากับ Cost ของการ์ดใบนั้นๆ (ตัวเลขมุมซ้ายบน) เพื่อนำการ์ดลงสนาม</li>
+                        <li><strong>การโจมตี:</strong> ทหารที่เพิ่งลงสนามจะต้องรอ 1 เทิร์นถึงจะโจมตีได้ (ยกเว้นมีสกิล Rush) เมื่อโจมตี ทหารตัวนั้นจะติดสถานะพัก (Rest / ตัวเอียง)</li>
+                        <li><strong>การป้องกัน (Block):</strong> คุณไม่สามารถเลือกเป้าหมายเป็นทหารที่ยืนปกติได้ (โจมตีได้แค่ทหารที่ติดสถานะ Rest หรือผู้นำเท่านั้น) ยกเว้นทหารฝั่งคุณมีสกิล Block ซึ่งจะบังคับให้ศัตรูต้องโจมตีตัว Block ก่อนเสมอ</li>
+                    </ul>
+                `;
+            } else if (tab === 'skills') {
+                content.innerHTML = `
+                    <h2 style="color:var(--purple);border-bottom:1px solid #444;padding-bottom:10px;">พจนานุกรมสกิล (Keywords Glossary)</h2>
+                    <ul style="margin-left:20px;color:#ccc;list-style-type:none;padding:0;">
+                        <li style="margin-bottom:15px;"><strong style="color:#ff6b6b;">Rush (จู่โจมฉับพลัน):</strong> สามารถโจมตีได้ทันทีในเทิร์นที่ลงสนาม ไม่ต้องรอ</li>
+                        <li style="margin-bottom:15px;"><strong style="color:#4ecdc4;">Block (ป้องกัน):</strong> ทำหน้าที่เป็นโล่ ศัตรูจะต้องโจมตีการ์ดใบนี้ก่อนเสมอ จะข้ามไปตีผู้นำหรือตัวอื่นไม่ได้</li>
+                        <li style="margin-bottom:15px;"><strong style="color:#ffe66d;">Evade (หลบหลีก):</strong> สามารถหลบการโจมตีหรือการทำลายได้ 1 ครั้ง (เหมือนมีโล่บาเรียคุ้มกัน 1 ที)</li>
+                        <li style="margin-bottom:15px;"><strong style="color:#c7ecee;">Draw (จั่วการ์ด):</strong> เมื่อลงการ์ดใบนี้ จะได้จั่วการ์ดจากกองเพิ่มตามจำนวนที่ระบุ</li>
+                        <li style="margin-bottom:15px;"><strong style="color:#ff9ff3;">Heal (รักษา):</strong> ฟื้นฟูพลังชีวิต (HP) ให้กับผู้นำของคุณตามจำนวนที่ระบุ (สูงสุด 5)</li>
+                        <li style="margin-bottom:15px;"><strong style="color:#feca57;">Board Wipe (ล้างบาง):</strong> เวทมนตร์ทำลายล้างกวาดทหารของศัตรูบนสนามทิ้งทั้งหมด!</li>
+                    </ul>
+                `;
+            } else if (tab === 'web3') {
+                content.innerHTML = `
+                    <h2 style="color:var(--blue);border-bottom:1px solid #444;padding-bottom:10px;">ระบบ Web3 และ NFT</h2>
+                    <p>เกม Gods War TCG ให้คุณเป็นเจ้าของการ์ดที่คุณเปิดได้หรือหลอมรวมได้อย่างแท้จริง (True Ownership) โดยการดึงการ์ดขึ้นไปเก็บไว้บน Blockchain</p>
+                    <ul style="margin-left:20px;color:#ccc;">
+                        <li><strong>วิธีการ Mint:</strong> เข้าไปที่หน้า "คลังสมบัติ" คลิกที่การ์ดระดับ Epic ขึ้นไปที่คุณต้องการ และกดปุ่ม "Mint to Web3"</li>
+                        <li><strong>ฟรีค่าธรรมเนียม (Gasless):</strong> ระบบของเราจ่ายค่าธรรมเนียมในการอัปโหลดแทนคุณ คุณเพียงแค่ยืนยันลายเซ็นดิจิทัลผ่านเซิร์ฟเวอร์ของเราเท่านั้น</li>
+                        <li><strong>ความปลอดภัยสูงสุด:</strong> ตัวเกมใช้เทคโนโลยี <em>Signature Verification</em> เพื่อป้องกันการเสกการ์ดเถื่อน แฮกเกอร์ไม่สามารถขโมยหรือเสกการ์ดซ้ำได้</li>
+                    </ul>
+                `;
+            }
+        }
+    </script>
+
     <!-- Level Up Modal -->
     <div id="levelup-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9000;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;">
         <h1 style="color:var(--gold);font-size:48px;text-shadow:0 0 20px var(--gold);margin-bottom:10px;animation: glow 2s infinite alternate;">🎉 LEVEL UP! 🎉</h1>
