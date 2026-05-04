@@ -1955,9 +1955,10 @@
                 data.cards.forEach(c => playerStats.inventory.push(c));
 
                 container.innerHTML = "";
+                const allGlobalCards = [...chinaCards, ...greekCards];
                 data.cards.forEach((cardData, index) => {
                     setTimeout(() => {
-                        let baseCard = allCards.find(c => c.name === cardData.card_name);
+                        let baseCard = allGlobalCards.find(c => c.name === cardData.card_name);
                         if(baseCard) {
                             let visualGrade = cardData.grade;
                             let visualStyle = cardData.style;
