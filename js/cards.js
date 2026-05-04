@@ -241,3 +241,5 @@ const CardDatabase = {
 
 // Expose to global scope for index.html to use
 window.CardDatabase = CardDatabase;
+
+if (typeof module !== 'undefined' && module.exports) { module.exports = CardDatabase; }

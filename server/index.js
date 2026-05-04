@@ -11,6 +11,15 @@ app.use(express.json());
 
 // Setup Web3 & Supabase (from Environment Variables)
 const supabase = createClient(process.env.SUPABASE_URL || "https://dummy.supabase.co", process.env.SUPABASE_KEY || "dummy");
+
+// Load Card Database for Validation
+let CardDatabase = null;
+try {
+    CardDatabase = require('../js/cards.js');
+} catch(e) {
+    console.log("Could not load cards.js locally, validation might be limited.");
+}
+
 let contract = null;
 let web3Error = "Unknown error";
 try {
@@ -79,7 +88,8 @@ io.on('connection', (socket) => {
                 socket2.join(roomId);
 
                 rooms[roomId] = {
-                    p1, p2,
+                    p1: { ...p1, hp: 5, ess: 1, maxEss: 1, field: [], leaderRest: false },
+                    p2: { ...p2, hp: 5, ess: 0, maxEss: 0, field: [], leaderRest: false },
                     turn: p1.id, // P1 starts first
                     state: 'playing'
                 };
@@ -101,9 +111,95 @@ io.on('connection', (socket) => {
     socket.on('playerAction', (actionData) => {
         for (const roomId in rooms) {
             const room = rooms[roomId];
-            if (room.p1.id === socket.id || room.p2.id === socket.id) {
-                const opponentId = room.p1.id === socket.id ? room.p2.id : room.p1.id;
-                io.to(opponentId).emit('opponentAction', actionData);
+            const isP1 = room.p1.id === socket.id;
+            const isP2 = room.p2.id === socket.id;
+            
+            if (isP1 || isP2) {
+                const player = isP1 ? room.p1 : room.p2;
+                const opponent = isP1 ? room.p2 : room.p1;
+                
+                // --- SERVER-SIDE VALIDATION ---
+                // 1. Validate Turn
+                if (room.turn !== socket.id && actionData.type !== 'leave') {
+                    console.log(`[CHEAT] Player ${socket.id} acted out of turn.`);
+                    socket.emit('actionRejected', { error: 'ยังไม่ใช่เทิร์นของคุณ!' });
+                    return;
+                }
+
+                // 2. Validate Actions
+                if (actionData.type === 'endTurn') {
+                    room.turn = opponent.id;
+                    if (opponent.maxEss === 0) {
+                        opponent.maxEss = 2; // P2 turn 1 gets 2 maxEss
+                    } else {
+                        opponent.maxEss = Math.min(10, opponent.maxEss + 2);
+                    }
+                    opponent.ess = opponent.maxEss;
+                    opponent.field.forEach(c => c.isRest = false);
+                    opponent.leaderRest = false;
+                    
+                } else if (actionData.type === 'playCard') {
+                    const card = actionData.card;
+                    if (player.ess < card.cost) {
+                        console.log(`[CHEAT] Player ${socket.id} played card without enough essence.`);
+                        socket.emit('actionRejected', { error: 'Essence ไม่พอ!' });
+                        return;
+                    }
+                    player.ess -= card.cost;
+                    if (card.type !== 'event' && card.type !== 'stage') {
+                        card.isRest = !(card.skills && card.skills.includes('rush'));
+                        player.field.push(card);
+                    }
+                    
+                } else if (actionData.type === 'attack') {
+                    let attacker;
+                    if (actionData.attackerType === 'leader') {
+                        if (player.leaderRest) {
+                            socket.emit('actionRejected', { error: 'Leader โจมตีไปแล้ว!' });
+                            return;
+                        }
+                        attacker = { name: "Leader", atk: 5000, isRest: false };
+                    } else {
+                        attacker = player.field[actionData.attackerIdx];
+                        if (!attacker || attacker.isRest) {
+                            socket.emit('actionRejected', { error: 'ทหารโจมตีไปแล้ว หรือไม่มีอยู่จริง!' });
+                            return;
+                        }
+                    }
+
+                    // Target
+                    let target;
+                    if (actionData.targetType === 'leader') {
+                        target = { hp: opponent.hp };
+                    } else {
+                        target = opponent.field[actionData.targetIdx];
+                        if (!target) {
+                            socket.emit('actionRejected', { error: 'เป้าหมายไม่มีอยู่จริง!' });
+                            return;
+                        }
+                    }
+                    
+                    // Apply combat results to shadow state
+                    if (actionData.targetType === 'leader') {
+                        opponent.hp--;
+                    } else {
+                        // For simplicity, we assume attack always kills target if valid (unless evade, handled below)
+                        if (target.skills && target.skills.includes('evade')) {
+                            target.skills = target.skills.filter(s => s !== 'evade'); // Remove evade locally
+                        } else {
+                            opponent.field.splice(actionData.targetIdx, 1);
+                        }
+                    }
+                    
+                    if (actionData.attackerType === 'leader') {
+                        player.leaderRest = true;
+                    } else {
+                        attacker.isRest = true;
+                    }
+                }
+
+                // If valid, broadcast to opponent
+                io.to(opponent.id).emit('opponentAction', actionData);
                 break;
             }
         }

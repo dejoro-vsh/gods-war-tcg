@@ -1299,6 +1299,12 @@
                     }
                 });
 
+                socket.on('actionRejected', (data) => {
+                    alert("เซิร์ฟเวอร์ปฏิเสธการกระทำ: " + data.error);
+                    console.error("Action Rejected:", data.error);
+                    // Sync state could be added here later
+                });
+
                 socket.on('opponentDisconnected', () => {
                     if (isGameFinished) return; // Do not alert if game naturally ended
                     isGameFinished = true;
