@@ -17,7 +17,7 @@ try {
     if (process.env.ALCHEMY_URL && process.env.PRIVATE_KEY) {
         const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_URL);
         const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-        const CONTRACT_ADDRESS = "0xfE6b96aA8DE0E30eed2a624074Ac2390bDBe9562";
+        const CONTRACT_ADDRESS = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
         const CONTRACT_ABI = ["function serverMint(address to, uint256 id, uint256 amount) public"];
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
         console.log("Web3 Contract Initialized!");

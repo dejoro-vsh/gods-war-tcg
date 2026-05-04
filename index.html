@@ -2417,7 +2417,7 @@
                 // 2. Call Smart Contract
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
-                const CONTRACT_ADDRESS = "0xfE6b96aA8DE0E30eed2a624074Ac2390bDBe9562"; // Placeholder, needs updating
+                const CONTRACT_ADDRESS = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
                 const abi = ["function playerMint(uint256 id, uint256 nonce, bytes memory signature) public"];
                 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, signer);
 
