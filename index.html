@@ -511,7 +511,7 @@
                 playerId = data.user.id;
                 safeSetLocal('godswar_player_id', playerId);
             }
-            loadPlayerData("Guest");
+            await loadPlayerData("Guest");
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('faction-selection').style.display = 'flex';
         }
@@ -565,7 +565,11 @@
                 let { data: pData, error: pErr } = await dbClient.from('players').select('*').eq('id', playerId).single();
                 
                 if (!pData) {
-                    const { data: newPData } = await dbClient.from('players').insert([{ id: playerId, username: uname }]).select().single();
+                    const { data: newPData, error: insErr } = await dbClient.from('players').upsert([{ id: playerId, username: uname }], { onConflict: 'id' }).select().single();
+                    if (insErr) {
+                        console.error("Insert Player Error:", insErr);
+                        alert("Error inserting player: " + insErr.message);
+                    }
                     pData = newPData;
                 }
                 if (pData) {
