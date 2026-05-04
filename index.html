@@ -2527,6 +2527,9 @@
                     switchInventoryTab(currentInvTab);
                 }
                 
+                btn.innerHTML = '🗑️ ทำลายไพ่นี้ (เพิ่มที่ว่าง)';
+                btn.disabled = false;
+                
                 alert("ทำลายไพ่สำเร็จ! พื้นที่คลังสมบัติเพิ่มขึ้น 1 ช่อง");
             } catch (err) {
                 console.error("Error destroying card:", err);
