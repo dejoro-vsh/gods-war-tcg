@@ -688,6 +688,138 @@ app.post('/api/craft/ascend', async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+// API: Record Match Result & Process Level Up
+app.post('/api/match/result', async (req, res) => {
+    try {
+        const { playerId, win, kills, heals, playTime } = req.body;
+        if (!playerId) return res.status(400).json({ error: "Missing player ID." });
+
+        const { data: player, error: fetchErr } = await supabase.from('players')
+            .select('*').eq('id', playerId).single();
+            
+        if (fetchErr || !player) return res.status(404).json({ error: "Player not found." });
+
+        let w = player.win_count || 0;
+        let l = player.loss_count || 0;
+        let g = player.gold || 0;
+        let k = (player.kills || 0) + (kills || 0);
+        let h = (player.heals || 0) + (heals || 0);
+        let pt = (player.play_time_seconds || 0) + (playTime || 0);
+        
+        g += win ? 50 : 10;
+        let xp = (player.exp || 0) + (win ? 100 : 25);
+        let lvl = player.level || 1;
+        
+        const oldLvl = lvl;
+        let levelsGained = 0;
+        
+        while (xp >= Math.floor(100 * Math.pow(lvl, 1.5))) {
+            xp -= Math.floor(100 * Math.pow(lvl, 1.5));
+            lvl++;
+            levelsGained++;
+        }
+
+        if (win) w++; else l++;
+        
+        let rewardDrops = [];
+        let totalBonusGold = 0;
+        
+        // Process Level Up Rewards
+        if (levelsGained > 0) {
+            const styles = ['original', 'disney', 'pixar', 'anime', 'bishounen'];
+            const chinaCards = ["Wukong", "Guan Yu", "Nezha", "Zhu Bajie", "Erlang", "Hou Yi", "Qilin", "Mazu", "Jade Emperor", "Meditation", "Divine Elixir", "Nuwa's Flood", "Heavenly Court"];
+            const greekCards = ["Achilles", "Ares", "Hercules", "Valkyrie", "Spartan", "Poseidon", "Pegasus", "Medusa", "Zeus", "Oracle's Vision", "Ambrosia", "Zeus's Wrath", "Mount Olympus"];
+            const allCardsNames = [...chinaCards, ...greekCards];
+
+            for (let currentLvl = oldLvl + 1; currentLvl <= lvl; currentLvl++) {
+                let goldReward = 0;
+                let numCards = 0;
+                let rates = { Normal: 0, Rare: 0, Epic: 0, Legendary: 0, Mythic: 0 };
+                let guarantees = [];
+
+                if (currentLvl >= 2 && currentLvl <= 4) {
+                    goldReward = 150; numCards = 1; rates = { Normal: 0.9, Rare: 1 };
+                } else if (currentLvl === 5) {
+                    goldReward = 500; numCards = 2; rates = { Normal: 0.8, Rare: 0.8, Epic: 1 }; guarantees = ['Rare'];
+                } else if (currentLvl >= 6 && currentLvl <= 9) {
+                    goldReward = 200; numCards = 2; rates = { Normal: 0.8, Rare: 1 };
+                } else if (currentLvl === 10) {
+                    goldReward = 1000; numCards = 3; rates = { Rare: 0.8, Epic: 1 }; guarantees = ['Epic'];
+                } else if (currentLvl >= 11 && currentLvl <= 19) {
+                    goldReward = 300; numCards = 3; rates = { Normal: 0.6, Rare: 0.95, Epic: 1 };
+                } else if (currentLvl === 20) {
+                    goldReward = 2500; numCards = 5; rates = { Rare: 0.8, Epic: 1 }; guarantees = ['Legendary'];
+                } else if (currentLvl >= 21 && currentLvl <= 29) {
+                    goldReward = 500; numCards = 5; rates = { Normal: 0.4, Rare: 0.9, Epic: 1 };
+                } else if (currentLvl === 30) {
+                    goldReward = 5000; numCards = 7; rates = { Epic: 0.8, Legendary: 1 }; guarantees = ['Mythic'];
+                } else if (currentLvl >= 31 && currentLvl <= 49) {
+                    goldReward = 800; numCards = 7; rates = { Rare: 0.7, Epic: 0.95, Legendary: 1 };
+                } else if (currentLvl >= 50) {
+                    goldReward = 10000; numCards = 10; rates = { Epic: 0.5, Legendary: 1 }; guarantees = ['Mythic', 'Mythic'];
+                }
+
+                totalBonusGold += goldReward;
+
+                for (let i = 0; i < numCards; i++) {
+                    const cardName = allCardsNames[Math.floor(Math.random() * allCardsNames.length)];
+                    const faction = chinaCards.includes(cardName) ? 'china' : 'greek';
+                    const style = styles[Math.floor(Math.random() * styles.length)];
+
+                    let grade = 'Normal';
+                    if (guarantees.length > 0) {
+                        grade = guarantees.pop();
+                    } else {
+                        const roll = Math.random();
+                        let cumulative = 0;
+                        for (const [g, prob] of Object.entries(rates)) {
+                            cumulative += prob;
+                            if (roll <= cumulative) { grade = g; break; }
+                        }
+                    }
+
+                    rewardDrops.push({
+                        player_id: playerId,
+                        card_name: cardName,
+                        grade: grade,
+                        style: style,
+                        faction: faction,
+                        is_free: true,
+                        is_overflow: true // Level up rewards go to overflow to prevent capacity issues
+                    });
+                }
+            }
+        }
+        
+        g += totalBonusGold;
+
+        // Update Player Stats
+        const { error: updErr } = await supabase.from('players')
+            .update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl, gold: g })
+            .eq('id', playerId);
+            
+        if (updErr) return res.status(500).json({ error: "Failed to update stats." });
+
+        // Insert Reward Drops
+        if (rewardDrops.length > 0) {
+            const { error: insErr } = await supabase.from('player_inventory').insert(rewardDrops);
+            if (insErr) console.error("LevelUp Insert Error:", insErr);
+        }
+
+        res.json({
+            success: true,
+            levelUp: levelsGained > 0,
+            newLevel: lvl,
+            bonusGold: totalBonusGold,
+            cards: rewardDrops,
+            newGoldTotal: g,
+            newExp: xp
+        });
+    } catch (e) {
+        console.error("Match Result Error:", e);
+        res.status(500).json({ error: e.message });
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

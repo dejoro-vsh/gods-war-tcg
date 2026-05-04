@@ -1130,6 +1130,66 @@
             playSound('sfx-magic');
         }
 
+        async function recordGameResult(win, k, h, pt) {
+            if (!playerId) return;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+            try {
+                const res = await fetch(serverUrl + '/api/match/result', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId, win, kills: k, heals: h, playTime: pt })
+                });
+                
+                const data = await res.json();
+                if (data.success && data.levelUp) {
+                    showLevelUpModal(data.newLevel, data.bonusGold, data.cards);
+                }
+            } catch(e) {
+                console.error("Failed to update stats:", e);
+            }
+        }
+
+        function showLevelUpModal(level, gold, cards) {
+            document.getElementById('levelup-lvl').innerText = level;
+            document.getElementById('levelup-gold').innerText = gold;
+            const container = document.getElementById('levelup-cards');
+            container.innerHTML = '';
+            
+            cards.forEach((c, idx) => {
+                setTimeout(() => {
+                    let borderStyle = "border: 2px solid #555; background: #222;";
+                    let color = "#aaa";
+                    if (c.grade === 'Rare') { borderStyle = "border: 2px solid var(--blue); background: #1a2a40; box-shadow: 0 0 10px var(--blue);"; color = "var(--blue)"; }
+                    if (c.grade === 'Epic') { borderStyle = "border: 2px solid var(--purple); background: #2a1a40; box-shadow: 0 0 15px var(--purple);"; color = "var(--purple)"; }
+                    if (c.grade === 'Legendary') { borderStyle = "border: 2px solid var(--gold); background: #403010; box-shadow: 0 0 20px var(--gold);"; color = "var(--gold)"; }
+                    if (c.grade === 'Mythic') { borderStyle = "border: 2px solid var(--red); background: #401010; box-shadow: 0 0 30px var(--red);"; color = "var(--red)"; }
+
+                    // We need base cards to get cost
+                    let base = baseCards.find(bc => bc.name === c.card_name) || { cost: '-' };
+                    let imgSrc = `./assets/images/${c.faction}_${c.card_name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}_${c.style}.png`;
+                    let imgFallback = `./assets/images/${c.faction}_${c.card_name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}.png`;
+
+                    const html = `
+                        <div class="card stacked-card" style="${borderStyle} animation: popIn 0.5s ease-out; margin: 0; position: relative;">
+                            <div class="cost-val">${base.cost}</div>
+                            <img src="${imgSrc}" onerror="this.onerror=null; this.src='${imgFallback}';">
+                            <div style="position:absolute;top:2px;right:2px;background:#000;color:${color};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>
+                        </div>
+                    `;
+                    container.innerHTML += html;
+                    playSound('sfx-magic'); // optional if sound exists
+                }, idx * 400); // Reveal one by one
+            });
+            
+            document.getElementById('levelup-modal').style.display = 'flex';
+        }
+
+        function closeLevelUpModal() {
+            document.getElementById('levelup-modal').style.display = 'none';
+            location.reload();
+        }
+
         function playSound(id) {
             let s = document.getElementById(id);
             if(s) { 
@@ -1192,38 +1252,6 @@
         let currentRoomId = null;
         let isMultiplayer = false;
         let isGameFinished = false;
-
-        async function recordGameResult(win, kills, heals, playTime) {
-            if (!playerId || !dbClient) return;
-            try {
-                const { data } = await dbClient.from('players').select('win_count, loss_count, kills, heals, play_time_seconds, exp, level, gold').eq('id', playerId).single();
-                if (data) {
-                    let w = data.win_count || 0;
-                    let l = data.loss_count || 0;
-                    let k = (data.kills || 0) + kills;
-                    let h = (data.heals || 0) + heals;
-                    let pt = (data.play_time_seconds || 0) + playTime;
-                    
-                    let earnedGold = win ? 50 : 10;
-                    let g = (data.gold || 0) + earnedGold;
-                    
-                    let xp = (data.exp || 0) + (win ? 100 : 25);
-                    let lvl = data.level || 1;
-                    
-                    let maxExp = Math.floor(100 * Math.pow(lvl, 1.5));
-                    while (xp >= maxExp) {
-                        xp -= maxExp;
-                        lvl++;
-                        maxExp = Math.floor(100 * Math.pow(lvl, 1.5));
-                    }
-
-                    if (win) w++; else l++;
-                    await dbClient.from('players').update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl, gold: g }).eq('id', playerId);
-                }
-            } catch(e) {
-                console.error("Failed to save stats", e);
-            }
-        }
 
         function findMatch() {
             document.getElementById('btn-start-p').style.display = 'none';
@@ -1882,6 +1910,24 @@
             }
         }
     </script>
+    
+    <!-- Level Up Modal -->
+    <div id="levelup-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9000;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;">
+        <h1 style="color:var(--gold);font-size:48px;text-shadow:0 0 20px var(--gold);margin-bottom:10px;animation: glow 2s infinite alternate;">🎉 LEVEL UP! 🎉</h1>
+        <h2 style="margin-bottom:20px;">คุณบรรลุเลเวล <span id="levelup-lvl" style="color:var(--gold);font-size:48px;font-weight:bold;"></span></h2>
+        
+        <div style="background:rgba(255,215,0,0.1);border:1px solid var(--gold);border-radius:10px;padding:15px 30px;margin-bottom:20px;box-shadow:0 0 10px rgba(255,215,0,0.2);">
+            <p style="font-size:24px;margin:0;">💰 ได้รับทอง: <span id="levelup-gold" style="color:var(--gold);font-weight:bold;">0</span></p>
+        </div>
+        
+        <h3 style="margin-top: 10px; margin-bottom: 20px;">ไพ่รางวัลของคุณ:</h3>
+        <div id="levelup-cards" style="display:flex;flex-wrap:wrap;gap:15px;justify-content:center;margin-top:10px;max-width:90%;max-height:50vh;overflow-y:auto;padding:20px;">
+            <!-- Cards appended here -->
+        </div>
+        
+        <button onclick="closeLevelUpModal()" style="margin-top:30px;padding:15px 50px;font-size:22px;background:var(--gold);color:#000;border:none;border-radius:30px;cursor:pointer;font-weight:bold;box-shadow:0 0 15px var(--gold);transition: transform 0.2s;">รับรางวัลเข้าคลังสมบัติ</button>
+    </div>
+
     <!-- Card Detail Modal -->
     <div id="card-detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:5000; justify-content:center; align-items:center; padding:20px;">
         <div style="background:var(--bg); border:2px solid var(--gold); border-radius:15px; padding:20px; width:100%; max-width:350px; text-align:center; position:relative; box-shadow: 0 0 20px rgba(212,175,55,0.5);">
