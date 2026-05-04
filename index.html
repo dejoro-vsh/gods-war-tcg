@@ -2078,6 +2078,9 @@
 
         async function claimOverflowCards() {
             try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                
                 const res = await fetch(`${serverUrl}/api/inventory/claim-overflow`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2285,6 +2288,9 @@
             document.getElementById('btn-ascend').innerText = 'กำลังหลอมรวม...';
             
             try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                
                 const res = await fetch(`${serverUrl}/api/craft/ascend`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
