@@ -271,15 +271,15 @@
                 <span style="color:#ff6b81; font-size:12px;">* ต้องใช้การ์ดหน้าเดียวกันเท่านั้น</span>
             </div>
 
-            <div style="display:flex; flex:1; gap:15px; overflow:hidden;">
+            <div style="display:flex; flex:1; gap:15px; flex-wrap:wrap; overflow-y:auto; padding-bottom:10px;">
                 <!-- Left: Inventory to select from -->
-                <div style="flex:2; border: 1px solid #444; border-radius: 10px; padding: 10px; display:flex; flex-direction:column;">
+                <div style="flex:1 1 300px; min-height:300px; border: 1px solid #444; border-radius: 10px; padding: 10px; display:flex; flex-direction:column;">
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <select id="craft-faction-filter" onchange="renderCraftingInventory()" style="background:#333; color:white; border:none; padding:5px; border-radius:5px;">
+                        <select id="craft-faction-filter" onchange="renderCraftingInventory()" style="background:#333; color:white; border:none; padding:5px; border-radius:5px; flex:1;">
                             <option value="china">ฝ่ายจีน</option>
                             <option value="greek">ฝ่ายกรีก</option>
                         </select>
-                        <select id="craft-grade-filter" onchange="renderCraftingInventory()" style="background:#333; color:white; border:none; padding:5px; border-radius:5px;">
+                        <select id="craft-grade-filter" onchange="renderCraftingInventory()" style="background:#333; color:white; border:none; padding:5px; border-radius:5px; flex:1;">
                             <option value="Normal">Normal</option>
                             <option value="Rare">Rare</option>
                             <option value="Epic">Epic</option>
@@ -292,7 +292,7 @@
                 </div>
 
                 <!-- Right: Ascension Altar -->
-                <div style="flex:1; border: 1px dashed #e056fd; border-radius: 10px; padding: 10px; display:flex; flex-direction:column; align-items:center; background: radial-gradient(circle at center, rgba(155,89,182,0.2) 0%, transparent 70%);">
+                <div style="flex:1 1 250px; min-height:400px; border: 1px dashed #e056fd; border-radius: 10px; padding: 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; background: radial-gradient(circle at center, rgba(155,89,182,0.2) 0%, transparent 70%);">
                     <h3 style="color:#e056fd; margin-top:0;">แท่นบูชายัญ</h3>
                     <div id="craft-slots" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:20px; min-height: 120px;">
                         <!-- Selected cards go here -->
@@ -2175,10 +2175,8 @@
             
             const fac = document.getElementById('craft-faction-filter').value;
             const inv = playerStats.inventory || [];
-            const availableCards = inv.filter(c => !c.is_overflow && c.faction === fac && c.grade === grade && c.card_name === cardName && !craftSelectedIds.includes(c.id));
+            const availableCards = inv.filter(c => !c.is_overflow && c.faction === fac && c.grade === grade && c.card_name === cardName);
             
-            if(availableCards.length === 0) return; // No more cards of this type to select
-
             let reqCount = 0;
             let nextGrade = '';
             if(grade === 'Normal') { reqCount = 4; nextGrade = 'Rare'; }
@@ -2186,21 +2184,23 @@
             else if(grade === 'Epic') { reqCount = 3; nextGrade = 'Legendary'; }
             else if(grade === 'Legendary') { reqCount = 2; nextGrade = 'Mythic'; }
             
-            if(craftSelectedIds.length >= reqCount) return; // Already maxed out
+            if(availableCards.length < reqCount) {
+                alert(`ต้องการไพ่ระดับ ${grade} จำนวน ${reqCount} ใบเพื่อเลื่อนขั้น`);
+                return;
+            }
             
             craftTargetCardName = cardName;
             craftTargetGrade = grade;
-            craftSelectedIds.push(availableCards[0].id);
+            craftSelectedIds = availableCards.slice(0, reqCount).map(c => c.id);
             
             updateCraftingAltar();
         }
 
         function deselectCard(id) {
-            craftSelectedIds = craftSelectedIds.filter(i => i !== id);
-            if(craftSelectedIds.length === 0) {
-                craftTargetCardName = null;
-                craftTargetGrade = null;
-            }
+            // Deselecting one means deselecting all for simplicity
+            craftSelectedIds = [];
+            craftTargetCardName = null;
+            craftTargetGrade = null;
             updateCraftingAltar();
         }
 
