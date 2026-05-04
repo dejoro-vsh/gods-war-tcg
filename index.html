@@ -795,7 +795,7 @@
                 
                 let c = applyGradeModifiers(baseCard, invCard.grade, invCard.style, invCard.is_free);
                 
-                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
                 grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}" onclick="showCardDetailModal('${c.name.replace(/'/g, "\\'")}', '${c.grade}', '${c.style}', ${c.is_free}, '${c.img}', '${c.img_fallback}', '${invCard.id}', ${invCard.is_minted})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
@@ -1801,7 +1801,7 @@
                 if (c.type === 'stage') badges += `<div class="tag tag-stage">STAGE</div>`;
                 if (c.skills && c.skills.includes('rush')) badges += `<div class="tag tag-rush">RUSH</div>`;
                 
-                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
                 ph.innerHTML += `<div class="card" style="${borderStyle}" onclick="playCard(${i})">
                     <div class="cost-val">${c.cost}</div><img src="${c.img}">
@@ -2351,7 +2351,7 @@
             let previewC = applyGradeModifiers(baseCard, nextGrade, 'original', false);
             let borderStyle = `border-color:${previewC.gradeColor}; box-shadow: 0 0 10px ${previewC.gradeColor};`;
             if(nextGrade === 'Mythic') {
-                borderStyle = `border: 2px solid transparent; background: ${previewC.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 15px rgba(255,255,255,0.8);`;
+                borderStyle = `border: 2px solid ${previewC.gradeColor}; box-shadow: 0 0 15px ${previewC.gradeColor}, inset 0 0 10px ${previewC.gradeColor}; animation: pulse 2s infinite;`;
             }
             
             document.getElementById('craft-result-preview').innerHTML = `
