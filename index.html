@@ -854,7 +854,6 @@
                 
                 document.getElementById('cd-type').innerText = c.type === 'warrior' ? 'นักรบ' : (c.type === 'event' ? 'เวทมนตร์' : 'สนาม/สเตจ');
                 document.getElementById('cd-atk').innerText = c.atk || '-';
-                document.getElementById('cd-style').innerText = c.style.toUpperCase();
                 
                 let tradeEl = document.getElementById('cd-trade');
                 if (isFree) {
@@ -877,15 +876,50 @@
                 
                 let effectBox = document.getElementById('cd-effect-box');
                 let effectDesc = document.getElementById('cd-effect-desc');
+                
+                const skillTranslations = {
+                    'rush': '• โจมตีได้ทันทีในเทิร์นที่ลง (Rush)',
+                    'on_play:draw_1': '• ลงการ์ดใบนี้: จั่วไพ่ 1 ใบ',
+                    'snipe': '• โจมตีข้ามตัวบล็อกได้ (Snipe)',
+                    'on_play:buff_all': '• ลงการ์ดใบนี้: เพิ่มพลังโจมตี +500 ให้การ์ดฝ่ายเราทุกใบ',
+                    'pierce': '• ดาเมจส่วนเกินจะทะลวงเข้าพลังชีวิตผู้เล่นโดยตรง (Pierce)',
+                    'on_play:stun': '• ลงการ์ดใบนี้: สตั้นการ์ดเป้าหมาย 1 เทิร์น',
+                    'evade': '• หลบหลีกการโจมตีได้ (1 ครั้ง)',
+                    'blocker': '• ป้องกันการโจมตีให้ผู้เล่นได้ (Blocker)'
+                };
+                const effectTranslations = {
+                    'draw_2': '• จั่วไพ่ 2 ใบ',
+                    'heal_1': '• ฟื้นฟูพลังชีวิตผู้เล่น 1 หน่วย',
+                    'heal_2': '• ฟื้นฟูพลังชีวิตผู้เล่น 2 หน่วย',
+                    'board_wipe': '• ทำลายการ์ดบนสนามทั้งหมด',
+                    'ai_summon': '• สุ่มเรียกการ์ดนักรบลงสนาม 1 ใบ',
+                    'destroy_weak': '• ทำลายการ์ดที่มีพลังโจมตีน้อยที่สุดของศัตรู'
+                };
+                
+                let skillsTranslated = [];
+                if (c.skills && c.skills.length > 0) {
+                    c.skills.forEach(s => {
+                        skillsTranslated.push(skillTranslations[s] || '• ' + s);
+                    });
+                }
+                let effectTranslated = c.effect ? (effectTranslations[c.effect] || '• ' + c.effect) : '';
+
                 let skillsText = '';
-                if (c.skills && c.skills.length > 0) skillsText += c.skills.join(', ');
-                if (c.effect) skillsText += (skillsText ? ' | ' : '') + c.effect;
+                if (skillsTranslated.length > 0) skillsText += skillsTranslated.join('<br>');
+                if (effectTranslated) skillsText += (skillsText ? '<br>' : '') + effectTranslated;
                 
                 if (skillsText) {
-                    effectDesc.innerText = skillsText;
+                    effectDesc.innerHTML = skillsText;
                     effectBox.style.display = 'block';
                 } else {
                     effectBox.style.display = 'none';
+                }
+                
+                let destroyBox = document.getElementById('cd-destroy-box');
+                if (isFree) {
+                    destroyBox.style.display = 'block';
+                } else {
+                    destroyBox.style.display = 'none';
                 }
                 
                 document.getElementById('card-detail-modal').style.display = 'flex';
@@ -1872,6 +1906,10 @@
             <div id="cd-mint-box" style="margin-top: 15px; display:none;">
                 <button id="btn-mint-web3" onclick="mintToWeb3()" style="background: linear-gradient(90deg, #d4af37, #ff8c00); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(212,175,55,0.4); text-shadow: 0 1px 2px rgba(255,255,255,0.5);">💎 Mint to Web3</button>
             </div>
+            
+            <div id="cd-destroy-box" style="margin-top: 10px; display:none;">
+                <button id="btn-destroy-card" onclick="destroyFreeCard()" style="background: #e74c3c; border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 10px rgba(231,76,60,0.4);">🗑️ ทำลายไพ่นี้ (เพิ่มที่ว่าง)</button>
+            </div>
         </div>
     </div>
 
@@ -2453,6 +2491,51 @@
                 btn.style.cursor = 'pointer';
             }
         }
+        async function destroyFreeCard() {
+            if (!activeInventoryId) return;
+            if (!confirm("คุณต้องการทำลายไพ่ใบนี้เพื่อเพิ่มพื้นที่ในคลังสมบัติใช่หรือไม่? (การกระทำนี้ไม่สามารถย้อนกลับได้)")) return;
+            
+            const btn = document.getElementById('btn-destroy-card');
+            const origText = btn.innerHTML;
+            btn.innerHTML = 'กำลังทำลาย...';
+            btn.disabled = true;
+            
+            try {
+                // Check if card exists and is actually free
+                const targetCard = playerStats.inventory.find(c => c.id === activeInventoryId);
+                if (!targetCard || !targetCard.is_free) {
+                    alert("ไพ่นี้ไม่สามารถทำลายได้");
+                    btn.innerHTML = origText;
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Delete from Supabase if online
+                if (playerId && dbClient) {
+                    const { error } = await dbClient.from('player_inventory').delete().eq('id', activeInventoryId).eq('player_id', playerId);
+                    if (error) throw error;
+                }
+                
+                // Remove locally
+                playerStats.inventory = playerStats.inventory.filter(c => c.id !== activeInventoryId);
+                
+                // Hide modal
+                document.getElementById('card-detail-modal').style.display = 'none';
+                
+                // Refresh inventory
+                if (document.getElementById('inventory-screen').style.display === 'flex') {
+                    switchInventoryTab(currentInvTab);
+                }
+                
+                alert("ทำลายไพ่สำเร็จ! พื้นที่คลังสมบัติเพิ่มขึ้น 1 ช่อง");
+            } catch (err) {
+                console.error("Error destroying card:", err);
+                alert("เกิดข้อผิดพลาดในการทำลายไพ่");
+                btn.innerHTML = origText;
+                btn.disabled = false;
+            }
+        }
+
         async function mintToWeb3() {
             if (!activeInventoryId) return;
             const btn = document.getElementById('btn-mint-web3');
