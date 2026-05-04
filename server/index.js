@@ -225,6 +225,72 @@ app.post('/api/mint', async (req, res) => {
     }
 });
 
+// API: Request Mint Signature (Hybrid Minting)
+app.post('/api/mint/signature', async (req, res) => {
+    try {
+        const { playerId, inventoryId, walletAddress } = req.body;
+        if (!playerId || !inventoryId || !walletAddress) return res.status(400).json({ error: "Missing parameters." });
+
+        if (!process.env.PRIVATE_KEY) {
+            return res.status(500).json({ error: "Server missing private key for signing." });
+        }
+
+        // Verify ownership and rarity
+        const { data: card, error: fetchErr } = await supabase.from('player_inventory')
+            .select('*').eq('id', inventoryId).eq('player_id', playerId).single();
+
+        if (fetchErr || !card) return res.status(400).json({ error: "Card not found or not owned by you." });
+        
+        if (card.is_minted) return res.status(400).json({ error: "This card has already been minted." });
+
+        const allowedGrades = ['Epic', 'Legendary', 'Mythic'];
+        if (!allowedGrades.includes(card.grade)) {
+            return res.status(400).json({ error: "Only Epic, Legendary, and Mythic cards can be minted to Web3." });
+        }
+
+        // Generate signature
+        const nftId = 1; // Example standard ERC1155 ID
+        const nonce = card.id; // Use inventory ID as a unique nonce to prevent replay attacks
+
+        // Hash the message identically to Solidity: keccak256(abi.encodePacked(msg.sender, id, nonce))
+        const messageHash = ethers.solidityPackedKeccak256(
+            ["address", "uint256", "uint256"],
+            [walletAddress, nftId, nonce]
+        );
+        
+        // Sign the hash (ethers automatically applies the Ethereum Signed Message prefix)
+        const wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
+        const signature = await wallet.signMessage(ethers.getBytes(messageHash));
+
+        res.json({ success: true, signature, nftId, nonce });
+    } catch (err) {
+        console.error("Signature Error:", err);
+        res.status(500).json({ error: "Failed to generate signature: " + err.message });
+    }
+});
+
+// API: Confirm Mint Success
+app.post('/api/mint/confirm', async (req, res) => {
+    try {
+        const { playerId, inventoryId, txHash } = req.body;
+        if (!playerId || !inventoryId || !txHash) return res.status(400).json({ error: "Missing parameters." });
+
+        // Ideally, we should verify the txHash on the blockchain to ensure it was successful.
+        // For now, we trust the client and update the database.
+        
+        const { error: updErr } = await supabase.from('player_inventory')
+            .update({ is_minted: true })
+            .eq('id', inventoryId).eq('player_id', playerId);
+
+        if (updErr) return res.status(500).json({ error: "Failed to update mint status." });
+
+        res.json({ success: true, message: "Mint successful!" });
+    } catch (err) {
+        console.error("Confirm Error:", err);
+        res.status(500).json({ error: "Confirmation failed: " + err.message });
+    }
+});
+
 // API: Buy Gacha Pack (Mock Payment & RNG Engine)
 app.post('/api/shop/buy-pack-mock', async (req, res) => {
     try {
