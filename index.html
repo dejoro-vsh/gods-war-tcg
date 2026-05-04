@@ -1669,6 +1669,10 @@
         }
 
         function playCard(idx) {
+            if (!isPlayerTurn) {
+                addLog(`⏳ ยังไม่ใช่เทิร์นของคุณ`);
+                return;
+            }
             let card = pHand[idx];
             if (card.type !== 'event' && card.type !== 'stage' && pField.length >= 5) return;
             if (pEss < card.cost) return;
