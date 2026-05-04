@@ -2095,7 +2095,7 @@
                             if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                             
                             // Scale down to 1.1 for mobile so 5 cards fit better
-                            let cardHtml = `<div class="card" style="${borderStyle} transform:scale(1.1); margin:10px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
+                            let cardHtml = `<div class="card" style="${borderStyle} width:110px; height:154px; margin:10px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
                             
                             let wrapper = document.createElement('div');
                             wrapper.innerHTML = cardHtml;
@@ -2127,7 +2127,13 @@
         }
 
         function closeGacha() {
-            document.getElementById('gacha-reveal-screen').style.display = 'none';
+            document.getElementById('gacha-result-screen').style.display = 'none';
+        }
+
+        function buyPackAgain() {
+            if (!lastGachaPackType) return;
+            document.getElementById('gacha-result-screen').style.display = 'none';
+            executeGacha(lastGachaPackType);
         }
         // CRAFTING & OVERFLOW LOGIC
         let craftSelectedIds = [];
