@@ -730,6 +730,25 @@ app.post('/api/craft/ascend', async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+// API: Leaderboard (Top 50 by Level then Wins)
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('players')
+            .select('username, level, win_count, avatar')
+            .order('level', { ascending: false })
+            .order('win_count', { ascending: false })
+            .limit(50);
+            
+        if (error) throw error;
+        
+        res.json({ success: true, leaderboard: data });
+    } catch (e) {
+        console.error("Leaderboard fetch error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // API: Record Match Result & Process Level Up
 app.post('/api/match/result', async (req, res) => {
     try {
