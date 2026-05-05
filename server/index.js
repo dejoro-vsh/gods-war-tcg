@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -18,6 +19,11 @@ try {
     CardDatabase = require('../js/cards.js');
 } catch(e) {
     console.log("Could not load cards.js locally, validation might be limited.");
+}
+
+function getNftId(cardName, grade) {
+    const hash = crypto.createHash('md5').update(cardName + "_" + grade).digest('hex');
+    return parseInt(hash.substring(0, 8), 16);
 }
 
 let contract = null;
@@ -387,7 +393,7 @@ app.post('/api/mint/signature', async (req, res) => {
         }
 
         // Generate signature
-        const nftId = 1; // Example standard ERC1155 ID
+        const nftId = getNftId(card.card_name, card.grade);
         // Convert UUID to a uint256 compatible hex string
         const nonce = "0x" + card.id.replace(/-/g, "");
 
@@ -406,6 +412,55 @@ app.post('/api/mint/signature', async (req, res) => {
         console.error("Signature Error:", err);
         res.status(500).json({ error: "Failed to generate signature: " + err.message });
     }
+});
+
+// API: Metadata for OpenSea
+app.get('/api/metadata/:id', (req, res) => {
+    const id = parseInt(req.params.id.replace('.json', ''));
+    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+
+    if (!CardDatabase) {
+        return res.status(500).json({ error: "Card database not loaded" });
+    }
+
+    const allCards = [...CardDatabase.chinaCards, ...CardDatabase.greekCards];
+    const grades = ['Epic', 'Legendary', 'Mythic'];
+    
+    let matchedCard = null;
+    let matchedGrade = null;
+
+    for (const card of allCards) {
+        for (const grade of grades) {
+            if (getNftId(card.name, grade) === id) {
+                matchedCard = card;
+                matchedGrade = grade;
+                break;
+            }
+        }
+        if (matchedCard) break;
+    }
+
+    if (!matchedCard) {
+        return res.status(404).json({ error: "Metadata not found for this Token ID" });
+    }
+
+    const baseUrl = "https://dejoro-vsh.github.io/gods-war-tcg";
+    const imageUrl = baseUrl + matchedCard.img.replace('./', '/');
+
+    const metadata = {
+        name: `${matchedCard.name} (${matchedGrade})`,
+        description: `A ${matchedGrade} grade ${matchedCard.faction} ${matchedCard.type} card from Gods War TCG.`,
+        image: imageUrl,
+        attributes: [
+            { trait_type: "Faction", value: matchedCard.faction },
+            { trait_type: "Grade", value: matchedGrade },
+            { trait_type: "Type", value: matchedCard.type },
+            { trait_type: "Attack", value: matchedCard.atk || 0 },
+            { trait_type: "Cost", value: matchedCard.cost || 0 }
+        ]
+    };
+
+    res.json(metadata);
 });
 
 // API: Confirm Mint Success
