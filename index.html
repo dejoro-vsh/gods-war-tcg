@@ -27,10 +27,11 @@
 
         /* Battlefield - พื้นที่หลักสำหรับการเล่น */
         .battlefield { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; background: radial-gradient(circle at center, #200 0%, #0a0a0a 100%); overflow: hidden; }
-        .field-zone { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; min-height: 140px; width: 100%; border: 1px solid rgba(255,215,0,0.05); border-radius: 12px; padding: 5px; }
+        .field-zone { display: flex; flex-wrap: nowrap; gap: 0; justify-content: center; align-items: center; min-height: 140px; width: 100%; border: 1px solid rgba(255,215,0,0.05); border-radius: 12px; padding: 5px; overflow: visible; }
 
         /* Card System - ปรับขนาดให้เหมาะกับจอเล็ก (ขนาดปกติสำหรับบนมือและเด็ค) */
-        .card { width: 88px; height: 125px; border: 2px solid var(--gold); border-radius: 8px; background: #111; position: relative; cursor: pointer; transition: 0.1s; flex-shrink: 0; }
+        .card { width: 88px; height: 125px; border: 2px solid var(--gold); border-radius: 8px; background: #111; position: relative; cursor: pointer; transition: transform 0.2s, margin 0.3s, z-index 0s; flex-shrink: 0; }
+        .card:hover, .card:active { transform: translateY(-15px) scale(1.15) !important; z-index: 100 !important; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
         .card img { width: 100%; height: 55%; object-fit: cover; border-radius: 6px 6px 0 0; }
         .rest { transform: rotate(90deg) scale(0.85) !important; filter: brightness(0.4); }
         
@@ -1881,10 +1882,18 @@
 
             const pf = document.getElementById('p-units'); pf.innerHTML = '';
             pField.forEach((c, i) => {
+                let overlapMargin = '0px';
+                if (i > 0) {
+                    if (pField.length >= 6) overlapMargin = '-55px';
+                    else if (pField.length === 5) overlapMargin = '-40px';
+                    else if (pField.length === 4) overlapMargin = '-25px';
+                    else overlapMargin = '8px';
+                }
+                
                 let isSelectedAttack = selected && selected.idx === i;
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
-                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="${borderStyle}" onclick="onAttack('warrior', ${i})">
+                pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="${borderStyle} margin-left:${overlapMargin}; z-index:${i};" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}
                     ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
@@ -1892,9 +1901,17 @@
 
             const ef = document.getElementById('e-units'); ef.innerHTML = '';
             eField.forEach((c, i) => {
+                let overlapMargin = '0px';
+                if (i > 0) {
+                    if (eField.length >= 6) overlapMargin = '-55px';
+                    else if (eField.length === 5) overlapMargin = '-40px';
+                    else if (eField.length === 4) overlapMargin = '-25px';
+                    else overlapMargin = '8px';
+                }
+                
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
-                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="${borderStyle}" onclick="onTarget('warrior', ${i})">
+                ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="${borderStyle} margin-left:${overlapMargin}; z-index:${i};" onclick="onTarget('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
                     ${c.type==='blocker'?'<div class="tag tag-blocker">BLOCK</div>':''}
                     ${c.grade && c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
