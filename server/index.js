@@ -465,7 +465,8 @@ app.get('/api/metadata/:id', (req, res) => {
         return res.status(404).json({ error: "Metadata not found for this Token ID" });
     }
 
-    const baseUrl = "https://dejoro-vsh.github.io/gods-war-tcg";
+    // Point directly to the raw GitHub files since GitHub Pages might not be active or paths might differ
+    const baseUrl = "https://raw.githubusercontent.com/dejoro-vsh/gods-war-tcg/main";
     const imageUrl = baseUrl + matchedCard.img.replace('./', '/');
 
     const metadata = {
