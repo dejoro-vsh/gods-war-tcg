@@ -2010,7 +2010,7 @@
             
             <div style="display:flex; gap:10px;">
                 <button onclick="closeEditProfile()" style="flex:1; padding:10px; background:#555; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">ยกเลิก</button>
-                <button id="btn-save-profile" onclick="saveProfile()" style="flex:1; padding:10px; background:var(--gold); color:black; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">บันทึก</button>
+                <button id="btn-save-profile" onclick="saveProfile()" style="flex:1; padding:10px; background:var(--gold); color:black; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">บันทึก (ใช้ 200 💰)</button>
             </div>
         </div>
     </div>
@@ -2061,6 +2061,19 @@
                 return;
             }
             
+            let isNameChanged = newUsername !== uname;
+            let isAvatarChanged = selectedAvatarFile !== null;
+            if (!isNameChanged && !isAvatarChanged) {
+                closeEditProfile();
+                return;
+            }
+
+            if (playerStats.gold < 200) {
+                status.innerText = "ทองไม่พอ! ต้องใช้ 200 ทองในการอัปเดตข้อมูล";
+                status.style.color = "var(--red)";
+                return;
+            }
+            
             btn.disabled = true;
             btn.innerText = "กำลังบันทึก...";
             status.innerText = "กำลังอัปโหลดข้อมูล...";
@@ -2089,10 +2102,13 @@
                     avatarUrl = publicUrlData.publicUrl;
                 }
                 
+                let newGold = playerStats.gold - 200;
+                
                 // Update players table
                 const { error: updErr } = await dbClient.from('players').update({
                     username: newUsername,
-                    avatar: avatarUrl
+                    avatar: avatarUrl,
+                    gold: newGold
                 }).eq('id', playerId);
                 
                 if (updErr) throw new Error("อัปเดตชื่อไม่สำเร็จ: " + updErr.message);
@@ -2101,17 +2117,22 @@
                 document.getElementById('prof-name').innerText = newUsername;
                 document.getElementById('prof-avatar').src = avatarUrl;
                 uname = newUsername;
+                playerStats.gold = newGold;
+                document.getElementById('prof-gold').innerText = newGold;
                 
                 status.innerText = "บันทึกสำเร็จ!";
                 status.style.color = "var(--green)";
-                setTimeout(closeEditProfile, 1000);
+                setTimeout(() => {
+                    closeEditProfile();
+                    btn.disabled = false;
+                    btn.innerText = "บันทึก (ใช้ 200 💰)";
+                }, 1000);
                 
             } catch (err) {
                 status.innerText = err.message;
                 status.style.color = "var(--red)";
-            } finally {
                 btn.disabled = false;
-                btn.innerText = "บันทึก";
+                btn.innerText = "บันทึก (ใช้ 200 💰)";
             }
         }
     </script>
