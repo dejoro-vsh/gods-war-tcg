@@ -440,6 +440,12 @@ app.get('/api/metadata/:id', (req, res) => {
         if (matchedCard) break;
     }
 
+    // Fallback for cards minted before deterministic ID generation (which defaulted to ID 1)
+    if (!matchedCard && id === 1) {
+        matchedCard = allCards[0] || { name: "Gods War Card", faction: "unknown", type: "warrior", img: "./assets/images/card_back.png" };
+        matchedGrade = "Epic";
+    }
+
     if (!matchedCard) {
         return res.status(404).json({ error: "Metadata not found for this Token ID" });
     }
