@@ -914,7 +914,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}" onclick="showCardDetailModal('${c.name.replace(/'/g, "\\'")}', '${c.grade}', '${c.style}', ${c.is_free}, '${c.img}', '${c.img_fallback}', '${invCard.id}', ${invCard.is_minted})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}" onclick="showCardDetailModal('${c.name.replace(/'/g, "\\'")}', '${c.grade}', '${c.style}', ${c.is_free}, '${c.img}', '${c.img_fallback}', '${invCard.id}', ${invCard.is_minted}, '${invCard.nft_id || ''}')"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
             
             // Render Empty Slots
@@ -949,11 +949,13 @@
         }
 
         let activeInventoryId = null;
+        let activeNFTId = null;
 
         // --- MODAL LOGIC ---
-        function showCardDetailModal(cardName, grade, style, isFree, imgSrc, imgFallback, inventoryId, isMinted) {
+        function showCardDetailModal(cardName, grade, style, isFree, imgSrc, imgFallback, inventoryId, isMinted, nftId) {
             try {
                 activeInventoryId = inventoryId;
+                activeNFTId = nftId;
                 let baseCards = [...chinaCards, ...greekCards];
                 let base = baseCards.find(c => c.name === cardName);
                 if (!base) return;
@@ -984,10 +986,17 @@
                 }
 
                 let mintBox = document.getElementById('cd-mint-box');
+                let openseaBox = document.getElementById('cd-opensea-box');
                 if (!isFree && !isMinted && (grade === 'Epic' || grade === 'Legendary' || grade === 'Mythic')) {
                     mintBox.style.display = 'block';
                 } else {
                     mintBox.style.display = 'none';
+                }
+
+                if (isMinted) {
+                    openseaBox.style.display = 'block';
+                } else {
+                    openseaBox.style.display = 'none';
                 }
                 
                 let effectBox = document.getElementById('cd-effect-box');
@@ -2346,6 +2355,10 @@
                 <button id="btn-mint-web3" onclick="mintToWeb3()" style="background: linear-gradient(90deg, #d4af37, #ff8c00); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(212,175,55,0.4); text-shadow: 0 1px 2px rgba(255,255,255,0.5);">💎 Mint to Web3</button>
             </div>
             
+            <div id="cd-opensea-box" style="margin-top: 15px; display:none;">
+                <button id="btn-sell-opensea" onclick="sellOnOpenSea()" style="background: linear-gradient(90deg, #2081E2, #1562b3); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(32,129,226,0.4);">⛵ Trade on OpenSea</button>
+            </div>
+            
             <div id="cd-destroy-box" style="margin-top: 10px; display:none;">
                 <button id="btn-destroy-card" onclick="destroyFreeCard()" style="background: #e74c3c; border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 10px rgba(231,76,60,0.4);">🗑️ ทำลายไพ่นี้ (เพิ่มที่ว่าง)</button>
             </div>
@@ -3029,6 +3042,15 @@
                 btn.innerHTML = origText;
                 btn.disabled = false;
             }
+        }
+
+        function sellOnOpenSea() {
+            const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
+            let url = `https://opensea.io/assets/matic/${contractAddress}`;
+            if (activeNFTId) {
+                url += `/${activeNFTId}`;
+            }
+            window.open(url, '_blank');
         }
 
         async function mintToWeb3() {
