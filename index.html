@@ -1191,7 +1191,8 @@
                     if (c.grade === 'Mythic') { borderStyle = "border: 2px solid var(--red); background: #401010; box-shadow: 0 0 30px var(--red);"; color = "var(--red)"; }
 
                     // We need base cards to get cost
-                    let base = baseCards.find(bc => bc.name === c.card_name) || { cost: '-' };
+                    let allBaseCards = [...chinaCards, ...greekCards];
+                    let base = allBaseCards.find(bc => bc.name === c.card_name) || { cost: '-' };
                     let imgSrc = `./assets/images/${c.faction}_${c.card_name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}_${c.style}.png`;
                     let imgFallback = `./assets/images/${c.faction}_${c.card_name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}.png`;
 
