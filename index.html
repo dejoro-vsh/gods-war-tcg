@@ -1882,7 +1882,7 @@
             const pf = document.getElementById('p-units'); pf.innerHTML = '';
             pField.forEach((c, i) => {
                 let isSelectedAttack = selected && selected.idx === i;
-                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
                 pf.innerHTML += `<div id="p-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${isSelectedAttack?'is-attacking':''}" style="${borderStyle}" onclick="onAttack('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-cost">⚔️ ${c.atkCost}</div><div class="badge atk-val">${c.atk}</div>
@@ -1892,7 +1892,7 @@
 
             const ef = document.getElementById('e-units'); ef.innerHTML = '';
             eField.forEach((c, i) => {
-                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid transparent; background: ${c.gradeColor} border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; box-shadow: 0 0 10px rgba(255,255,255,0.5);` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
+                let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : (c.grade && c.grade !== 'Normal') ? `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};` : `border-color:${c.faction==='china'?'var(--red)':'var(--blue)'}`;
                 
                 ef.innerHTML += `<div id="e-unit-${i}" class="card ${c.is_free ? 'free-card' : ''} ${c.isRest?'rest':''} ${selected && c.isRest?'is-targetable':''}" style="${borderStyle}" onclick="onTarget('warrior', ${i})">
                     <img src="${c.img}"><div class="badge atk-val">${c.atk}</div>
