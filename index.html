@@ -3044,13 +3044,26 @@
             }
         }
 
-        function sellOnOpenSea() {
+        async function sellOnOpenSea() {
             const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
-            let url = `https://opensea.io/assets/matic/${contractAddress}`;
             if (activeNFTId) {
-                url += `/${activeNFTId}`;
+                const url = `https://opensea.io/assets/matic/${contractAddress}/${activeNFTId}`;
+                window.open(url, '_blank');
+            } else {
+                // If we don't have the exact ID in the database, send them to their OpenSea profile
+                try {
+                    if (typeof window.ethereum !== 'undefined') {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        if (accounts.length > 0) {
+                            window.open(`https://opensea.io/${accounts[0]}`, '_blank');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Wallet access denied", e);
+                }
+                window.open('https://opensea.io/account', '_blank');
             }
-            window.open(url, '_blank');
         }
 
         async function mintToWeb3() {
