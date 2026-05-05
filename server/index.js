@@ -457,8 +457,8 @@ app.get('/api/metadata/:id', (req, res) => {
 
     // Fallback for cards minted before deterministic ID generation (which defaulted to ID 1)
     if (!matchedCard && id === 1) {
-        matchedCard = allCards[0] || { name: "Gods War Card", faction: "unknown", type: "warrior", img: "./assets/images/card_back.png" };
-        matchedGrade = "Epic";
+        matchedCard = allCards.find(c => c.name === "Divine Elixir") || allCards[0];
+        matchedGrade = "Mythic";
     }
 
     if (!matchedCard) {
