@@ -1375,7 +1375,7 @@
             socket.emit('joinQueue', {
                 faction: pFaction,
                 deck: activeDeck,
-                username: "Player" // Can be fetched from Supabase later
+                username: typeof uname !== 'undefined' ? uname : (playerStats ? playerStats.username : "Player")
             });
         }
 
@@ -1459,6 +1459,10 @@
             document.getElementById('start-buttons').style.display = 'none';
             document.getElementById('end-btn').style.display = 'block';
             pOrder = first ? 1 : 2; isPlayerTurn = first;
+            
+            // Set UI Names
+            document.getElementById('p-leader-name-ui').innerText = typeof uname !== 'undefined' ? uname : (playerStats ? playerStats.username : "Player");
+            document.getElementById('e-leader-name-ui').innerText = "บอท (AI)";
             
             // Load user's custom deck based on faction
             let activeDeck = pFaction === 'china' ? customDeckChina : customDeckGreek;
