@@ -683,13 +683,21 @@
             loading.style.display = 'block';
             
             try {
-                const response = await fetch('/api/leaderboard');
-                const data = await response.json();
+                if (!dbClient) throw new Error("Database client not initialized");
+                
+                const { data: leaderboardData, error } = await dbClient
+                    .from('players')
+                    .select('username, level, win_count, avatar')
+                    .order('level', { ascending: false })
+                    .order('win_count', { ascending: false })
+                    .limit(50);
+                    
+                if (error) throw error;
                 
                 loading.style.display = 'none';
                 
-                if (data.success && data.leaderboard) {
-                    data.leaderboard.forEach((player, index) => {
+                if (leaderboardData && leaderboardData.length > 0) {
+                    leaderboardData.forEach((player, index) => {
                         let rank = index + 1;
                         let borderStyle = "border: 1px solid #444; background: #222;";
                         let rankTrophy = `#${rank}`;
