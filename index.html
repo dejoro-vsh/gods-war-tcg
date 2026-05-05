@@ -1943,6 +1943,9 @@
             
             if(msg !== "") {
                 isGameFinished = true;
+                if (isMultiplayer && typeof socket !== 'undefined') {
+                    socket.emit('matchEnded', { roomId: currentRoomId });
+                }
                 document.getElementById('bgm-battle').pause();
                 playSound(win ? 'bgm-win' : 'bgm-lose');
                 

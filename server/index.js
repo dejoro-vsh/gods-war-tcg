@@ -46,6 +46,10 @@ const io = new Server(server, {
     cors: {
         origin: "*", 
         methods: ["GET", "POST"]
+    },
+    connectionStateRecovery: {
+        maxDisconnectionDuration: 2 * 60 * 1000,
+        skipMiddlewares: true,
     }
 });
 
@@ -53,7 +57,22 @@ let queue = [];
 let rooms = {};
 
 io.on('connection', (socket) => {
-    console.log(`[+] Player connected: ${socket.id}`);
+    if (socket.recovered) {
+        console.log(`[+] Player recovered: ${socket.id}`);
+        // Clear disconnect timeout if they were in a room
+        for (const roomId in rooms) {
+            const room = rooms[roomId];
+            if (room.p1.id === socket.id || room.p2.id === socket.id) {
+                if (room.disconnectTimeout) {
+                    clearTimeout(room.disconnectTimeout);
+                    room.disconnectTimeout = null;
+                    console.log(`[ROOM] Cleared disconnect timeout for ${roomId}`);
+                }
+            }
+        }
+    } else {
+        console.log(`[+] Player connected: ${socket.id}`);
+    }
 
     // Handle Matchmaking
     socket.on('joinQueue', (playerData) => {
@@ -205,6 +224,12 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('matchEnded', (data) => {
+        if (data && data.roomId && rooms[data.roomId]) {
+            rooms[data.roomId].isFinished = true;
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log(`[-] Player disconnected: ${socket.id}`);
         // Remove from queue
@@ -214,10 +239,27 @@ io.on('connection', (socket) => {
         for (const roomId in rooms) {
             const room = rooms[roomId];
             if (room.p1.id === socket.id || room.p2.id === socket.id) {
+                if (room.isFinished) {
+                    delete rooms[roomId];
+                    console.log(`[ROOM] Destroyed ${roomId} gracefully after match end`);
+                    break;
+                }
+                
+                // Set a grace period for reconnection
                 const opponentId = room.p1.id === socket.id ? room.p2.id : room.p1.id;
-                io.to(opponentId).emit('opponentDisconnected');
-                delete rooms[roomId];
-                console.log(`[ROOM] Destroyed ${roomId} due to disconnect`);
+                
+                if (room.disconnectTimeout) {
+                    clearTimeout(room.disconnectTimeout);
+                }
+                
+                room.disconnectTimeout = setTimeout(() => {
+                    if (rooms[roomId]) {
+                        io.to(opponentId).emit('opponentDisconnected');
+                        delete rooms[roomId];
+                        console.log(`[ROOM] Destroyed ${roomId} due to disconnect timeout`);
+                    }
+                }, 15000);
+                
                 break;
             }
         }
