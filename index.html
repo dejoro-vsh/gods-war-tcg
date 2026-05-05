@@ -2547,11 +2547,11 @@
             document.getElementById('mock-payment-modal').style.display = 'none';
             
             if (packType === 'buy_gold_3000') {
-                if (!dbClient) return alert("Database connection error");
+                if (!dbClient || !playerId) return alert("Database connection error");
                 document.getElementById('shop-gold-display').innerText = "...";
                 try {
                     let newGold = (playerStats.gold || 0) + 3000;
-                    const { error } = await dbClient.from('players').update({ gold: newGold }).eq('id', playerStats.id);
+                    const { error } = await dbClient.from('players').update({ gold: newGold }).eq('id', playerId);
                     if (error) throw error;
                     
                     playerStats.gold = newGold;
