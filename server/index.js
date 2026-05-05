@@ -414,6 +414,21 @@ app.post('/api/mint/signature', async (req, res) => {
     }
 });
 
+// Debug endpoint
+app.get('/api/debug', (req, res) => {
+    try {
+        res.json({
+            cardDbExists: !!CardDatabase,
+            cardDbKeys: CardDatabase ? Object.keys(CardDatabase) : null,
+            cwd: process.cwd(),
+            dir: __dirname,
+            testNftId: CardDatabase ? getNftId('Wukong', 'Epic') : null
+        });
+    } catch(e) {
+        res.status(500).json({error: e.message, stack: e.stack});
+    }
+});
+
 // API: Metadata for OpenSea
 app.get('/api/metadata/:id', (req, res) => {
     const id = parseInt(req.params.id.replace('.json', ''));
