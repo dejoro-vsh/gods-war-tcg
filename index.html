@@ -1166,9 +1166,12 @@
                 const data = await res.json();
                 if (data.success && data.levelUp) {
                     showLevelUpModal(data.newLevel, data.bonusGold, data.cards);
+                    return true;
                 }
+                return false;
             } catch(e) {
                 console.error("Failed to update stats:", e);
+                return false;
             }
         }
 
@@ -1360,7 +1363,9 @@
                     isGameFinished = true;
                     alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!\nได้รับ 50 ทอง! 💰");
                     let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
-                    recordGameResult(true, matchKills, matchHeals, playTimeSeconds).then(() => location.reload());
+                    recordGameResult(true, matchKills, matchHeals, playTimeSeconds).then((didLevelUp) => {
+                        if (!didLevelUp) location.reload();
+                    });
                 });
             }
 
@@ -1955,7 +1960,9 @@
                 setTimeout(() => {
                     alert(msg);
                     let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
-                    recordGameResult(win, matchKills, matchHeals, playTimeSeconds).then(() => location.reload());
+                    recordGameResult(win, matchKills, matchHeals, playTimeSeconds).then((didLevelUp) => {
+                        if (!didLevelUp) location.reload();
+                    });
                 }, 3000);
             }
         }
