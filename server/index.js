@@ -536,7 +536,7 @@ app.post('/api/marketplace/ads', async (req, res) => {
         if (cardErr || !card) return res.status(400).json({ error: "Card not found or not owned." });
         if (!card.is_minted) return res.status(400).json({ error: "You can only advertise minted cards." });
 
-        const nftId = getNftId(card.card_name, card.grade);
+        const nftId = card.nft_id || getNftId(card.card_name, card.grade);
         const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
         const openseaUrl = `https://opensea.io/assets/polygon/${contractAddress}/${nftId}`;
 
@@ -630,14 +630,19 @@ app.get('/api/metadata/:id', (req, res) => {
 // API: Confirm Mint Success
 app.post('/api/mint/confirm', async (req, res) => {
     try {
-        const { playerId, inventoryId, txHash } = req.body;
+        const { playerId, inventoryId, txHash, nftId } = req.body;
         if (!playerId || !inventoryId || !txHash) return res.status(400).json({ error: "Missing parameters." });
 
         // Ideally, we should verify the txHash on the blockchain to ensure it was successful.
         // For now, we trust the client and update the database.
         
+        let updateData = { is_minted: true };
+        if (nftId !== undefined) {
+            updateData.nft_id = nftId.toString();
+        }
+
         const { error: updErr } = await supabase.from('player_inventory')
-            .update({ is_minted: true })
+            .update(updateData)
             .eq('id', inventoryId).eq('player_id', playerId);
 
         if (updErr) return res.status(500).json({ error: "Failed to update mint status." });

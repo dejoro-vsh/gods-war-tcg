@@ -3425,7 +3425,7 @@
                 const confRes = await fetch(`${serverUrl}/api/mint/confirm`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ playerId, inventoryId: activeInventoryId, txHash: tx.hash })
+                    body: JSON.stringify({ playerId, inventoryId: activeInventoryId, txHash: tx.hash, nftId: sigData.nftId })
                 });
                 const confData = await confRes.json();
 
