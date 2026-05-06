@@ -1066,9 +1066,31 @@ app.post('/api/match/result', async (req, res) => {
         
         g += totalBonusGold;
 
+        // Process Quests Progress
+        let quests = player.quests || {};
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (quests.daily_reset !== todayStr) {
+            quests = {
+                daily_reset: todayStr,
+                daily_wins: 0,
+                daily_kills: 0,
+                daily_games: 0,
+                claimed_daily_wins: false,
+                claimed_daily_kills: false,
+                claimed_daily_games: false
+            };
+        }
+        if (win) quests.daily_wins += 1;
+        quests.daily_kills += (kills || 0);
+        quests.daily_games += 1;
+
         // Update Player Stats
         const { error: updErr } = await supabase.from('players')
-            .update({ win_count: w, loss_count: l, kills: k, heals: h, play_time_seconds: pt, exp: xp, level: lvl, gold: g })
+            .update({ 
+                win_count: w, loss_count: l, kills: k, heals: h, 
+                play_time_seconds: pt, exp: xp, level: lvl, gold: g,
+                quests: quests
+            })
             .eq('id', playerId);
             
         if (updErr) return res.status(500).json({ error: "Failed to update stats." });
@@ -1086,10 +1108,57 @@ app.post('/api/match/result', async (req, res) => {
             bonusGold: totalBonusGold,
             cards: rewardDrops,
             newGoldTotal: g,
-            newExp: xp
+            newExp: xp,
+            quests: quests // Send back new quest status
         });
     } catch (e) {
         console.error("Match Result Error:", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// API: Claim Quest Reward
+app.post('/api/quests/claim', async (req, res) => {
+    try {
+        const { playerId, questId } = req.body;
+        if (!playerId || !questId) return res.status(400).json({ error: "Missing parameters." });
+
+        const { data: player, error: fetchErr } = await supabase.from('players').select('quests, gold').eq('id', playerId).single();
+        if (fetchErr || !player) return res.status(404).json({ error: "Player not found." });
+
+        let quests = player.quests || {};
+        let goldReward = 0;
+
+        if (questId === 'daily_wins') {
+            if (quests.daily_wins >= 3 && !quests.claimed_daily_wins) {
+                goldReward = 1500;
+                quests.claimed_daily_wins = true;
+            } else return res.status(400).json({ error: "Quest not completed or already claimed." });
+        } else if (questId === 'daily_kills') {
+            if (quests.daily_kills >= 10 && !quests.claimed_daily_kills) {
+                goldReward = 1000;
+                quests.claimed_daily_kills = true;
+            } else return res.status(400).json({ error: "Quest not completed or already claimed." });
+        } else if (questId === 'daily_games') {
+            if (quests.daily_games >= 5 && !quests.claimed_daily_games) {
+                goldReward = 2000;
+                quests.claimed_daily_games = true;
+            } else return res.status(400).json({ error: "Quest not completed or already claimed." });
+        } else {
+            return res.status(400).json({ error: "Invalid quest ID." });
+        }
+
+        const newGold = (player.gold || 0) + goldReward;
+
+        const { error: updErr } = await supabase.from('players')
+            .update({ gold: newGold, quests: quests })
+            .eq('id', playerId);
+
+        if (updErr) return res.status(500).json({ error: "Failed to update player data." });
+
+        res.json({ success: true, reward: goldReward, newGold: newGold, quests: quests });
+    } catch (e) {
+        console.error("Claim Quest Error:", e);
         res.status(500).json({ error: e.message });
     }
 });

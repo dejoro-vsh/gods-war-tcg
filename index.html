@@ -302,6 +302,21 @@
         </div>
     </div>
 
+    <!-- QUESTS MODAL -->
+    <div id="quests-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div style="width: 90%; max-width: 500px; background: linear-gradient(180deg, #2b1055, #15082b); padding: 20px; border-radius: 20px; border: 2px solid #ff7e5f; box-shadow: 0 0 30px rgba(255,126,95,0.4);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <h2 style="margin:0; color:#ffb47b; text-shadow: 0 0 10px #ff7e5f;">📜 ภารกิจประจำวัน</h2>
+                <button onclick="document.getElementById('quests-modal').style.display='none'" style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">❌</button>
+            </div>
+
+            <div id="quests-container" style="display:flex; flex-direction:column; gap:15px;">
+                <!-- Quests will be injected here via JS -->
+            </div>
+            <div style="text-align:center; margin-top:15px; font-size:12px; color:#aaa;">(ภารกิจจะรีเซ็ตทุกวันตอนเที่ยงคืน)</div>
+        </div>
+    </div>
+
     <!-- CRAFTING MODAL -->
     <div id="crafting-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
         <div style="width: 95%; max-width: 800px; height: 90vh; background: #1a0b2e; padding: 20px; border-radius: 20px; border: 2px solid #9b59b6; display: flex; flex-direction: column;">
@@ -383,6 +398,9 @@
 
         <button onclick="openProfile()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, var(--gold), #b8860b); color: black; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,215,0,0.3); font-size: 16px;">
             👤 ข้อมูลผู้เล่น & คลังสมบัติ
+        </button>
+        <button onclick="openQuests()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, #ff7e5f, #feb47b); color: white; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,126,95,0.4); font-size: 16px;">
+            📜 ภารกิจประจำวัน (Daily Quests)
         </button>
         <button onclick="openShop()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, #00f2fe, #4facfe); color: white; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(0,242,254,0.3); font-size: 16px;">
             🏪 ร้านค้าเปิดซอง (Gacha Shop)
@@ -765,6 +783,100 @@
                 loading.style.display = 'none';
                 list.innerHTML = `<div style="text-align:center; color:var(--red);">เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์</div>`;
                 console.error(err);
+            }
+        }
+
+        async function openQuests() {
+            document.getElementById('quests-modal').style.display = 'flex';
+            const container = document.getElementById('quests-container');
+            container.innerHTML = "<div style='color:white; text-align:center;'>กำลังโหลด...</div>";
+
+            if (!playerId || !dbClient) {
+                container.innerHTML = "<div style='color:red; text-align:center;'>เกิดข้อผิดพลาด กรุณาล็อกอินใหม่</div>";
+                return;
+            }
+
+            try {
+                const { data, error } = await dbClient.from('players').select('quests').eq('id', playerId).single();
+                if (error) throw error;
+                
+                let quests = data.quests || {};
+                
+                // If it's a new day, quests might not be initialized on frontend until a game is played, 
+                // but we just show 0 to be safe.
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (quests.daily_reset !== todayStr) {
+                    quests = { daily_wins: 0, daily_kills: 0, daily_games: 0, claimed_daily_wins: false, claimed_daily_kills: false, claimed_daily_games: false };
+                }
+
+                const renderQuest = (id, title, desc, current, target, reward, claimed) => {
+                    let progress = Math.min(current, target);
+                    let percent = (progress / target) * 100;
+                    let isDone = progress >= target;
+                    
+                    let btnHtml = "";
+                    if (claimed) {
+                        btnHtml = `<button disabled style="background:#555; color:#888; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">✅ รับแล้ว</button>`;
+                    } else if (isDone) {
+                        btnHtml = `<button onclick="claimQuest('${id}')" style="background:linear-gradient(90deg, #ff7e5f, #feb47b); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 0 10px rgba(255,126,95,0.5);">🎁 รับรางวัล</button>`;
+                    } else {
+                        btnHtml = `<button disabled style="background:#333; color:#aaa; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">🔒 ยังไม่สำเร็จ</button>`;
+                    }
+
+                    return `
+                        <div style="background:rgba(0,0,0,0.5); padding:15px; border-radius:12px; border:1px solid #444;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <h4 style="margin:0; color:#fff;">${title}</h4>
+                                    <div style="font-size:12px; color:#aaa; margin-top:3px;">${desc}</div>
+                                </div>
+                                <div style="color:var(--gold); font-weight:bold; font-size:14px;">💰 +${reward} Gold</div>
+                            </div>
+                            <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+                                <div style="flex:1; height:10px; background:#222; border-radius:5px; overflow:hidden;">
+                                    <div style="height:100%; width:${percent}%; background:${isDone ? '#2ecc71' : '#ff7e5f'}; transition:0.3s;"></div>
+                                </div>
+                                <div style="font-size:12px; color:#ddd; min-width:40px; text-align:right;">${progress}/${target}</div>
+                                ${btnHtml}
+                            </div>
+                        </div>
+                    `;
+                };
+
+                container.innerHTML = `
+                    ${renderQuest('daily_games', '🛡️ ผู้หยั่งรู้', 'เล่นครบ 5 เกม', quests.daily_games || 0, 5, 2000, quests.claimed_daily_games)}
+                    ${renderQuest('daily_wins', '⚔️ ผู้พิชิต', 'ชนะการต่อสู้ 3 ครั้ง', quests.daily_wins || 0, 3, 1500, quests.claimed_daily_wins)}
+                    ${renderQuest('daily_kills', '🩸 เพชฌฆาต', 'กำจัดทหารศัตรู 10 ตัว', quests.daily_kills || 0, 10, 1000, quests.claimed_daily_kills)}
+                `;
+
+            } catch(e) {
+                console.error("Failed to load quests:", e);
+                container.innerHTML = "<div style='color:red; text-align:center;'>ดึงข้อมูลภารกิจล้มเหลว</div>";
+            }
+        }
+
+        async function claimQuest(questId) {
+            try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                
+                const res = await fetch(`${serverUrl}/api/quests/claim`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId, questId })
+                });
+                
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                
+                alert(`🎉 ยินดีด้วย! คุณได้รับรางวัล ${data.reward} Gold`);
+                playerStats.gold = data.newGold;
+                document.getElementById('prof-gold').innerText = data.newGold;
+                
+                // Refresh modal
+                openQuests();
+            } catch(e) {
+                alert("รับรางวัลไม่สำเร็จ: " + e.message);
             }
         }
 
