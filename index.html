@@ -396,18 +396,32 @@
             </button>
         </div>
 
-        <button onclick="openProfile()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, var(--gold), #b8860b); color: black; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,215,0,0.3); font-size: 16px;">
-            👤 ข้อมูลผู้เล่น & คลังสมบัติ
-        </button>
-        <button onclick="openQuests()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, #ff7e5f, #feb47b); color: white; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,126,95,0.4); font-size: 16px;">
-            📜 ภารกิจประจำวัน (Daily Quests)
-        </button>
-        <button onclick="openShop()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, #00f2fe, #4facfe); color: white; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(0,242,254,0.3); font-size: 16px;">
-            🏪 ร้านค้าเปิดซอง (Gacha Shop)
-        </button>
-        <button onclick="openLeaderboard()" style="width: 95%; max-width: 500px; margin-top: 15px; background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); color: black; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,154,158,0.3); font-size: 16px;">
-            🏆 หอเกียรติยศ (Leaderboard)
-        </button>
+        <!-- 2x2 Dashboard Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 95%; max-width: 500px; margin-top: 20px;">
+            <!-- Profile -->
+            <button onclick="openProfile()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(255, 215, 0, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 215, 0, 0.3)'; this.style.borderColor='var(--gold)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 215, 0, 0.1)'; this.style.borderColor='rgba(255, 215, 0, 0.4)';">
+                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5));">👤</span>
+                <span style="font-size: 13px; color: #f1c40f; letter-spacing: 0.5px;">ข้อมูลผู้เล่น & คลัง</span>
+            </button>
+            
+            <!-- Quests -->
+            <button onclick="openQuests()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(255, 126, 95, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 126, 95, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 126, 95, 0.3)'; this.style.borderColor='#ff7e5f';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 126, 95, 0.1)'; this.style.borderColor='rgba(255, 126, 95, 0.4)';">
+                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,126,95,0.5));">📜</span>
+                <span style="font-size: 13px; color: #ffb47b; letter-spacing: 0.5px;">ภารกิจประจำวัน</span>
+            </button>
+
+            <!-- Shop -->
+            <button onclick="openShop()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(0, 242, 254, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 242, 254, 0.3)'; this.style.borderColor='#00f2fe';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 242, 254, 0.1)'; this.style.borderColor='rgba(0, 242, 254, 0.4)';">
+                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(0,242,254,0.5));">🏪</span>
+                <span style="font-size: 13px; color: #4facfe; letter-spacing: 0.5px;">ร้านค้า & กาชา</span>
+            </button>
+
+            <!-- Leaderboard -->
+            <button onclick="openLeaderboard()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(255, 154, 158, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 154, 158, 0.3)'; this.style.borderColor='#ff9a9e';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 154, 158, 0.1)'; this.style.borderColor='rgba(255, 154, 158, 0.4)';">
+                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,154,158,0.5));">🏆</span>
+                <span style="font-size: 13px; color: #fecfef; letter-spacing: 0.5px;">หอเกียรติยศ</span>
+            </button>
+        </div>
     </div>
 
     <div id="deck-builder-screen">
