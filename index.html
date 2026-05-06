@@ -396,34 +396,112 @@
             </button>
         </div>
 
-        <!-- Bottom Navigation Bar (Mobile Native Feel) -->
-        <div id="bottom-nav-bar" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 22, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 215, 0, 0.2); z-index: 1000; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 20px rgba(0,0,0,0.5);">
+        <!-- Bottom Navigation Bar (Elegant Glass Style) -->
+        <style>
+            .nav-btn {
+                background: transparent; border: none; color: #a4b0be; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: all 0.3s ease; outline: none;
+            }
+            .nav-btn:hover, .nav-btn:active {
+                transform: translateY(-2px);
+            }
+            .nav-icon {
+                width: 24px; height: 24px; margin-bottom: 4px; transition: all 0.3s ease; stroke-width: 2;
+            }
+            .nav-text {
+                font-size: 10px; font-weight: bold; letter-spacing: 0.5px; transition: all 0.3s ease;
+            }
             
-            <button onclick="openShop()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#00f2fe'" onmouseout="this.style.color='#aaa'">
-                <span style="font-size: 24px; margin-bottom: 3px;">🏪</span>
-                <span style="font-size: 10px; font-weight: bold;">ร้านค้า</span>
+            /* Hover Colors with Drop Shadow (Glass effect) */
+            .nav-btn.shop:hover { color: #00f2fe; }
+            .nav-btn.shop:hover .nav-icon { filter: drop-shadow(0 0 8px rgba(0,242,254,0.6)); }
+            
+            .nav-btn.quest:hover { color: #ff7e5f; }
+            .nav-btn.quest:hover .nav-icon { filter: drop-shadow(0 0 8px rgba(255,126,95,0.6)); }
+            
+            .nav-btn.rank:hover { color: #ff9a9e; }
+            .nav-btn.rank:hover .nav-icon { filter: drop-shadow(0 0 8px rgba(255,154,158,0.6)); }
+            
+            .nav-btn.profile:hover { color: #f1c40f; }
+            .nav-btn.profile:hover .nav-icon { filter: drop-shadow(0 0 8px rgba(241,196,15,0.6)); }
+            
+            /* Center Battle Button */
+            .nav-battle-btn {
+                background: transparent; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; transform: translateY(-15px); cursor: pointer; transition: all 0.3s ease;
+            }
+            .nav-battle-btn:hover {
+                transform: translateY(-18px) scale(1.05);
+            }
+            .nav-battle-ring {
+                width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); 
+                border: 2px solid rgba(241, 196, 15, 0.7);
+                box-shadow: 0 0 20px rgba(241, 196, 15, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
+                transition: all 0.3s ease;
+            }
+            .nav-battle-btn:hover .nav-battle-ring {
+                background: rgba(241, 196, 15, 0.2);
+                box-shadow: 0 0 25px rgba(241, 196, 15, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.2);
+                border-color: #f1c40f;
+            }
+            .nav-battle-icon {
+                width: 28px; height: 28px; stroke: #f1c40f; filter: drop-shadow(0 0 5px rgba(241,196,15,0.8));
+            }
+            .nav-battle-btn:hover .nav-battle-icon {
+                stroke: #fff; filter: drop-shadow(0 0 8px #f1c40f);
+            }
+        </style>
+        
+        <div id="bottom-nav-bar" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 22, 0.85); backdrop-filter: blur(15px); border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 1000; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 25px rgba(0,0,0,0.6);">
+            
+            <button onclick="openShop()" class="nav-btn shop">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span class="nav-text">ร้านค้า</span>
             </button>
 
-            <button onclick="openQuests()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff7e5f'" onmouseout="this.style.color='#aaa'">
-                <span style="font-size: 24px; margin-bottom: 3px;">📜</span>
-                <span style="font-size: 10px; font-weight: bold;">ภารกิจ</span>
+            <button onclick="openQuests()" class="nav-btn quest">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="7"></circle>
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                </svg>
+                <span class="nav-text">ภารกิจ</span>
             </button>
 
-            <!-- Home / Battle Button (Larger, prominent in center) -->
-            <button onclick="goHome()" style="background: transparent; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; transform: translateY(-15px); cursor: pointer;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f1c40f, #e67e22); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(241, 196, 15, 0.5); border: 3px solid #0a0a16;">
-                    <span style="font-size: 28px;">⚔️</span>
+            <button onclick="goHome()" class="nav-battle-btn">
+                <div class="nav-battle-ring">
+                    <svg class="nav-battle-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
+                        <path d="M13 19l6-6"></path>
+                        <path d="M16 16l4 4"></path>
+                        <path d="M19 21l2-2"></path>
+                        <path d="M8.5 6.5L21 19v3h-3L6.5 9.5"></path>
+                        <path d="M5 11l6-6"></path>
+                        <path d="M8 8L4 4"></path>
+                        <path d="M5 3L3 5"></path>
+                    </svg>
                 </div>
             </button>
 
-            <button onclick="openLeaderboard()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff9a9e'" onmouseout="this.style.color='#aaa'">
-                <span style="font-size: 24px; margin-bottom: 3px;">🏆</span>
-                <span style="font-size: 10px; font-weight: bold;">จัดอันดับ</span>
+            <button onclick="openLeaderboard()" class="nav-btn rank">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 21h8"></path>
+                    <path d="M12 17v4"></path>
+                    <path d="M7 4h10v5.5c0 2.5-2 5-5 5h0c-3 0-5-2.5-5-5V4z"></path>
+                    <path d="M7 4H5.5a2.5 2.5 0 0 0 0 5H7"></path>
+                    <path d="M17 4h1.5a2.5 2.5 0 0 1 0 5H17"></path>
+                </svg>
+                <span class="nav-text">หอเกียรติยศ</span>
             </button>
 
-            <button onclick="openProfile()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#f1c40f'" onmouseout="this.style.color='#aaa'">
-                <span style="font-size: 24px; margin-bottom: 3px;">👤</span>
-                <span style="font-size: 10px; font-weight: bold;">คลัง</span>
+            <button onclick="openProfile()" class="nav-btn profile">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="nav-text">ข้อมูลคลัง</span>
             </button>
             
         </div>
