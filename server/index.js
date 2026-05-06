@@ -487,9 +487,9 @@ app.post('/api/marketplace/ads', async (req, res) => {
 
         if (deductErr) throw deductErr;
 
-        // 4. Create Ad (Expires in 24 hours)
+        // 4. Create Ad (Expires in 7 days for Promotion)
         const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 24);
+        expiresAt.setHours(expiresAt.getHours() + (24 * 7));
 
         const { data: ad, error: adErr } = await supabase
             .from('marketplace_ads')
