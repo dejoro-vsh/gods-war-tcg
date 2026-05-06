@@ -2587,19 +2587,28 @@
             document.getElementById('mock-payment-modal').style.display = 'none';
             
             if (packType === 'buy_gold_3000') {
-                if (!dbClient || !playerId) return alert("Database connection error");
-                document.getElementById('shop-gold-display').innerText = "...";
+                if (!playerId) return alert("Database connection error");
+                document.getElementById('shop-gold-display').innerText = "กำลังเชื่อมต่อระบบชำระเงิน...";
+                
                 try {
-                    let newGold = (playerStats.gold || 0) + 3000;
-                    const { error } = await dbClient.from('players').update({ gold: newGold }).eq('id', playerId);
-                    if (error) throw error;
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
                     
-                    playerStats.gold = newGold;
-                    document.getElementById('shop-gold-display').innerText = newGold;
-                    document.getElementById('prof-gold').innerText = newGold;
-                    alert("🎉 ชำระเงินจำลองสำเร็จ! ได้รับ 3,000 Gold เรียบร้อยแล้วครับ");
+                    const res = await fetch(`${serverUrl}/api/checkout/create-session`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ playerId, packType })
+                    });
+                    
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
+                    
+                    // Redirect to Stripe Checkout
+                    if (data.url) {
+                        window.location.href = data.url;
+                    }
                 } catch(e) {
-                    alert("เกิดข้อผิดพลาด: " + e.message);
+                    alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Stripe: " + e.message);
                     document.getElementById('shop-gold-display').innerText = playerStats.gold || 0;
                 }
             } else {
@@ -3292,6 +3301,18 @@
                 }
             }
         }
+        // Check for Stripe Payment Redirects
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payment') === 'success') {
+                alert("🎉 ชำระเงินสำเร็จ! คุณได้รับ 3,000 Gold เรียบร้อยแล้ว (รีเฟรชหน้าเพื่อดูยอดเงินล่าสุด)");
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('payment') === 'cancel') {
+                alert("ยกเลิกการชำระเงินแล้ว");
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
     </script>
 </body>
 </html>

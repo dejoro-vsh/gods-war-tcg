@@ -6,8 +6,56 @@ const cors = require('cors');
 const { ethers } = require('ethers');
 const { createClient } = require('@supabase/supabase-js');
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy');
+
 const app = express();
 app.use(cors());
+
+// Stripe Webhook MUST be before express.json() because it needs the raw body
+app.post('/api/webhook/stripe', express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+    try {
+        if (!endpointSecret) throw new Error("Missing STRIPE_WEBHOOK_SECRET");
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err) {
+        console.error("Webhook Error:", err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const playerId = session.client_reference_id;
+        
+        if (playerId && session.payment_status === 'paid') {
+            try {
+                // Fetch current gold
+                const { data: player, error: err1 } = await supabase
+                    .from('players')
+                    .select('gold')
+                    .eq('id', playerId)
+                    .single();
+                    
+                if (!err1 && player) {
+                    // Add 3000 gold
+                    await supabase
+                        .from('players')
+                        .update({ gold: (player.gold || 0) + 3000 })
+                        .eq('id', playerId);
+                    console.log(`Successfully added 3000 gold to player ${playerId} via Stripe.`);
+                }
+            } catch(e) {
+                console.error("Failed to update gold after Stripe payment", e);
+            }
+        }
+    }
+
+    res.send();
+});
+
 app.use(express.json());
 
 // Setup Web3 & Supabase (from Environment Variables)
@@ -1041,6 +1089,45 @@ app.post('/api/match/result', async (req, res) => {
     } catch (e) {
         console.error("Match Result Error:", e);
         res.status(500).json({ error: e.message });
+    }
+});
+
+// API: Create Stripe Checkout Session
+app.post('/api/checkout/create-session', async (req, res) => {
+    try {
+        const { playerId, packType } = req.body;
+        if (!playerId || packType !== 'buy_gold_3000') {
+            return res.status(400).json({ error: "Invalid request parameters." });
+        }
+
+        const isLocal = req.headers.host.includes('localhost') || req.headers.host.includes('127.0.0.1');
+        const frontendUrl = isLocal ? 'http://localhost:8080' : 'https://gods-war-tcg.vercel.app'; // adjust port if needed
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card', 'promptpay'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'thb',
+                        product_data: {
+                            name: '3,000 Gold (Promotion Pack)',
+                            description: 'สกุลเงินในเกม Gods War TCG สำหรับเปิดซองการ์ดและลงโฆษณา VIP',
+                        },
+                        unit_amount: 3900, // 39.00 THB
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${frontendUrl}/?payment=success`,
+            cancel_url: `${frontendUrl}/?payment=cancel`,
+            client_reference_id: playerId, // Pass playerId to webhook
+        });
+
+        res.json({ id: session.id, url: session.url });
+    } catch (err) {
+        console.error("Stripe Checkout Error:", err);
+        res.status(500).json({ error: "Failed to create checkout session." });
     }
 });
 
