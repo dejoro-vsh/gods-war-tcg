@@ -3308,14 +3308,13 @@
                     if (accounts.length > 0) userAddress = accounts[0];
                 }
 
-                if (activeNFTId) {
-                    // OpenSea recently migrated 'matic' paths to 'polygon'
-                    const url = `https://opensea.io/assets/polygon/${contractAddress}/${activeNFTId}`;
+                // Make sure activeNFTId is valid (not null, not "null", not undefined)
+                if (activeNFTId && activeNFTId !== "null" && activeNFTId !== "undefined") {
+                    const url = `https://opensea.io/assets/matic/${contractAddress}/${activeNFTId}`;
                     window.open(url, '_blank');
                 } else if (userAddress) {
                     window.open(`https://opensea.io/${userAddress}`, '_blank');
                 } else {
-                    // Safe fallback that never 404s
                     window.open(`https://polygonscan.com/token/${contractAddress}`, '_blank');
                 }
             } catch (e) {
