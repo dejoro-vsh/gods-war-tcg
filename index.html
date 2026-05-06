@@ -3270,7 +3270,7 @@
                     const res = await fetch(`${serverUrl}/api/marketplace/ads`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ playerId, inventoryId: activeInventoryId, openseaUrl })
+                        body: JSON.stringify({ playerId, inventoryId: activeInventoryId })
                     });
                     
                     const data = await res.json();
