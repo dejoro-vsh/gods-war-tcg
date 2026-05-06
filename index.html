@@ -232,10 +232,30 @@
                 <button id="btn-claim-starter" onclick="claimStarterDeck()" style="background: linear-gradient(90deg, #2ecc71, #27ae60); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; margin-bottom:10px; display:none; box-shadow: 0 4px 15px rgba(46,204,113,0.4);">📦 รับไพ่ Starter Deck (140 ใบ)</button>
                 <button id="btn-view-inventory" onclick="openInventory()" style="background: linear-gradient(90deg, #FFD700, #FFA500); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:black; width:100%; box-shadow: 0 4px 15px rgba(255,215,0,0.4); margin-bottom:10px;">🔍 เปิดดูคลังสมบัติ</button>
                 <button id="btn-view-codex" onclick="openCodex()" style="background: linear-gradient(90deg, #3498db, #2980b9); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(52,152,219,0.4);">📖 คลังความรู้ (สารานุกรมเกม)</button>
+                <button id="btn-view-marketplace" onclick="openMarketplace()" style="background: linear-gradient(90deg, #e74c3c, #c0392b); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(231,76,60,0.4); margin-top:10px;">🏪 กระดานโฆษณาซื้อขายการ์ด (VIP Ads)</button>
             </div>
             
             <button onclick="logout()" style="margin-top:5px; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid var(--red); cursor: pointer; font-weight: bold; width: 100%; background: rgba(255,0,0,0.1); color: var(--red);">🚪 ออกจากระบบ (Logout)</button>
             <button onclick="document.getElementById('profile-screen').style.display='none'" style="margin-top:5px; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid #555; cursor: pointer; font-weight: bold; width: 100%; background: rgba(255,255,255,0.05); color: white;">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <!-- Marketplace Screen -->
+    <div id="marketplace-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3600; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+        <div style="width: 95%; max-width: 800px; max-height: 85vh; background: #111; padding: 20px; border-radius: 20px; border: 2px solid #e74c3c; display: flex; flex-direction: column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <h2 style="margin:0; color:#e74c3c; text-shadow: 0 0 10px rgba(231,76,60,0.5);">🏪 กระดานโฆษณา VIP</h2>
+                <button onclick="document.getElementById('marketplace-screen').style.display='none'" style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">❌</button>
+            </div>
+            
+            <div style="font-size:14px; color:#aaa; margin-bottom:15px; text-align:center;">
+                รวมการ์ดที่ผู้เล่นประกาศขายบน OpenSea (บูสต์โฆษณาด้วย 500 Gold ในคลังสมบัติ)
+            </div>
+            
+            <div id="marketplace-loading" style="text-align:center; color:#aaa; padding: 20px; display:none;">กำลังโหลดข้อมูล... ⏳</div>
+            <div id="marketplace-content" style="flex:1; overflow-y:auto; padding-right:10px; display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">
+                <!-- Ads will be injected here -->
+            </div>
         </div>
     </div>
 
@@ -993,10 +1013,13 @@
                     mintBox.style.display = 'none';
                 }
 
+                let boostBox = document.getElementById('cd-boost-box');
                 if (isMinted) {
                     openseaBox.style.display = 'block';
+                    boostBox.style.display = 'block';
                 } else {
                     openseaBox.style.display = 'none';
+                    boostBox.style.display = 'none';
                 }
                 
                 let effectBox = document.getElementById('cd-effect-box');
@@ -2359,6 +2382,10 @@
                 <button id="btn-sell-opensea" onclick="sellOnOpenSea()" style="background: linear-gradient(90deg, #2081E2, #1562b3); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(32,129,226,0.4);">⛵ Trade on OpenSea</button>
             </div>
             
+            <div id="cd-boost-box" style="margin-top: 10px; display:none;">
+                <button id="btn-boost-ad" onclick="boostAd()" style="background: linear-gradient(90deg, #e74c3c, #c0392b); border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 15px rgba(231,76,60,0.4);">📣 โฆษณาขึ้น VIP Board (500 Gold)</button>
+            </div>
+            
             <div id="cd-destroy-box" style="margin-top: 10px; display:none;">
                 <button id="btn-destroy-card" onclick="destroyFreeCard()" style="background: #e74c3c; border:none; padding:12px 15px; border-radius:8px; font-weight:bold; cursor:pointer; color:white; width:100%; box-shadow: 0 4px 10px rgba(231,76,60,0.4);">🗑️ ทำลายไพ่นี้ (เพิ่มที่ว่าง)</button>
             </div>
@@ -3173,6 +3200,101 @@
                 btn.innerText = "💎 Mint to Web3";
                 btn.style.cursor = 'pointer';
                 btn.disabled = false;
+            }
+        }
+        async function openMarketplace() {
+            document.getElementById('marketplace-screen').style.display = 'flex';
+            document.getElementById('marketplace-loading').style.display = 'block';
+            document.getElementById('marketplace-content').style.display = 'none';
+            document.getElementById('marketplace-content').innerHTML = '';
+
+            try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                
+                const res = await fetch(`${serverUrl}/api/marketplace/ads`);
+                const ads = await res.json();
+                
+                document.getElementById('marketplace-loading').style.display = 'none';
+                document.getElementById('marketplace-content').style.display = 'grid';
+
+                if (!ads || ads.length === 0) {
+                    document.getElementById('marketplace-content').innerHTML = '<div style="color:#aaa; grid-column: 1 / -1; text-align:center; margin-top:30px;">ยังไม่มีโฆษณาการ์ดในขณะนี้ เป็นคนแรกที่บูสต์การ์ดสิ!</div>';
+                    return;
+                }
+
+                const allGlobalCards = [...chinaCards, ...greekCards];
+                ads.forEach(ad => {
+                    let baseCard = allGlobalCards.find(c => c.name === ad.card_name);
+                    if (!baseCard) return;
+                    
+                    let c = applyGradeModifiers(baseCard, ad.grade, 'original', false);
+                    let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor};` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
+                    
+                    let adHtml = `
+                        <div style="background:#222; padding:10px; border-radius:10px; text-align:center; border:1px solid #444; position:relative;">
+                            <div class="card" style="${borderStyle} width:100px; height:140px; margin:0 auto 10px auto; pointer-events:none;">
+                                <div class="cost-val">${c.cost}</div>
+                                <img src="${c.img}">
+                                <div class="badge atk-val">${c.atk || ''}</div>
+                                <div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>
+                            </div>
+                            <button onclick="window.open('${ad.opensea_url}', '_blank')" style="background: linear-gradient(90deg, #2980b9, #3498db); border:none; padding:8px; border-radius:5px; color:white; font-weight:bold; cursor:pointer; width:100%; font-size:12px;">ซื้อบน OpenSea</button>
+                        </div>
+                    `;
+                    document.getElementById('marketplace-content').innerHTML += adHtml;
+                });
+            } catch (e) {
+                console.error(e);
+                document.getElementById('marketplace-loading').innerText = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+            }
+        }
+
+        async function boostAd() {
+            if (!activeInventoryId) return;
+            const openseaUrl = prompt("กรุณาวางลิงก์ OpenSea ของการ์ดใบนี้ (เช่น https://opensea.io/assets/...):");
+            if (!openseaUrl || !openseaUrl.includes("opensea.io")) {
+                alert("ลิงก์ไม่ถูกต้อง กรุณาระบุลิงก์ OpenSea");
+                return;
+            }
+
+            if ((playerStats.gold || 0) < 500) {
+                alert("ทองไม่พอ! ต้องใช้ 500 Gold ในการบูสต์โฆษณา");
+                return;
+            }
+
+            if (confirm("ยืนยันการหัก 500 Gold เพื่อลงโฆษณาบนหน้า VIP Board เป็นเวลา 24 ชั่วโมง?")) {
+                const btn = document.getElementById('btn-boost-ad');
+                btn.innerText = "⏳ กำลังดำเนินการ...";
+                btn.disabled = true;
+                
+                try {
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                    
+                    const res = await fetch(`${serverUrl}/api/marketplace/ads`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ playerId, inventoryId: activeInventoryId, openseaUrl })
+                    });
+                    
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
+                    
+                    // Update Gold locally
+                    if (data.newGold !== undefined) {
+                        playerStats.gold = data.newGold;
+                        if (document.getElementById('header-gold')) document.getElementById('header-gold').innerText = playerStats.gold;
+                        if (document.getElementById('prof-gold')) document.getElementById('prof-gold').innerText = playerStats.gold;
+                    }
+                    
+                    alert("บูสต์โฆษณาสำเร็จ! การ์ดของคุณไปโชว์ที่กระดาน VIP แล้ว!");
+                } catch(e) {
+                    alert("เกิดข้อผิดพลาด: " + e.message);
+                } finally {
+                    btn.innerText = "📣 โฆษณาขึ้น VIP Board (500 Gold)";
+                    btn.disabled = false;
+                }
             }
         }
     </script>

@@ -429,7 +429,88 @@ app.get('/api/debug', (req, res) => {
     }
 });
 
-// API: Metadata for OpenSea
+// API: Get active marketplace ads
+app.get('/api/marketplace/ads', async (req, res) => {
+    try {
+        const { data: ads, error } = await supabase
+            .from('marketplace_ads')
+            .select('*')
+            .gte('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            if (error.code === '42P01') return res.json([]); // Table doesn't exist yet
+            throw error;
+        }
+
+        res.json(ads || []);
+    } catch (err) {
+        console.error("Fetch ads error:", err);
+        res.status(500).json({ error: "Failed to fetch ads." });
+    }
+});
+
+// API: Post a new ad (deduct 500 gold)
+app.post('/api/marketplace/ads', async (req, res) => {
+    try {
+        const { playerId, inventoryId, openseaUrl } = req.body;
+        if (!playerId || !inventoryId || !openseaUrl) {
+            return res.status(400).json({ error: "Missing parameters." });
+        }
+
+        // 1. Fetch player and check gold
+        const { data: player, error: playerErr } = await supabase
+            .from('players')
+            .select('gold')
+            .eq('id', playerId)
+            .single();
+
+        if (playerErr || !player) return res.status(400).json({ error: "Player not found." });
+        if (player.gold < 500) return res.status(400).json({ error: "Not enough Gold. Need 500." });
+
+        // 2. Verify card ownership and get details
+        const { data: card, error: cardErr } = await supabase
+            .from('player_inventory')
+            .select('*')
+            .eq('id', inventoryId)
+            .eq('player_id', playerId)
+            .single();
+
+        if (cardErr || !card) return res.status(400).json({ error: "Card not found or not owned." });
+        if (!card.is_minted) return res.status(400).json({ error: "You can only advertise minted cards." });
+
+        // 3. Deduct Gold
+        const { error: deductErr } = await supabase
+            .from('players')
+            .update({ gold: player.gold - 500 })
+            .eq('id', playerId);
+
+        if (deductErr) throw deductErr;
+
+        // 4. Create Ad (Expires in 24 hours)
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+
+        const { data: ad, error: adErr } = await supabase
+            .from('marketplace_ads')
+            .insert([{
+                player_id: playerId,
+                card_name: card.card_name,
+                grade: card.grade,
+                faction: card.faction,
+                opensea_url: openseaUrl,
+                expires_at: expiresAt.toISOString()
+            }])
+            .select();
+
+        if (adErr) throw adErr;
+
+        res.json({ success: true, newGold: player.gold - 500, ad: ad[0] });
+    } catch (err) {
+        console.error("Post ad error:", err);
+        res.status(500).json({ error: "Failed to post ad: " + err.message });
+    }
+});
 app.get('/api/metadata/:id', (req, res) => {
     const id = parseInt(req.params.id.replace('.json', ''));
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
