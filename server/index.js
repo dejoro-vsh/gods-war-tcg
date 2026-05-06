@@ -961,6 +961,24 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
+const QUEST_POOL = {
+    easy: [
+        { id: 'e_play_2', title: 'ผู้แสวงหา', desc: 'เล่นครบ 2 เกม', target: 2, reward: 500, type: 'play' },
+        { id: 'e_kill_5', title: 'ทหารใหม่', desc: 'กำจัดศัตรู 5 ตัว', target: 5, reward: 500, type: 'kill' },
+        { id: 'e_heal_10', title: 'ผู้เยียวยา', desc: 'ฟื้นฟูพลังชีวิต 10 หน่วย', target: 10, reward: 500, type: 'heal' }
+    ],
+    medium: [
+        { id: 'm_win_2', title: 'นักสู้', desc: 'ชนะ 2 เกม', target: 2, reward: 1000, type: 'win' },
+        { id: 'm_kill_15', title: 'มือสังหาร', desc: 'กำจัดศัตรู 15 ตัว', target: 15, reward: 1000, type: 'kill' },
+        { id: 'm_play_5', title: 'ผู้เจนศึก', desc: 'เล่นครบ 5 เกม', target: 5, reward: 1000, type: 'play' }
+    ],
+    hard: [
+        { id: 'h_win_5', title: 'แม่ทัพ', desc: 'ชนะ 5 เกม', target: 5, reward: 2500, type: 'win' },
+        { id: 'h_kill_30', title: 'เทพสงคราม', desc: 'กำจัดศัตรู 30 ตัว', target: 30, reward: 2500, type: 'kill' },
+        { id: 'h_heal_50', title: 'นักบวชศักดิ์สิทธิ์', desc: 'ฟื้นฟูพลังชีวิต 50 หน่วย', target: 50, reward: 2500, type: 'heal' }
+    ]
+};
+
 // API: Record Match Result & Process Level Up
 app.post('/api/match/result', async (req, res) => {
     try {
@@ -1069,20 +1087,33 @@ app.post('/api/match/result', async (req, res) => {
         // Process Quests Progress
         let quests = player.quests || {};
         const todayStr = new Date().toISOString().split('T')[0];
-        if (quests.daily_reset !== todayStr) {
+        
+        if (quests.daily_reset !== todayStr || !quests.slot1) {
+            const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            const q1 = getRandom(QUEST_POOL.easy);
+            const q2 = getRandom(QUEST_POOL.medium);
+            const q3 = getRandom(QUEST_POOL.hard);
+            
             quests = {
                 daily_reset: todayStr,
-                daily_wins: 0,
-                daily_kills: 0,
-                daily_games: 0,
-                claimed_daily_wins: false,
-                claimed_daily_kills: false,
-                claimed_daily_games: false
+                slot1: { ...q1, progress: 0, claimed: false },
+                slot2: { ...q2, progress: 0, claimed: false },
+                slot3: { ...q3, progress: 0, claimed: false }
             };
         }
-        if (win) quests.daily_wins += 1;
-        quests.daily_kills += (kills || 0);
-        quests.daily_games += 1;
+
+        const updateProgress = (slot) => {
+            if (!slot || slot.claimed) return;
+            if (slot.type === 'win' && win) slot.progress += 1;
+            if (slot.type === 'play') slot.progress += 1;
+            if (slot.type === 'kill') slot.progress += (kills || 0);
+            if (slot.type === 'heal') slot.progress += (heals || 0);
+            if (slot.progress > slot.target) slot.progress = slot.target;
+        };
+
+        updateProgress(quests.slot1);
+        updateProgress(quests.slot2);
+        updateProgress(quests.slot3);
 
         // Update Player Stats
         const { error: updErr } = await supabase.from('players')
@@ -1129,23 +1160,19 @@ app.post('/api/quests/claim', async (req, res) => {
         let quests = player.quests || {};
         let goldReward = 0;
 
-        if (questId === 'daily_wins') {
-            if (quests.daily_wins >= 3 && !quests.claimed_daily_wins) {
-                goldReward = 1500;
-                quests.claimed_daily_wins = true;
-            } else return res.status(400).json({ error: "Quest not completed or already claimed." });
-        } else if (questId === 'daily_kills') {
-            if (quests.daily_kills >= 10 && !quests.claimed_daily_kills) {
-                goldReward = 1000;
-                quests.claimed_daily_kills = true;
-            } else return res.status(400).json({ error: "Quest not completed or already claimed." });
-        } else if (questId === 'daily_games') {
-            if (quests.daily_games >= 5 && !quests.claimed_daily_games) {
-                goldReward = 2000;
-                quests.claimed_daily_games = true;
-            } else return res.status(400).json({ error: "Quest not completed or already claimed." });
+        let slotKey = null;
+        if (quests.slot1 && quests.slot1.id === questId) slotKey = 'slot1';
+        else if (quests.slot2 && quests.slot2.id === questId) slotKey = 'slot2';
+        else if (quests.slot3 && quests.slot3.id === questId) slotKey = 'slot3';
+
+        if (!slotKey) return res.status(400).json({ error: "Invalid quest ID or quest expired." });
+
+        let slot = quests[slotKey];
+        if (slot.progress >= slot.target && !slot.claimed) {
+            goldReward = slot.reward;
+            slot.claimed = true;
         } else {
-            return res.status(400).json({ error: "Invalid quest ID." });
+            return res.status(400).json({ error: "Quest not completed or already claimed." });
         }
 
         const newGold = (player.gold || 0) + goldReward;
