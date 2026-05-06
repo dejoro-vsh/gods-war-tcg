@@ -3252,14 +3252,6 @@
 
         async function boostAd() {
             if (!activeInventoryId) return;
-            
-            if (!activeNFTId) {
-                alert("ข้อผิดพลาด: การ์ดใบนี้ยังไม่ได้สร้าง NFT (Mint) อย่างสมบูรณ์");
-                return;
-            }
-            
-            const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
-            const openseaUrl = `https://opensea.io/assets/matic/${contractAddress}/${activeNFTId}`;
 
             if ((playerStats.gold || 0) < 500) {
                 alert("ทองไม่พอ! ต้องใช้ 500 Gold ในการบูสต์โฆษณา");
