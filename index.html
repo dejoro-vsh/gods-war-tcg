@@ -1882,13 +1882,23 @@
         }
 
         function updateTurnTimerUI() {
+            const btn = document.getElementById('end-btn');
             const timerElem = document.getElementById('turn-timer');
-            if (timerElem) {
-                timerElem.innerText = `${turnTimeRemaining}s`;
-                if (turnTimeRemaining <= 5) {
-                    timerElem.style.color = '#ff4757';
+            if (timerElem && btn) {
+                if (isPlayerTurn) {
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    timerElem.innerText = `${turnTimeRemaining}s`;
+                    if (turnTimeRemaining <= 5) {
+                        timerElem.style.color = '#ff4757';
+                    } else {
+                        timerElem.style.color = '#fff';
+                    }
                 } else {
-                    timerElem.style.color = '#fff';
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    timerElem.innerText = `รอคู่ต่อสู้...`;
+                    timerElem.style.color = '#ccc';
                 }
             }
         }
