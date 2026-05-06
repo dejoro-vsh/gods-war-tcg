@@ -1641,8 +1641,8 @@
                 socket.on('opponentAction', (data) => {
                     if (data.type === 'playCard') {
                         let card = data.card;
-                        eEss -= card.cost;
-                        if (eHand.length > 0) eHand.pop();
+                        if (!data.free) eEss -= card.cost;
+                        if (eHand.length > 0 && !data.free) eHand.pop();
                         
                         if (card.type === 'event') {
                             addLog(`📜 คู่ต่อสู้ใช้เวทมนตร์: ${card.name}`);
@@ -1654,9 +1654,22 @@
                                 eHP = Math.min(5, eHP + 1);
                                 showFloatingText('e-leader', "+1", "heal");
                                 playSound('sfx-heal');
+                            } else if (card.effect === 'heal_2') {
+                                eHP = Math.min(5, eHP + 2);
+                                showFloatingText('e-leader', "+2", "heal");
+                                playSound('sfx-heal');
                             } else if (card.effect === 'board_wipe') {
                                 showFloatingText('p-leader', "🌊 ล้างบาง!", "dmg");
                                 pField = [];
+                            } else if (card.effect === 'destroy_weak') {
+                                let weakIdx = pField.findIndex(c => c.atk <= 4000);
+                                if (weakIdx !== -1) {
+                                    showFloatingText(`p-unit-${weakIdx}`, "DEAD", "dmg");
+                                    pField.splice(weakIdx, 1);
+                                    addLog(`👁️ ทหารของคุณถูกสาปเป็นหินและถูกทำลาย!`);
+                                }
+                            } else if (card.effect === 'ai_summon') {
+                                // The opponent will emit a separate 'free' playCard action for the summoned unit
                             }
                         } else if (card.type === 'stage') {
                             eStage = card;
@@ -1668,6 +1681,17 @@
                             addLog(`🛡️ คู่ต่อสู้อัญเชิญ: ${card.name}`);
                             if (card.skills && card.skills.includes('on_play:draw_1')) {
                                 if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
+                            }
+                            if (card.skills && card.skills.includes('on_play:buff_all')) {
+                                eField.forEach(c => { if(c.type !== 'event' && c.type !== 'stage') c.atk += 1000; });
+                                addLog(`🌟 ${card.name} บัฟพลังโจมตี +1000 ให้ทหารศัตรูทุกคน!`);
+                            }
+                            if (card.skills && card.skills.includes('on_play:stun')) {
+                                let targetIdx = pField.findIndex(c => !c.isRest);
+                                if (targetIdx !== -1) {
+                                    pField[targetIdx].isRest = true;
+                                    addLog(`❄️ ${card.name} แช่แข็งทหารของคุณ!`);
+                                }
                             }
                         }
                         updateUI();
@@ -2187,6 +2211,9 @@
                     let unit = pHand.splice(unitIdx, 1)[0];
                     unit.isRest = !(unit.skills && unit.skills.includes('rush'));
                     pField.push(unit);
+                    if (isMultiplayer && socket) {
+                        socket.emit('playerAction', { type: 'playCard', card: unit, free: true });
+                    }
                 } else {
                     addLog(`⚠️ ไม่มีทหารในมือให้อัญเชิญ!`);
                 }
