@@ -443,64 +443,50 @@
                 box-shadow: 0 0 25px rgba(241, 196, 15, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.2);
                 border-color: #f1c40f;
             }
-            .nav-battle-icon {
-                width: 28px; height: 28px; stroke: #f1c40f; filter: drop-shadow(0 0 5px rgba(241,196,15,0.8));
+            /* Hover Effects for Image Icons */
+            .nav-img {
+                width: 28px; height: 28px; margin-bottom: 4px; transition: all 0.3s ease; border-radius: 4px; filter: grayscale(50%) brightness(0.8); object-fit: cover;
             }
-            .nav-battle-btn:hover .nav-battle-icon {
-                stroke: #fff; filter: drop-shadow(0 0 8px #f1c40f);
+            .nav-btn:hover .nav-img, .nav-btn:active .nav-img {
+                filter: grayscale(0%) brightness(1.2) drop-shadow(0 0 8px rgba(255,215,0,0.6));
+                transform: scale(1.1);
+            }
+            
+            /* Center Battle Button Image */
+            .nav-battle-img {
+                width: 44px; height: 44px; border-radius: 50%; object-fit: cover; transition: all 0.3s ease; filter: drop-shadow(0 0 5px rgba(241,196,15,0.8));
+            }
+            .nav-battle-btn:hover .nav-battle-img {
+                filter: drop-shadow(0 0 10px #f1c40f) brightness(1.2);
+                transform: scale(1.1);
             }
         </style>
         
         <div id="bottom-nav-bar" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 22, 0.85); backdrop-filter: blur(15px); border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 1000; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 25px rgba(0,0,0,0.6);">
             
             <button onclick="openShop()" class="nav-btn shop">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
+                <img src="./assets/images/nav_shop.png" class="nav-img" alt="Shop">
                 <span class="nav-text">ร้านค้า</span>
             </button>
 
             <button onclick="openQuests()" class="nav-btn quest">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="8" r="7"></circle>
-                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-                </svg>
+                <img src="./assets/images/nav_quests.png" class="nav-img" alt="Quests">
                 <span class="nav-text">ภารกิจ</span>
             </button>
 
             <button onclick="goHome()" class="nav-battle-btn">
                 <div class="nav-battle-ring">
-                    <svg class="nav-battle-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
-                        <path d="M13 19l6-6"></path>
-                        <path d="M16 16l4 4"></path>
-                        <path d="M19 21l2-2"></path>
-                        <path d="M8.5 6.5L21 19v3h-3L6.5 9.5"></path>
-                        <path d="M5 11l6-6"></path>
-                        <path d="M8 8L4 4"></path>
-                        <path d="M5 3L3 5"></path>
-                    </svg>
+                    <img src="./assets/images/nav_battle.png" class="nav-battle-img" alt="Battle">
                 </div>
             </button>
 
             <button onclick="openLeaderboard()" class="nav-btn rank">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M8 21h8"></path>
-                    <path d="M12 17v4"></path>
-                    <path d="M7 4h10v5.5c0 2.5-2 5-5 5h0c-3 0-5-2.5-5-5V4z"></path>
-                    <path d="M7 4H5.5a2.5 2.5 0 0 0 0 5H7"></path>
-                    <path d="M17 4h1.5a2.5 2.5 0 0 1 0 5H17"></path>
-                </svg>
+                <img src="./assets/images/nav_rank.png" class="nav-img" alt="Rank">
                 <span class="nav-text">หอเกียรติยศ</span>
             </button>
 
             <button onclick="openProfile()" class="nav-btn profile">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
+                <img src="./assets/images/nav_profile.png" class="nav-img" alt="Profile">
                 <span class="nav-text">ข้อมูลคลัง</span>
             </button>
             
