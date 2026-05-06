@@ -491,7 +491,16 @@ app.get('/api/marketplace/ads', async (req, res) => {
             throw error;
         }
 
-        res.json(ads || []);
+        const sanitizedAds = (ads || []).map(ad => {
+            if (!ad.opensea_url || ad.opensea_url.includes('null') || ad.opensea_url.includes('undefined')) {
+                ad.opensea_url = 'https://polygonscan.com/token/0x4ECaFff2F1412297Ef24Ea7906940825623580f4';
+            } else {
+                ad.opensea_url = ad.opensea_url.replace('/matic/', '/polygon/');
+            }
+            return ad;
+        });
+
+        res.json(sanitizedAds);
     } catch (err) {
         console.error("Fetch ads error:", err);
         res.status(500).json({ error: "Failed to fetch ads." });
