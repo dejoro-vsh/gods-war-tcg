@@ -1734,11 +1734,7 @@
                 socket.on('opponentDisconnected', () => {
                     if (isGameFinished) return; // Do not alert if game naturally ended
                     isGameFinished = true;
-                    alert("คู่ต่อสู้หนีออกจากเกม! คุณชนะ!\nได้รับ 50 ทอง! 💰");
-                    let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
-                    recordGameResult(true, matchKills, matchHeals, playTimeSeconds).then((didLevelUp) => {
-                        if (!didLevelUp) location.reload();
-                    });
+                    showMatchResult(true, true);
                 });
             }
 
@@ -2401,13 +2397,33 @@
                 msg += `\nได้รับ ${earnedGold} ทอง! 💰`;
 
                 setTimeout(() => {
-                    alert(msg);
-                    let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
-                    recordGameResult(win, matchKills, matchHeals, playTimeSeconds).then((didLevelUp) => {
-                        if (!didLevelUp) location.reload();
-                    });
+                    showMatchResult(win, false);
                 }, 3000);
             }
+        }
+
+        function showMatchResult(win, isDisconnect = false) {
+            document.getElementById('match-result-modal').style.display = 'flex';
+            document.getElementById('match-result-icon').innerText = win ? '🏆' : '💀';
+            document.getElementById('match-result-title').innerText = win ? 'ชัยชนะ!' : 'พ่ายแพ้...';
+            document.getElementById('match-result-title').style.color = win ? 'var(--gold)' : 'var(--red)';
+            
+            let earnedGold = win ? 50 : 10;
+            let playTimeSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
+            
+            let descHtml = win ? `การต่อสู้อันยอดเยี่ยมจบลงแล้ว<br>คุณได้รับ <strong style="color:var(--gold); font-size:20px;">${earnedGold}</strong> ทอง! 💰` 
+                               : `คุณพ่ายแพ้ในศึกครั้งนี้ แต่ยังได้รับรางวัลปลอบใจ<br>คุณได้รับ <strong style="color:var(--gold); font-size:20px;">${earnedGold}</strong> ทอง! 💰`;
+                               
+            if (isDisconnect) {
+                descHtml = `คู่ต่อสู้หนีออกจากสนามรบ!<br>คุณได้รับชัยชนะโดยอัตโนมัติ<br>คุณได้รับ <strong style="color:var(--gold); font-size:20px;">50</strong> ทอง! 💰`;
+            }
+            
+            document.getElementById('match-result-desc').innerHTML = descHtml;
+            document.getElementById('match-result-time').innerText = `${playTimeSeconds} วินาที`;
+            document.getElementById('match-result-kills').innerText = `${matchKills} ตัว`;
+            document.getElementById('match-result-heals').innerText = `${matchHeals} ครั้ง`;
+            
+            recordGameResult(win, matchKills, matchHeals, playTimeSeconds);
         }
     </script>
     
@@ -2804,6 +2820,37 @@
     </div>
 
     <!-- MOCK PAYMENT MODAL -->
+    <!-- Match Result Modal -->
+    <div id="match-result-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div style="background:var(--card-bg); border: 2px solid var(--gold); border-radius:15px; padding:30px; width:90%; max-width:400px; text-align:center; position:relative; box-shadow: 0 0 30px rgba(212,175,55,0.4);">
+            <div id="match-result-icon" style="font-size:60px; margin-bottom:10px;">🏆</div>
+            <h2 id="match-result-title" style="color:var(--gold); font-size:28px; margin:0 0 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">ชัยชนะ!</h2>
+            <div id="match-result-desc" style="color:#ddd; font-size:16px; margin-bottom:20px; line-height:1.5;">
+                การต่อสู้อันดุเดือดจบลงแล้ว<br>
+                คุณได้รับ <strong id="match-result-gold" style="color:var(--gold); font-size:20px;">50</strong> ทอง! 💰
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#aaa;">เวลาที่ใช้:</span>
+                    <strong id="match-result-time" style="color:#fff;">0 วินาที</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#aaa;">กำจัดทหารศัตรู:</span>
+                    <strong id="match-result-kills" style="color:#ff4757;">0 ตัว</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#aaa;">ฟื้นฟูพลังชีวิต:</span>
+                    <strong id="match-result-heals" style="color:#2ed573;">0 ครั้ง</strong>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" style="background:var(--gold); color:#000; font-weight:bold; padding:12px 0; width:100%; border:none; border-radius:8px; font-size:18px; cursor:pointer;">
+                กลับสู่หน้าหลัก
+            </button>
+        </div>
+    </div>
+
     <div id="mock-payment-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
         <div style="background:#fff; width:90%; max-width:400px; padding:30px; border-radius:15px; text-align:center; color:#000;">
             <div style="font-size:40px; margin-bottom:10px;">🛒</div>
