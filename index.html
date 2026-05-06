@@ -569,7 +569,10 @@
             <button id="btn-find-match" style="background:var(--blue); color:white; width:100%; font-size:16px;" onclick="findMatch()">🌐 ค้นหาคู่ต่อสู้ (Multiplayer)</button>
             <div id="queue-status" style="color:var(--blue); font-weight:bold; display:none; text-align:center;">กำลังรอผู้เล่นคนอื่น... ⏳</div>
         </div>
-        <button id="end-btn" style="display:none; background:var(--red); color:white;" onclick="endTurn()">⏭️ จบเทิร์น</button>
+        <button id="end-btn" style="display:none; background:var(--red); color:white; position: relative;" onclick="endTurn()">
+            ⏭️ จบเทิร์น
+            <span id="turn-timer" style="position:absolute; bottom:2px; right:5px; font-size:10px; color:#fff;"></span>
+        </button>
     </div>
 
     <div id="p-hand-ui" class="hand-container game-ui" style="display:none;"></div>
@@ -1717,6 +1720,7 @@
                         }, 500);
                     } else if (data.type === 'endTurn') {
                         addLog(`⏭️ คู่ต่อสู้จบเทิร์น`);
+                        startTurnTimer();
                         startPlayerTurn();
                     }
                 });
@@ -1817,6 +1821,7 @@
                 // Multiplayer wait logic will be implemented here
             }
             updateUI();
+            startTurnTimer();
         }
 
         function startGame(first) {
@@ -1851,6 +1856,41 @@
             if(first) { pMax = 1; pEss = 1; eMax = 0; eEss = 0; addLog("เทิร์นแรกของคุณ ได้รับ 1 Essence"); } 
             else { eMax = 1; eEss = 1; pMax = 0; pEss = 0; addLog(`เทิร์นแรกของ AI ได้รับ 1 Essence`); setTimeout(enemyTurn, 1000); }
             updateUI();
+            startTurnTimer();
+        }
+
+        let turnTimerInterval;
+        let turnTimeRemaining = 20;
+
+        function startTurnTimer() {
+            clearInterval(turnTimerInterval);
+            turnTimeRemaining = 20;
+            updateTurnTimerUI();
+
+            turnTimerInterval = setInterval(() => {
+                turnTimeRemaining--;
+                updateTurnTimerUI();
+
+                if (turnTimeRemaining <= 0) {
+                    clearInterval(turnTimerInterval);
+                    if (isPlayerTurn) {
+                        addLog(`⏰ หมดเวลาเทิร์นของคุณ!`);
+                        endTurn();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTurnTimerUI() {
+            const timerElem = document.getElementById('turn-timer');
+            if (timerElem) {
+                timerElem.innerText = `${turnTimeRemaining}s`;
+                if (turnTimeRemaining <= 5) {
+                    timerElem.style.color = '#ff4757';
+                } else {
+                    timerElem.style.color = '#fff';
+                }
+            }
         }
 
         function onAttack(type, idx) {
@@ -2122,6 +2162,7 @@
                 document.getElementById('e-leader').classList.remove('rest');
                 if(eDeck > 0) { eHand.push({img: "./assets/images/card_back.png"}); eDeck--; }
                 updateUI();
+                startTurnTimer();
             } else {
                 setTimeout(enemyTurn, 1000); 
             }
