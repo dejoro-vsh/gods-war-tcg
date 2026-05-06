@@ -963,19 +963,43 @@ app.get('/api/leaderboard', async (req, res) => {
 
 const QUEST_POOL = {
     easy: [
-        { id: 'e_play_2', title: 'ผู้แสวงหา', desc: 'เล่นครบ 2 เกม', target: 2, reward: 500, type: 'play' },
+        { id: 'e_play_1', title: 'ก้าวแรกสู่วิหาร', desc: 'เข้าร่วมการต่อสู้ 1 เกม', target: 1, reward: 500, type: 'play' },
+        { id: 'e_play_2', title: 'ผู้แสวงหา', desc: 'เข้าร่วมการต่อสู้ 2 เกม', target: 2, reward: 500, type: 'play' },
+        { id: 'e_play_3', title: 'ผู้ไม่ยอมแพ้', desc: 'เข้าร่วมการต่อสู้ 3 เกม', target: 3, reward: 600, type: 'play' },
+        { id: 'e_win_1', title: 'ลิ้มรสชัยชนะ', desc: 'ชนะการต่อสู้ 1 เกม', target: 1, reward: 600, type: 'win' },
+        { id: 'e_kill_3', title: 'ดาบแรกเลือด', desc: 'กำจัดศัตรู 3 ตัว', target: 3, reward: 400, type: 'kill' },
         { id: 'e_kill_5', title: 'ทหารใหม่', desc: 'กำจัดศัตรู 5 ตัว', target: 5, reward: 500, type: 'kill' },
-        { id: 'e_heal_10', title: 'ผู้เยียวยา', desc: 'ฟื้นฟูพลังชีวิต 10 หน่วย', target: 10, reward: 500, type: 'heal' }
+        { id: 'e_kill_8', title: 'พรานป่า', desc: 'กำจัดศัตรู 8 ตัว', target: 8, reward: 600, type: 'kill' },
+        { id: 'e_kill_10', title: 'แนวหน้า', desc: 'กำจัดศัตรู 10 ตัว', target: 10, reward: 700, type: 'kill' },
+        { id: 'e_heal_10', title: 'หยาดน้ำอมฤต', desc: 'ฟื้นฟูพลังชีวิต 10 หน่วย', target: 10, reward: 400, type: 'heal' },
+        { id: 'e_heal_15', title: 'พรแห่งแสง', desc: 'ฟื้นฟูพลังชีวิต 15 หน่วย', target: 15, reward: 500, type: 'heal' },
+        { id: 'e_heal_20', title: 'ผู้เยียวยาฝึกหัด', desc: 'ฟื้นฟูพลังชีวิต 20 หน่วย', target: 20, reward: 600, type: 'heal' }
     ],
     medium: [
-        { id: 'm_win_2', title: 'นักสู้', desc: 'ชนะ 2 เกม', target: 2, reward: 1000, type: 'win' },
-        { id: 'm_kill_15', title: 'มือสังหาร', desc: 'กำจัดศัตรู 15 ตัว', target: 15, reward: 1000, type: 'kill' },
-        { id: 'm_play_5', title: 'ผู้เจนศึก', desc: 'เล่นครบ 5 เกม', target: 5, reward: 1000, type: 'play' }
+        { id: 'm_win_2', title: 'นักรบเกราะทอง', desc: 'ชนะการต่อสู้ 2 เกม', target: 2, reward: 1200, type: 'win' },
+        { id: 'm_win_3', title: 'ผู้ไร้พ่าย', desc: 'ชนะการต่อสู้ 3 เกม', target: 3, reward: 1500, type: 'win' },
+        { id: 'm_play_4', title: 'กรำศึก', desc: 'เข้าร่วมการต่อสู้ 4 เกม', target: 4, reward: 1000, type: 'play' },
+        { id: 'm_play_5', title: 'ผู้เจนศึก', desc: 'เข้าร่วมการต่อสู้ 5 เกม', target: 5, reward: 1200, type: 'play' },
+        { id: 'm_kill_15', title: 'มือสังหาร', desc: 'กำจัดศัตรู 15 ตัว', target: 15, reward: 1200, type: 'kill' },
+        { id: 'm_kill_20', title: 'เพชฌฆาตไร้เงา', desc: 'กำจัดศัตรู 20 ตัว', target: 20, reward: 1500, type: 'kill' },
+        { id: 'm_kill_25', title: 'ทัพหน้าทะลวงฟัน', desc: 'กำจัดศัตรู 25 ตัว', target: 25, reward: 1800, type: 'kill' },
+        { id: 'm_kill_30', title: 'ยมทูต', desc: 'กำจัดศัตรู 30 ตัว', target: 30, reward: 2000, type: 'kill' },
+        { id: 'm_heal_30', title: 'สัมผัสสวรรค์', desc: 'ฟื้นฟูพลังชีวิต 30 หน่วย', target: 30, reward: 1200, type: 'heal' },
+        { id: 'm_heal_40', title: 'น้ำพุศักดิ์สิทธิ์', desc: 'ฟื้นฟูพลังชีวิต 40 หน่วย', target: 40, reward: 1500, type: 'heal' },
+        { id: 'm_heal_50', title: 'พระหัตถ์แห่งทวยเทพ', desc: 'ฟื้นฟูพลังชีวิต 50 หน่วย', target: 50, reward: 1800, type: 'heal' }
     ],
     hard: [
-        { id: 'h_win_5', title: 'แม่ทัพ', desc: 'ชนะ 5 เกม', target: 5, reward: 2500, type: 'win' },
-        { id: 'h_kill_30', title: 'เทพสงคราม', desc: 'กำจัดศัตรู 30 ตัว', target: 30, reward: 2500, type: 'kill' },
-        { id: 'h_heal_50', title: 'นักบวชศักดิ์สิทธิ์', desc: 'ฟื้นฟูพลังชีวิต 50 หน่วย', target: 50, reward: 2500, type: 'heal' }
+        { id: 'h_win_4', title: 'แชมเปี้ยนแห่งวิหาร', desc: 'ชนะการต่อสู้ 4 เกม', target: 4, reward: 2500, type: 'win' },
+        { id: 'h_win_5', title: 'แม่ทัพไร้พ่าย', desc: 'ชนะการต่อสู้ 5 เกม', target: 5, reward: 3500, type: 'win' },
+        { id: 'h_win_7', title: 'ตำนานสวรรค์', desc: 'ชนะการต่อสู้ 7 เกม', target: 7, reward: 5000, type: 'win' },
+        { id: 'h_play_8', title: 'เสพติดสงคราม', desc: 'เข้าร่วมการต่อสู้ 8 เกม', target: 8, reward: 2500, type: 'play' },
+        { id: 'h_play_10', title: 'นักสู้ข้ามคืน', desc: 'เข้าร่วมการต่อสู้ 10 เกม', target: 10, reward: 3500, type: 'play' },
+        { id: 'h_kill_40', title: 'พายุหมุนเลือด', desc: 'กำจัดศัตรู 40 ตัว', target: 40, reward: 3000, type: 'kill' },
+        { id: 'h_kill_50', title: 'เทพสงครามจุติ', desc: 'กำจัดศัตรู 50 ตัว', target: 50, reward: 4000, type: 'kill' },
+        { id: 'h_kill_60', title: 'ผู้กวาดล้าง', desc: 'กำจัดศัตรู 60 ตัว', target: 60, reward: 5000, type: 'kill' },
+        { id: 'h_heal_70', title: 'แสงแห่งชีวิต', desc: 'ฟื้นฟูพลังชีวิต 70 หน่วย', target: 70, reward: 3000, type: 'heal' },
+        { id: 'h_heal_80', title: 'นักบวชศักดิ์สิทธิ์', desc: 'ฟื้นฟูพลังชีวิต 80 หน่วย', target: 80, reward: 4000, type: 'heal' },
+        { id: 'h_heal_100', title: 'ผู้ปัดเป่าความตาย', desc: 'ฟื้นฟูพลังชีวิต 100 หน่วย', target: 100, reward: 5000, type: 'heal' }
     ]
 };
 
