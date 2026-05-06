@@ -453,8 +453,8 @@ app.get('/api/marketplace/ads', async (req, res) => {
 // API: Post a new ad (deduct 500 gold)
 app.post('/api/marketplace/ads', async (req, res) => {
     try {
-        const { playerId, inventoryId, openseaUrl } = req.body;
-        if (!playerId || !inventoryId || !openseaUrl) {
+        const { playerId, inventoryId } = req.body;
+        if (!playerId || !inventoryId) {
             return res.status(400).json({ error: "Missing parameters." });
         }
 
@@ -478,6 +478,10 @@ app.post('/api/marketplace/ads', async (req, res) => {
 
         if (cardErr || !card) return res.status(400).json({ error: "Card not found or not owned." });
         if (!card.is_minted) return res.status(400).json({ error: "You can only advertise minted cards." });
+
+        const nftId = getNftId(card.card_name, card.grade);
+        const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
+        const openseaUrl = `https://opensea.io/assets/matic/${contractAddress}/${nftId}`;
 
         // 3. Deduct Gold
         const { error: deductErr } = await supabase
