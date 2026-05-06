@@ -3323,6 +3323,32 @@
             }
         }
 
+        async function openMarketAd(dbUrl) {
+            const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
+            if (!dbUrl || dbUrl.includes('null') || dbUrl.includes('undefined')) {
+                // If the ad was saved with a null ID due to a past bug, fallback safely
+                let userAddress = null;
+                try {
+                    if (typeof window.ethereum !== 'undefined') {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        if (accounts.length > 0) userAddress = accounts[0];
+                    }
+                } catch(e){}
+                
+                if (userAddress) {
+                    window.open(`https://opensea.io/${userAddress}`, '_blank');
+                } else {
+                    window.open(`https://polygonscan.com/token/${contractAddress}`, '_blank');
+                }
+                return;
+            }
+            
+            // If it's a valid link, ensure it uses polygon path to be safe with OpenSea's new routing
+            // Note: OpenSea supports both /matic/ and /polygon/, but replacing it ensures normalization.
+            let finalUrl = dbUrl.replace('/matic/', '/polygon/');
+            window.open(finalUrl, '_blank');
+        }
+
         async function mintToWeb3() {
             if (!activeInventoryId) return;
             const btn = document.getElementById('btn-mint-web3');
@@ -3469,7 +3495,7 @@
                                 <div class="badge atk-val">${c.atk || ''}</div>
                                 <div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>
                             </div>
-                            <button onclick="window.open('${ad.opensea_url}', '_blank')" style="background: linear-gradient(90deg, #2980b9, #3498db); border:none; padding:8px; border-radius:5px; color:white; font-weight:bold; cursor:pointer; width:100%; font-size:12px;">ซื้อบน OpenSea</button>
+                            <button onclick="openMarketAd('${ad.opensea_url}')" style="background: linear-gradient(90deg, #2980b9, #3498db); border:none; padding:8px; border-radius:5px; color:white; font-weight:bold; cursor:pointer; width:100%; font-size:12px;">ซื้อบน OpenSea</button>
                         </div>
                     `;
                     document.getElementById('marketplace-content').innerHTML += adHtml;

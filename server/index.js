@@ -529,7 +529,7 @@ app.post('/api/marketplace/ads', async (req, res) => {
 
         const nftId = getNftId(card.card_name, card.grade);
         const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
-        const openseaUrl = `https://opensea.io/assets/matic/${contractAddress}/${nftId}`;
+        const openseaUrl = `https://opensea.io/assets/polygon/${contractAddress}/${nftId}`;
 
         // 3. Deduct Gold
         const { error: deductErr } = await supabase
