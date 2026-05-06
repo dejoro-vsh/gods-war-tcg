@@ -658,11 +658,13 @@ app.post('/api/shop/buy-pack-mock', async (req, res) => {
             currentGold -= 1000;
             numCards = 3;
         } else if (packType === 'premium') {
-            // Mock Crypto Payment
+            if (currentGold < 3000) return res.status(400).json({ error: "ทองไม่พอ (Need 3000 Gold)" });
+            currentGold -= 3000;
             numCards = 5;
             guaranteedRarity = 'Rare';
         } else if (packType === 'god') {
-            // Mock Fiat Payment
+            if (currentGold < 12000) return res.status(400).json({ error: "ทองไม่พอ (Need 12000 Gold)" });
+            currentGold -= 12000;
             numCards = 5;
             guaranteedRarity = 'Epic';
         } else {

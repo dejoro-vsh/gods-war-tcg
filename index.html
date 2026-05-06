@@ -2475,8 +2475,8 @@
                         <div style="font-size:12px; color:#d4aaff; margin-top:5px; font-weight:bold;">⭐ การันตีระดับ Rare 1 ใบขึ้นไป</div>
                     </div>
                     
-                    <button onclick="showMockPayment('premium', '10 MATIC')" style="width:100%; padding:15px; background:linear-gradient(90deg, #8e44ad, #e056fd); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 20px rgba(224,86,253,0.4); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        🦊 จ่าย 10 MATIC (Crypto)
+                    <button onclick="buyPackMock('premium', 3000)" style="width:100%; padding:15px; background:linear-gradient(90deg, #8e44ad, #e056fd); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 20px rgba(224,86,253,0.4); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        💰 จ่าย 3,000 Gold
                     </button>
                 </div>
 
@@ -2498,8 +2498,8 @@
                         <div style="font-size:12px; color:var(--gold); margin-top:5px; font-weight:bold;">🌟 การันตีระดับ Epic 1 ใบขึ้นไป</div>
                     </div>
                     
-                    <button onclick="showMockPayment('god', '150 THB')" style="width:100%; padding:15px; background:linear-gradient(90deg, #d35400, #f39c12); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 20px rgba(243,156,18,0.5); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        💳 จ่าย 150 บาท (พร้อมเพย์/บัตร)
+                    <button onclick="buyPackMock('god', 12000)" style="width:100%; padding:15px; background:linear-gradient(90deg, #d35400, #f39c12); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 5px 20px rgba(243,156,18,0.5); transition:0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        💰 จ่าย 12,000 Gold
                     </button>
                 </div>
                 
@@ -2618,8 +2618,8 @@
         }
 
         async function buyPackMock(packType, goldCost) {
-            if(packType === 'basic' && (playerStats.gold || 0) < goldCost) {
-                alert("ทองไม่พอครับ!");
+            if((playerStats.gold || 0) < goldCost) {
+                alert("ทองไม่พอครับ! กรุณาเติมทอง");
                 return;
             }
             document.getElementById('shop-screen').style.display = 'none';
