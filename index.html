@@ -396,32 +396,40 @@
             </button>
         </div>
 
-        <!-- 2x2 Dashboard Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 95%; max-width: 500px; margin-top: 20px;">
-            <!-- Profile -->
-            <button onclick="openProfile()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(255, 215, 0, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 215, 0, 0.3)'; this.style.borderColor='var(--gold)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 215, 0, 0.1)'; this.style.borderColor='rgba(255, 215, 0, 0.4)';">
-                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5));">👤</span>
-                <span style="font-size: 13px; color: #f1c40f; letter-spacing: 0.5px;">ข้อมูลผู้เล่น & คลัง</span>
+        <!-- Bottom Navigation Bar (Mobile Native Feel) -->
+        <div id="bottom-nav-bar" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 22, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 215, 0, 0.2); z-index: 1000; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 20px rgba(0,0,0,0.5);">
+            
+            <button onclick="openShop()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#00f2fe'" onmouseout="this.style.color='#aaa'">
+                <span style="font-size: 24px; margin-bottom: 3px;">🏪</span>
+                <span style="font-size: 10px; font-weight: bold;">ร้านค้า</span>
+            </button>
+
+            <button onclick="openQuests()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff7e5f'" onmouseout="this.style.color='#aaa'">
+                <span style="font-size: 24px; margin-bottom: 3px;">📜</span>
+                <span style="font-size: 10px; font-weight: bold;">ภารกิจ</span>
+            </button>
+
+            <!-- Home / Battle Button (Larger, prominent in center) -->
+            <button onclick="goHome()" style="background: transparent; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; transform: translateY(-15px); cursor: pointer;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f1c40f, #e67e22); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(241, 196, 15, 0.5); border: 3px solid #0a0a16;">
+                    <span style="font-size: 28px;">⚔️</span>
+                </div>
+            </button>
+
+            <button onclick="openLeaderboard()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff9a9e'" onmouseout="this.style.color='#aaa'">
+                <span style="font-size: 24px; margin-bottom: 3px;">🏆</span>
+                <span style="font-size: 10px; font-weight: bold;">จัดอันดับ</span>
+            </button>
+
+            <button onclick="openProfile()" style="background: transparent; border: none; color: #aaa; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#f1c40f'" onmouseout="this.style.color='#aaa'">
+                <span style="font-size: 24px; margin-bottom: 3px;">👤</span>
+                <span style="font-size: 10px; font-weight: bold;">คลัง</span>
             </button>
             
-            <!-- Quests -->
-            <button onclick="openQuests()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(255, 126, 95, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 126, 95, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 126, 95, 0.3)'; this.style.borderColor='#ff7e5f';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 126, 95, 0.1)'; this.style.borderColor='rgba(255, 126, 95, 0.4)';">
-                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,126,95,0.5));">📜</span>
-                <span style="font-size: 13px; color: #ffb47b; letter-spacing: 0.5px;">ภารกิจประจำวัน</span>
-            </button>
-
-            <!-- Shop -->
-            <button onclick="openShop()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(0, 242, 254, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 242, 254, 0.3)'; this.style.borderColor='#00f2fe';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 242, 254, 0.1)'; this.style.borderColor='rgba(0, 242, 254, 0.4)';">
-                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(0,242,254,0.5));">🏪</span>
-                <span style="font-size: 13px; color: #4facfe; letter-spacing: 0.5px;">ร้านค้า & กาชา</span>
-            </button>
-
-            <!-- Leaderboard -->
-            <button onclick="openLeaderboard()" style="background: linear-gradient(135deg, #16162a 0%, #0a0a16 100%); color: white; border: 1px solid rgba(255, 154, 158, 0.4); padding: 25px 10px; border-radius: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 154, 158, 0.3)'; this.style.borderColor='#ff9a9e';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 154, 158, 0.1)'; this.style.borderColor='rgba(255, 154, 158, 0.4)';">
-                <span style="font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,154,158,0.5));">🏆</span>
-                <span style="font-size: 13px; color: #fecfef; letter-spacing: 0.5px;">หอเกียรติยศ</span>
-            </button>
         </div>
+        
+        <!-- Add empty space at the bottom so the content doesn't get hidden behind the nav bar -->
+        <div style="height: 80px; width: 100%;"></div>
     </div>
 
     <div id="deck-builder-screen">
@@ -891,6 +899,19 @@
                 openQuests();
             } catch(e) {
                 alert("รับรางวัลไม่สำเร็จ: " + e.message);
+            }
+        }
+
+        function goHome() {
+            // Close all modals
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('leaderboard-screen').style.display = 'none';
+            document.getElementById('shop-screen').style.display = 'none';
+            document.getElementById('quests-modal').style.display = 'none';
+            
+            // If in deck builder, return to main menu
+            if (document.getElementById('deck-builder-screen').style.display === 'flex') {
+                saveAndExitBuilder();
             }
         }
 
