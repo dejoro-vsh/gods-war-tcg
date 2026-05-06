@@ -3252,11 +3252,14 @@
 
         async function boostAd() {
             if (!activeInventoryId) return;
-            const openseaUrl = prompt("กรุณาวางลิงก์ OpenSea ของการ์ดใบนี้ (เช่น https://opensea.io/assets/...):");
-            if (!openseaUrl || !openseaUrl.includes("opensea.io")) {
-                alert("ลิงก์ไม่ถูกต้อง กรุณาระบุลิงก์ OpenSea");
+            
+            if (!activeNFTId) {
+                alert("ข้อผิดพลาด: การ์ดใบนี้ยังไม่ได้สร้าง NFT (Mint) อย่างสมบูรณ์");
                 return;
             }
+            
+            const contractAddress = "0x4ECaFff2F1412297Ef24Ea7906940825623580f4";
+            const openseaUrl = `https://opensea.io/assets/matic/${contractAddress}/${activeNFTId}`;
 
             if ((playerStats.gold || 0) < 500) {
                 alert("ทองไม่พอ! ต้องใช้ 500 Gold ในการบูสต์โฆษณา");
