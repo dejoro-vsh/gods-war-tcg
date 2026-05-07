@@ -1,28 +1,11 @@
-const https = require('https');
+const crypto = require('crypto');
+const CardDatabase = require('./js/cards.js');
 
-const data = JSON.stringify({});
+function getNftId(cardName, grade) {
+    const hash = crypto.createHash('md5').update(cardName + "_" + grade).digest('hex');
+    return parseInt(hash.substring(0, 8), 16);
+}
 
-const options = {
-  hostname: 'gods-war-tcg-server.onrender.com',
-  port: 443,
-  path: '/api/mint',
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Content-Length': data.length
-  }
-};
-
-const req = https.request(options, res => {
-  console.log(`statusCode: ${res.statusCode}`);
-  res.on('data', d => {
-    process.stdout.write(d);
-  });
-});
-
-req.on('error', error => {
-  console.error(error);
-});
-
-req.write(data);
-req.end();
+const allCards = [...CardDatabase.chinaCards, ...CardDatabase.greekCards];
+const grades = ['Epic', 'Legendary', 'Mythic'];
+console.log(allCards[0]);

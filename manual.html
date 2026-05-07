@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คัมภีร์เทพเจ้า - Gods War TCG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #ffd700;
+            --dark-gold: #b8860b;
+            --red: #ff4d4d;
+            --blue: #00ccff;
+            --bg: #0a0a0a;
+            --panel-bg: rgba(20, 20, 20, 0.85);
+            --border: rgba(255, 215, 0, 0.3);
+            --text-main: #f0f0f0;
+            --text-dim: #aaaaaa;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at center, #1a1a2e 0%, var(--bg) 100%);
+            color: var(--text-main);
+            font-family: 'Prompt', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* Glassmorphism Container */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--panel-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: var(--gold);
+            font-size: 2.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .section h2 {
+            color: var(--gold);
+            margin-top: 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            color: #fff;
+            margin-top: 25px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        /* Highlight Words */
+        .keyword {
+            color: var(--blue);
+            font-weight: 600;
+        }
+        .faction-china { color: #ff6b6b; font-weight: bold; }
+        .faction-greek { color: #4dabf7; font-weight: bold; }
+        .highlight { color: var(--gold); font-weight: bold; }
+
+        /* Discord CTA */
+        .discord-cta {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(45deg, #5865F2, #4752C4);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
+        }
+
+        .discord-cta h2 {
+            color: white;
+            margin: 0 0 15px 0;
+            border: none;
+        }
+
+        .discord-cta p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 25px;
+        }
+
+        .btn-discord {
+            display: inline-block;
+            background: white;
+            color: #5865F2;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-discord:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-back:hover {
+            background: var(--gold);
+            color: black;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { margin: 20px; padding: 20px; }
+            .header h1 { font-size: 2rem; }
+            .btn-back { position: static; display: block; text-align: center; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="btn-back">◀ กลับสู่เกม</a>
+
+    <div class="container">
+        <div class="header">
+            <h1>📜 คัมภีร์เทพเจ้า</h1>
+            <p>Gods War TCG - Official Game Manual & Lore</p>
+        </div>
+
+        <div class="section">
+            <h2>1. ⚔️ ภาพรวมของเกม (Game Overview)</h2>
+            <p><strong>Gods War TCG</strong> เป็นเกมการ์ดดวลกันแบบ 1v1 ระหว่างเทพเจ้า 2 ฝ่าย ได้แก่ <span class="faction-china">ตำนานเทพเจ้าจีน (China)</span> และ <span class="faction-greek">ตำนานเทพเจ้ากรีก (Greek)</span></p>
+            <p><strong>เป้าหมายของเกม:</strong> ผู้เล่นแต่ละคนมีพลังชีวิต (HP) เริ่มต้น <strong>5 หน่วย</strong> ผู้ใดที่สามารถโจมตีจน HP ของฝ่ายตรงข้ามลดเหลือ 0 ได้ก่อน จะเป็นผู้ชนะ</p>
+        </div>
+
+        <div class="section">
+            <h2>2. 💎 ระบบพลังงาน (Essence System)</h2>
+            <p>การใช้การ์ดและการโจมตีในเกมนี้ ต้องใช้ทรัพยากรที่เรียกว่า <strong>Essence (มานา)</strong></p>
+            <ul>
+                <li><strong>ผู้เล่นคนที่ 1 (First Player):</strong> เริ่มเกมด้วย 1 Max Essence</li>
+                <li><strong>ผู้เล่นคนที่ 2 (Second Player):</strong> เริ่มเทิร์นแรกของตัวเองจะได้ 2 Max Essence เพื่อชดเชยความเสียเปรียบจากการเล่นทีหลัง</li>
+                <li><strong>การฟื้นฟู:</strong> เมื่อเริ่มเทิร์นใหม่ Max Essence จะเพิ่มขึ้น 2 หน่วยเสมอ (สูงสุด 10 หน่วย) และ Essence จะถูกเติมให้เต็ม</li>
+                <li><strong>การใช้งาน:</strong> Essence ใช้สำหรับร่ายการ์ดลงสนาม (<span class="keyword">Cost</span>) และใช้สำหรับสั่งยูนิตโจมตี (<span class="keyword">Attack Cost</span>)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>3. 🃏 ประเภทการ์ด (Card Types)</h2>
+            <ul>
+                <li><strong>Warrior (นักรบ):</strong> ยูนิตโจมตีหลัก เมื่อลงสนามจะติดสถานะ "พัก (Rest)" โจมตีไม่ได้ทันที ยกเว้นจะมีสกิลพิเศษ</li>
+                <li><strong>Blocker (ตัวบล็อก):</strong> ยูนิตสายป้องกันที่เน้นปกป้อง Leader</li>
+                <li><strong>Event (เวทมนตร์):</strong> ร่ายแล้วเกิดผลทันที เช่น จั่วการ์ด ฟื้นฟู HP หรือล้างกระดาน</li>
+                <li><strong>Stage (ฟิลด์):</strong> การ์ดสนามที่ให้บัฟกับเผ่าของตัวเอง</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>4. ✨ สกิลติดตัว (Keywords & Skills)</h2>
+            <p>การ์ดแต่ละใบอาจมีสกิลพิเศษเพื่อพลิกแพลงสถานการณ์:</p>
+            <ul>
+                <li><span class="keyword">Rush:</span> ลงสนามแล้วสามารถสั่งโจมตีได้ทันที ไม่ต้องรอเทิร์นหน้า</li>
+                <li><span class="keyword">On Play:</span> สกิลที่จะทำงานทันทีเมื่อนำการ์ดใบนี้ลงสนาม เช่น `draw_1` (จั่วการ์ด 1 ใบ), `buff_all` (เพิ่มพลังให้เพื่อน)</li>
+                <li><span class="keyword">Evade:</span> หลบการถูกทำลายหรือความเสียหายได้ 1 ครั้ง</li>
+                <li><span class="keyword">Pierce:</span> โจมตีทะลุพลังป้องกันของศัตรู</li>
+                <li><span class="keyword">Snipe:</span> ล็อคเป้าโจมตีได้อย่างอิสระ</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>5. 🗡️ ระบบการต่อสู้ (Combat Mechanics)</h2>
+            <p>ตัวละคร <strong>Leader (ผู้เล่น)</strong> มีพลังโจมตี (ATK) 5,000 หน่วย และสามารถสั่งโจมตีได้ 1 ครั้งต่อเทิร์นเหมือนนักรบคนอื่นๆ</p>
+            <p><strong>การโจมตี:</strong> สามารถเลือกตี <em>การ์ดบนสนาม</em> หรือ ตี <em>Leader ฝ่ายตรงข้ามโดยตรง</em> (หากทำสำเร็จ จะลด HP ศัตรูลง 1 หน่วย)</p>
+        </div>
+
+        <div class="discord-cta">
+            <h2>ก้าวเข้าสู่สมาคมเทพเจ้า! ⚡</h2>
+            <p>ร่วมพูดคุย หาเพื่อนจัดเด็ค ท้าดวล และติดตามอัปเดตการ์ดใหม่ๆ ได้ที่ Discord ของเรา</p>
+            <!-- รอผู้ใช้นำลิงก์ Discord จริงมาใส่ที่นี่ -->
+            <a href="#" class="btn-discord" target="_blank">เข้าร่วม Discord ออฟฟิเชียล</a>
+        </div>
+
+    </div>
+
+</body>
+</html>

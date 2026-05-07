@@ -29,6 +29,7 @@ app.post('/api/webhook/stripe', express.raw({type: 'application/json'}), async (
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const playerId = session.client_reference_id;
+        const goldAmount = parseInt(session.metadata?.gold_amount) || 3000;
         
         if (playerId && session.payment_status === 'paid') {
             try {
@@ -40,12 +41,12 @@ app.post('/api/webhook/stripe', express.raw({type: 'application/json'}), async (
                     .single();
                     
                 if (!err1 && player) {
-                    // Add 3000 gold
+                    // Add dynamic gold amount
                     await supabase
                         .from('players')
-                        .update({ gold: (player.gold || 0) + 3000 })
+                        .update({ gold: (player.gold || 0) + goldAmount })
                         .eq('id', playerId);
-                    console.log(`Successfully added 3000 gold to player ${playerId} via Stripe.`);
+                    console.log(`Successfully added ${goldAmount} gold to player ${playerId} via Stripe.`);
                 }
             } catch(e) {
                 console.error("Failed to update gold after Stripe payment", e);
@@ -1258,6 +1259,9 @@ app.post('/api/checkout/create-session', async (req, res) => {
             success_url: `${frontendUrl}/?payment=success`,
             cancel_url: `${frontendUrl}/?payment=cancel`,
             client_reference_id: playerId, // Pass playerId to webhook
+            metadata: {
+                gold_amount: 3000
+            }
         });
 
         res.json({ id: session.id, url: session.url });
