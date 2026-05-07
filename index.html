@@ -631,8 +631,7 @@
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             SOCKET_SERVER_URL = "http://localhost:3000"; // Local dev
         } else if (window.location.hostname.includes('staging')) {
-            // TODO: User must change this to their actual Render Staging URL
-            SOCKET_SERVER_URL = "https://gods-war-tcg-server-staging.onrender.com"; 
+            SOCKET_SERVER_URL = "https://gods-war-tcg.onrender.com"; // Staging Backend
         }
 
         function generateSafeUUID() {
