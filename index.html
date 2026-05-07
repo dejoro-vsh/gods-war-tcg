@@ -100,6 +100,7 @@
         .card-pool { flex: 1; overflow-y: auto; padding: 10px; border-bottom: 1px solid #333; background: #1a1a1a; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start; }
         .deck-list { flex: 1; overflow-y: auto; padding: 10px; background: #0a0a0a; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start; }
         .builder-section-title { width: 100%; text-align: center; color: #888; font-size: 12px; margin-bottom: 5px; }
+     .card { overflow: hidden; } .card img { width: 100% !important; height: 100% !important; border-radius: 6px !important; } .card::before { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%, #000); z-index: 1; border-radius: 0 0 6px 6px; } .card-name-plate { position: absolute; bottom: 18px; left: 0; width: 100%; text-align: center; color: #fff; font-size: 11px; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px #000; padding: 0 2px; box-sizing: border-box; line-height: 1.1; } .card-type-plate { position: absolute; bottom: 4px; left: 0; width: 100%; text-align: center; color: #ccc; font-size: 8px; z-index: 2; text-shadow: 1px 1px 1px #000; text-transform: uppercase; } .cost-val { z-index: 3; box-shadow: 2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .atk-val, .atk-cost { z-index: 3; box-shadow: -2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .field-zone .card-name-plate { font-size: 8px; bottom: 14px; } .field-zone .card-type-plate { font-size: 6px; bottom: 2px; } .field-zone .card::before { height: 60%; } 
     </style>
 </head>
 <body>
@@ -156,6 +157,7 @@
             50% { left: 200%; }
             100% { left: 200%; }
         }
+     .card { overflow: hidden; } .card img { width: 100% !important; height: 100% !important; border-radius: 6px !important; } .card::before { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%, #000); z-index: 1; border-radius: 0 0 6px 6px; } .card-name-plate { position: absolute; bottom: 18px; left: 0; width: 100%; text-align: center; color: #fff; font-size: 11px; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px #000; padding: 0 2px; box-sizing: border-box; line-height: 1.1; } .card-type-plate { position: absolute; bottom: 4px; left: 0; width: 100%; text-align: center; color: #ccc; font-size: 8px; z-index: 2; text-shadow: 1px 1px 1px #000; text-transform: uppercase; } .cost-val { z-index: 3; box-shadow: 2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .atk-val, .atk-cost { z-index: 3; box-shadow: -2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .field-zone .card-name-plate { font-size: 8px; bottom: 14px; } .field-zone .card-type-plate { font-size: 6px; bottom: 2px; } .field-zone .card::before { height: 60%; } 
     </style>
     <div id="nft-showcase-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(10px); flex-direction: column;">
         <h2 style="color:var(--gold); margin-bottom: 20px; text-shadow: 0 0 10px var(--gold);">✨ RARE NFT UNLOCKED ✨</h2>
@@ -473,7 +475,8 @@
                 filter: drop-shadow(0 0 10px #f1c40f) brightness(1.2);
                 transform: scale(1.1);
             }
-        </style>
+         .card { overflow: hidden; } .card img { width: 100% !important; height: 100% !important; border-radius: 6px !important; } .card::before { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%, #000); z-index: 1; border-radius: 0 0 6px 6px; } .card-name-plate { position: absolute; bottom: 18px; left: 0; width: 100%; text-align: center; color: #fff; font-size: 11px; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px #000; padding: 0 2px; box-sizing: border-box; line-height: 1.1; } .card-type-plate { position: absolute; bottom: 4px; left: 0; width: 100%; text-align: center; color: #ccc; font-size: 8px; z-index: 2; text-shadow: 1px 1px 1px #000; text-transform: uppercase; } .cost-val { z-index: 3; box-shadow: 2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .atk-val, .atk-cost { z-index: 3; box-shadow: -2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .field-zone .card-name-plate { font-size: 8px; bottom: 14px; } .field-zone .card-type-plate { font-size: 6px; bottom: 2px; } .field-zone .card::before { height: 60%; } 
+    </style>
         
         <div id="bottom-nav-bar" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 22, 0.85); backdrop-filter: blur(15px); border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 1000; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 25px rgba(0,0,0,0.6);">
             
@@ -624,7 +627,13 @@
         let dbClient;
         let socket;
         
-        const SOCKET_SERVER_URL = "https://gods-war-tcg-server.onrender.com"; 
+        let SOCKET_SERVER_URL = "https://gods-war-tcg-server.onrender.com"; // Default Production
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            SOCKET_SERVER_URL = "http://localhost:3000"; // Local dev
+        } else if (window.location.hostname.includes('staging')) {
+            // TODO: User must change this to their actual Render Staging URL
+            SOCKET_SERVER_URL = "https://gods-war-tcg-server-staging.onrender.com"; 
+        }
 
         function generateSafeUUID() {
             if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -1168,7 +1177,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}" onclick="showCardDetailModal('${c.name.replace(/'/g, "\\'")}', '${c.grade}', '${c.style}', ${c.is_free}, '${c.img}', '${c.img_fallback}', '${invCard.id}', ${invCard.is_minted}, '${invCard.nft_id || ''}')"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                grid.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="width: 75px; height: 110px; ${borderStyle}" onclick="showCardDetailModal('${c.name.replace(/'/g, "\\'")}', '${c.grade}', '${c.style}', ${c.is_free}, '${c.img}', '${c.img_fallback}', '${invCard.id}', ${invCard.is_minted}, '${invCard.nft_id || ''}')"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="card-name-plate">${c.name}</div><div class="card-type-plate">${c.type || ''}</div><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
             
             // Render Empty Slots
@@ -1459,7 +1468,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                invZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                invZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toDeck', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="card-name-plate">${c.name}</div><div class="card-type-plate">${c.type || ''}</div><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
 
             const deckZone = document.getElementById('db-deck');
@@ -1468,7 +1477,7 @@
                 let borderStyle = (c.grade === 'Mythic') ? `border: 2px solid ${c.gradeColor}; box-shadow: 0 0 15px ${c.gradeColor}, inset 0 0 10px ${c.gradeColor}; animation: pulse 2s infinite;` : `border-color:${c.gradeColor}; box-shadow: 0 0 8px ${c.gradeColor};`;
                 if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                 
-                deckZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
+                deckZone.innerHTML += `<div class="card ${c.is_free ? 'free-card' : ''}" style="${borderStyle}" onclick="moveCard('toInv', ${i})"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="card-name-plate">${c.name}</div><div class="card-type-plate">${c.type || ''}</div><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;">${c.grade}</div>`:''}</div>`;
             });
         }
 
@@ -2913,6 +2922,7 @@
             50% { transform: scale(1.05); opacity:0.8; }
             100% { transform: scale(1); opacity:1; }
         }
+     .card { overflow: hidden; } .card img { width: 100% !important; height: 100% !important; border-radius: 6px !important; } .card::before { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%, #000); z-index: 1; border-radius: 0 0 6px 6px; } .card-name-plate { position: absolute; bottom: 18px; left: 0; width: 100%; text-align: center; color: #fff; font-size: 11px; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px #000; padding: 0 2px; box-sizing: border-box; line-height: 1.1; } .card-type-plate { position: absolute; bottom: 4px; left: 0; width: 100%; text-align: center; color: #ccc; font-size: 8px; z-index: 2; text-shadow: 1px 1px 1px #000; text-transform: uppercase; } .cost-val { z-index: 3; box-shadow: 2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .atk-val, .atk-cost { z-index: 3; box-shadow: -2px 2px 5px rgba(0,0,0,0.8); border: 1.5px solid white !important; } .field-zone .card-name-plate { font-size: 8px; bottom: 14px; } .field-zone .card-type-plate { font-size: 6px; bottom: 2px; } .field-zone .card::before { height: 60%; } 
     </style>
 
     <script>
@@ -3028,7 +3038,7 @@
                             if(c.grade === 'Normal') borderStyle = `border-color:${c.gradeColor};`;
                             
                             // Scale down to 1.1 for mobile so 5 cards fit better
-                            let cardHtml = `<div class="card" style="${borderStyle} width:110px; height:154px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
+                            let cardHtml = `<div class="card" style="${borderStyle} width:110px; height:154px;"><div class="cost-val">${c.cost}</div><img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="card-name-plate">${c.name}</div><div class="card-type-plate">${c.type || ''}</div><div class="badge atk-val">${c.atk || ''}</div>${c.grade!=='Normal'?`<div style="position:absolute;top:2px;right:2px;background:#000;color:${c.gradeColor};font-size:8px;padding:2px;border-radius:3px;z-index:5;">${c.grade}</div>`:''}</div>`;
                             
                             let wrapper = document.createElement('div');
                             wrapper.innerHTML = cardHtml;
@@ -3182,7 +3192,7 @@
                     <div style="position:relative; width: 75px; height: 110px; cursor:${cursor}; opacity:${opacity}; transition:0.2s;" onclick="selectCardForCrafting('${cardName.replace(/'/g, "\\'")}', '${gr}')">
                         <div class="card" style="width: 100%; height: 100%; ${borderStyle}">
                             <div class="cost-val">${c.cost}</div>
-                            <img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'">
+                            <img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="card-name-plate">${c.name}</div><div class="card-type-plate">${c.type || ''}</div>
                             <div class="badge atk-val">${c.atk || ''}</div>
                         </div>
                         <div style="position:absolute; bottom:-10px; right:-10px; background:var(--gold); color:black; font-weight:bold; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:2px solid black;">x${cards.length}</div>
@@ -3268,7 +3278,7 @@
                 let c = applyGradeModifiers(baseCard, cInfo.grade, cInfo.style, cInfo.is_free);
                 slotContainer.innerHTML += `
                     <div class="card" style="width: 50px; height: 75px; border-color:${c.gradeColor}; transform:scale(0.9); cursor:pointer;" onclick="deselectCard('${id}')">
-                        <img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'">
+                        <img src="${c.img}" onerror="this.onerror=null; this.src='${c.img_fallback}'"><div class="card-name-plate">${c.name}</div><div class="card-type-plate">${c.type || ''}</div>
                     </div>
                 `;
             });
@@ -3699,3 +3709,4 @@
     </script>
 </body>
 </html>
+
