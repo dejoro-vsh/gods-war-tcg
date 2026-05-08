@@ -29,27 +29,44 @@ app.post('/api/webhook/stripe', express.raw({type: 'application/json'}), async (
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const playerId = session.client_reference_id;
-        const goldAmount = parseInt(session.metadata?.gold_amount) || 3000;
+        const metaType = session.metadata?.type || 'gold';
         
         if (playerId && session.payment_status === 'paid') {
             try {
-                // Fetch current gold
-                const { data: player, error: err1 } = await supabase
-                    .from('players')
-                    .select('gold')
-                    .eq('id', playerId)
-                    .single();
-                    
-                if (!err1 && player) {
-                    // Add dynamic gold amount
-                    await supabase
-                        .from('players')
-                        .update({ gold: (player.gold || 0) + goldAmount })
-                        .eq('id', playerId);
-                    console.log(`Successfully added ${goldAmount} gold to player ${playerId} via Stripe.`);
+                if (metaType === 'gold') {
+                    const goldAmount = parseInt(session.metadata?.gold_amount) || 3000;
+                    const { data: player, error: err1 } = await supabase.from('players').select('gold').eq('id', playerId).single();
+                    if (!err1 && player) {
+                        await supabase.from('players').update({ gold: (player.gold || 0) + goldAmount }).eq('id', playerId);
+                        console.log(`Successfully added ${goldAmount} gold to player ${playerId} via Stripe.`);
+                    }
+                } else if (metaType === 'slots') {
+                    const slots = parseInt(session.metadata?.quantity) || 0;
+                    const { data: player, error: err2 } = await supabase.from('players').select('inv_bonus_slots, inv_bonus_expires_at').eq('id', playerId).single();
+                    if (!err2 && player) {
+                        let currentSlots = player.inv_bonus_slots || 0;
+                        let expiresAt = player.inv_bonus_expires_at ? new Date(player.inv_bonus_expires_at) : new Date();
+                        if (expiresAt < new Date()) {
+                            expiresAt = new Date(); // Reset if already expired
+                            currentSlots = 0;
+                        }
+                        expiresAt.setDate(expiresAt.getDate() + 30);
+                        currentSlots += slots;
+                        await supabase.from('players').update({ inv_bonus_slots: currentSlots, inv_bonus_expires_at: expiresAt.toISOString() }).eq('id', playerId);
+                        console.log(`Successfully added ${slots} slots to player ${playerId} for 30 days.`);
+                    }
+                } else if (metaType === 'card') {
+                    const cardName = session.metadata?.card_name;
+                    const faction = session.metadata?.faction;
+                    if (cardName && faction) {
+                        await supabase.from('player_inventory').insert([{
+                            player_id: playerId, card_name: cardName, grade: 'SP', style: 'original', faction: faction, is_free: false
+                        }]);
+                        console.log(`Successfully added SP Card ${cardName} to player ${playerId}.`);
+                    }
                 }
             } catch(e) {
-                console.error("Failed to update gold after Stripe payment", e);
+                console.error("Failed to fulfill Stripe payment", e);
             }
         }
     }
@@ -1232,36 +1249,39 @@ app.post('/api/quests/claim', async (req, res) => {
 // API: Create Stripe Checkout Session
 app.post('/api/checkout/create-session', async (req, res) => {
     try {
-        const { playerId, packType } = req.body;
-        if (!playerId || packType !== 'buy_gold_3000') {
+        const { playerId, packType, quantity, cardName, faction } = req.body;
+        if (!playerId) {
             return res.status(400).json({ error: "Invalid request parameters." });
         }
 
         const isLocal = req.headers.host.includes('localhost') || req.headers.host.includes('127.0.0.1');
-        const frontendUrl = isLocal ? 'http://localhost:8080' : 'https://gods-war-tcg.vercel.app'; // adjust port if needed
+        const frontendUrl = req.headers.origin || (isLocal ? 'http://localhost:8080' : 'https://gods-war-tcg-git-staging-dejoro-vshs-projects.vercel.app');
+
+        let lineItems = [];
+        let metadata = {};
+
+        if (packType === 'buy_gold_3000') {
+            lineItems = [{ price_data: { currency: 'thb', product_data: { name: '3,000 Gold', description: 'สกุลเงินในเกม' }, unit_amount: 3900 }, quantity: 1 }];
+            metadata = { type: 'gold', gold_amount: 3000 };
+        } else if (packType === 'buy_slots') {
+            const qty = parseInt(quantity) || 1;
+            lineItems = [{ price_data: { currency: 'thb', product_data: { name: 'ขยายกระเป๋าพิเศษ (+ช่องเก็บการ์ด 30 วัน)' }, unit_amount: 6500 }, quantity: qty }];
+            metadata = { type: 'slots', quantity: qty };
+        } else if (packType === 'buy_sp_card') {
+            lineItems = [{ price_data: { currency: 'thb', product_data: { name: `การ์ดระดับเทพ ${cardName} (SP Grade)` }, unit_amount: 99900 }, quantity: 1 }];
+            metadata = { type: 'card', card_name: cardName, faction: faction };
+        } else {
+            return res.status(400).json({ error: "Unknown pack type." });
+        }
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card', 'promptpay'],
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'thb',
-                        product_data: {
-                            name: '3,000 Gold (Promotion Pack)',
-                            description: 'สกุลเงินในเกม Gods War TCG สำหรับเปิดซองการ์ดและลงโฆษณา VIP',
-                        },
-                        unit_amount: 3900, // 39.00 THB
-                    },
-                    quantity: 1,
-                },
-            ],
+            line_items: lineItems,
             mode: 'payment',
             success_url: `${frontendUrl}/?payment=success`,
             cancel_url: `${frontendUrl}/?payment=cancel`,
-            client_reference_id: playerId, // Pass playerId to webhook
-            metadata: {
-                gold_amount: 3000
-            }
+            client_reference_id: playerId,
+            metadata: metadata
         });
 
         res.json({ id: session.id, url: session.url });

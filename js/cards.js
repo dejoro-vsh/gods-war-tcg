@@ -117,6 +117,28 @@ const CardDatabase = {
             type: "warrior",
             faction: "china", 
             img: "./assets/images/leader_jade_emperor.png" 
+        },
+        {
+            name: "Jade Emperor SP",
+            atk: 9000,
+            cost: 6,
+            atkCost: 2,
+            skills: ["pierce", "rush"],
+            type: "warrior",
+            faction: "china",
+            is_special: true,
+            img: "./assets/images/sp_jade_emperor.png"
+        },
+        {
+            name: "Sun Wukong SP",
+            atk: 7500,
+            cost: 5,
+            atkCost: 2,
+            skills: ["rush", "evade"],
+            type: "warrior",
+            faction: "china",
+            is_special: true,
+            img: "./assets/images/sp_sun_wukong.png"
         }
     ],
     greekCards: [
@@ -235,6 +257,28 @@ const CardDatabase = {
             type: "warrior",
             faction: "greek", 
             img: "./assets/images/leader_zeus.png" 
+        },
+        {
+            name: "Zeus SP",
+            atk: 9000,
+            cost: 6,
+            atkCost: 2,
+            skills: ["pierce", "rush"],
+            type: "warrior",
+            faction: "greek",
+            is_special: true,
+            img: "./assets/images/sp_zeus.png"
+        },
+        {
+            name: "Poseidon SP",
+            atk: 7000,
+            cost: 4,
+            atkCost: 2,
+            skills: ["on_play:stun", "pierce"],
+            type: "warrior",
+            faction: "greek",
+            is_special: true,
+            img: "./assets/images/sp_poseidon.png"
         }
     ]
 };
