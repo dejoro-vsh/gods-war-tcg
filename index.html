@@ -104,6 +104,22 @@
     </style>
 </head>
 <body>
+    <script>
+        if (window.location.hostname.includes('staging') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const banner = document.createElement('div');
+            banner.innerHTML = `⚠️ STAGING ENVIRONMENT - TEST MODE ⚠️`;
+            banner.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%;
+                background: rgba(220, 38, 38, 0.9);
+                color: white; text-align: center; padding: 4px;
+                font-size: 13px; font-weight: bold; letter-spacing: 2px;
+                z-index: 99999; pointer-events: none;
+                backdrop-filter: blur(4px); box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            `;
+            document.body.appendChild(banner);
+            document.body.style.paddingTop = '25px';
+        }
+    </script>
     <!-- Audio Assets (Local MP3 for 100% Mobile Support) -->
     <audio id="bgm-menu" src="./assets/sounds/bgm-menu.mp3" loop></audio>
     <audio id="bgm-battle" src="./assets/sounds/bgm-battle.mp3" loop></audio>
