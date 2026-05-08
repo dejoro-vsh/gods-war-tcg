@@ -999,7 +999,7 @@
         async function claimQuest(questId) {
             try {
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                 
                 const res = await fetch(`${serverUrl}/api/quests/claim`, {
                     method: 'POST',
@@ -1369,7 +1369,7 @@
             try {
                 // Determine server URL (localhost vs production)
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                 
                 const res = await fetch(`${serverUrl}/api/mint`, {
                     method: 'POST',
@@ -1547,7 +1547,7 @@
         async function recordGameResult(win, k, h, pt) {
             if (!playerId) return;
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+            const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
             try {
                 const res = await fetch(serverUrl + '/api/match/result', {
                     method: 'POST',
@@ -2976,7 +2976,7 @@
                 
                 try {
                     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                    const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                     
                     const res = await fetch(`${serverUrl}/api/checkout/create-session`, {
                         method: 'POST',
@@ -3030,7 +3030,7 @@
 
             try {
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                 
                 const res = await fetch(`${serverUrl}/api/shop/buy-pack-mock`, {
                     method: 'POST',
@@ -3134,7 +3134,7 @@
         async function claimOverflowCards() {
             try {
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                 
                 const res = await fetch(`${serverUrl}/api/inventory/claim-overflow`, {
                     method: 'POST',
@@ -3365,7 +3365,7 @@
             
             try {
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                 
                 const res = await fetch(`${serverUrl}/api/craft/ascend`, {
                     method: 'POST',
@@ -3563,7 +3563,7 @@
                 // -------------------------------
 
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
 
                 // 1. Request Signature
                 const sigRes = await fetch(`${serverUrl}/api/mint/signature`, {
@@ -3635,7 +3635,7 @@
 
             try {
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                 
                 const res = await fetch(`${serverUrl}/api/marketplace/ads`);
                 const ads = await res.json();
@@ -3690,7 +3690,7 @@
                 
                 try {
                     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const serverUrl = isLocal ? 'http://localhost:3000' : 'https://gods-war-tcg-server.onrender.com';
+                    const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
                     
                     const res = await fetch(`${serverUrl}/api/marketplace/ads`, {
                         method: 'POST',
