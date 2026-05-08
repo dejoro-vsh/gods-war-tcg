@@ -1203,6 +1203,14 @@
             const renderList = faction === 'china' ? chinaCardsInv : greekCardsInv;
             const baseCards = faction === 'china' ? chinaCards : greekCards;
             
+            const gradeWeights = { 'SP': 7, 'Mythic': 6, 'Legendary': 5, 'Epic': 4, 'Rare': 3, 'Uncommon': 2, 'Normal': 1 };
+            renderList.sort((a, b) => {
+                let weightA = gradeWeights[a.grade] || 0;
+                let weightB = gradeWeights[b.grade] || 0;
+                if (weightB !== weightA) return weightB - weightA;
+                return a.card_name.localeCompare(b.card_name);
+            });
+            
             renderList.forEach(invCard => {
                 let baseCard = baseCards.find(c => c.name === invCard.card_name);
                 if (!baseCard) return;
