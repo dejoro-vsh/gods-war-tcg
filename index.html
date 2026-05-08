@@ -3450,10 +3450,19 @@
                     return;
                 }
                 
-                // Delete from Supabase if online
-                if (playerId && dbClient) {
-                    const { error } = await dbClient.from('player_inventory').delete().eq('id', activeInventoryId).eq('player_id', playerId);
-                    if (error) throw error;
+                // Delete via API
+                if (playerId) {
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const serverUrl = isLocal ? 'http://localhost:3000' : (window.location.hostname.includes('staging') ? 'https://gods-war-tcg.onrender.com' : 'https://gods-war-tcg-server.onrender.com');
+
+                    const res = await fetch(`${serverUrl}/api/inventory/destroy`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ playerId, inventoryId: activeInventoryId })
+                    });
+                    
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
                 }
                 
                 // Remove locally
@@ -3473,7 +3482,7 @@
                 alert("ทำลายไพ่สำเร็จ! พื้นที่คลังสมบัติเพิ่มขึ้น 1 ช่อง");
             } catch (err) {
                 console.error("Error destroying card:", err);
-                alert("เกิดข้อผิดพลาดในการทำลายไพ่");
+                alert("เกิดข้อผิดพลาดในการทำลายไพ่: " + err.message);
                 btn.innerHTML = origText;
                 btn.disabled = false;
             }

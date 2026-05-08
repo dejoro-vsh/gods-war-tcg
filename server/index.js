@@ -672,6 +672,39 @@ app.post('/api/mint/confirm', async (req, res) => {
     }
 });
 
+// API: Destroy Free Card
+app.post('/api/inventory/destroy', async (req, res) => {
+    try {
+        const { playerId, inventoryId } = req.body;
+        if (!playerId || !inventoryId) return res.status(400).json({ error: "Missing parameters." });
+
+        // Verify the card exists, belongs to player, and is free
+        const { data: card, error: fetchErr } = await supabase
+            .from('player_inventory')
+            .select('*')
+            .eq('id', inventoryId)
+            .eq('player_id', playerId)
+            .single();
+
+        if (fetchErr || !card) return res.status(404).json({ error: "Card not found." });
+        if (!card.is_free) return res.status(400).json({ error: "Only free cards can be destroyed." });
+
+        // Delete the card
+        const { error: delErr } = await supabase
+            .from('player_inventory')
+            .delete()
+            .eq('id', inventoryId)
+            .eq('player_id', playerId);
+
+        if (delErr) throw delErr;
+
+        res.json({ success: true, message: "Card destroyed successfully." });
+    } catch (err) {
+        console.error("Destroy Error:", err);
+        res.status(500).json({ error: "Server error: " + err.message });
+    }
+});
+
 // API: Buy Gacha Pack (Mock Payment & RNG Engine)
 app.post('/api/shop/buy-pack-mock', async (req, res) => {
     try {
