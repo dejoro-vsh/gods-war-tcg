@@ -145,6 +145,7 @@
             <input type="password" id="auth-pass" style="padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; width: 100%; box-sizing: border-box;" placeholder="รหัสผ่าน (Password)">
             <button onclick="handleLogin()" style="padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: var(--blue); color: white;">🔓 เข้าสู่ระบบ (Login)</button>
             <button onclick="handleRegister()" style="padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: var(--gold); color: black;">📝 สมัครสมาชิก (Register)</button>
+            <button onclick="handleForgotPassword()" style="padding: 10px; font-size: 14px; border-radius: 5px; border: 1px solid #666; cursor: pointer; width: 100%; background: transparent; color: #ccc;">❓ ลืมรหัสผ่าน (Forgot Password)</button>
             <hr style="border-color:#333; width:100%; margin: 10px 0;">
             <button onclick="handleGuest()" style="padding: 12px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; background: #444; color: white;">🕵️ เล่นแบบไม่ล็อคอิน (Guest)</button>
         </div>
@@ -674,9 +675,9 @@
                 let supabaseUrl = 'https://xgmqqyriwoxzxtlzkmwp.supabase.co';
                 let supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbXFxeXJpd294enh0bHprbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTY1OTEsImV4cCI6MjA5MzEzMjU5MX0.YnOFAdSOowCHS3AgOVihAeTT31-mkQNmQAjgfhMVhu8';
                 
-                if (window.location.hostname.includes('staging')) {
-                    supabaseUrl = 'https://bomduzcfdnjhmffszupy.supabase.co';
-                    supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvbWR1emNmZG5qaG1mZnN6dXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNjc1MzIsImV4cCI6MjA5Mzc0MzUzMn0.9JoVf4W0D13MxfzBSccpIamC8TC0SC-cvdG5t_gCRvk';
+                if (window.location.hostname.includes('staging') || window.location.hostname.includes('vercel')) {
+                    supabaseUrl = 'https://gqtjqwwlqvwtcritjsjp.supabase.co';
+                    supabaseKey = 'sb_publishable_vxNQyVshGYcPUR-nGMImig_mVPy566i';
                 }
                 
                 dbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -780,6 +781,17 @@
             if (error) return showAuthMsg(error.message);
             
             showAuthMsg("สมัครสำเร็จ! กรุณาเข้าสู่ระบบ", false);
+        }
+
+        async function handleForgotPassword() {
+            if (!dbClient) return showAuthMsg("เชื่อมต่อฐานข้อมูลไม่ได้");
+            const email = document.getElementById('auth-email').value;
+            if (!email) return showAuthMsg("กรุณากรอกอีเมลที่ช่อง Email ก่อนกดปุ่มลืมรหัสผ่าน");
+            
+            const { data, error } = await dbClient.auth.resetPasswordForEmail(email);
+            if (error) return showAuthMsg(error.message);
+            
+            showAuthMsg("ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลแล้ว กรุณาตรวจสอบอีเมลของคุณ", false);
         }
 
 
